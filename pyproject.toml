@@ -1,0 +1,49 @@
+# ghostopia — uv WORKSPACE ROOT (Python backend half of the polyglot plugin).
+#
+# ghostopia is an external consumer of GhostCrawl through its public SDK/API.
+# The backend is Python on the GhostCrawl Python SDK;
+# the frontend is a thin TS/PixiJS renderer wired via its own npm workspace
+# (see package.json). This file governs the Python half only.
+#
+# This is a VIRTUAL workspace root (no [build-system]) — it is never built or
+# published, it only aggregates the members and owns the shared dev toolchain +
+# the editable ghostcrawl source.
+
+[project]
+name = "ghostopia"
+version = "0.0.0"
+description = "ghostopia — visual command center / general-purpose automation harness on top of ghostcrawl (Python backend workspace root)."
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv.workspace]
+# The glob auto-includes EVERY Python harness package under packages/ (incl.
+# behaviors/sections/task-manager/behavior-executor added in later waves) so NO
+# later plan has to amend this members list. apps/server is the FastAPI server.
+members = ["packages/*", "apps/server"]
+# ghost-renderer and ghost-art are TS-only packages (package.json, no
+# pyproject.toml) — a uv member without a pyproject would error, so exclude them.
+exclude = ["packages/ghost-renderer", "packages/ghost-art"]
+
+[tool.uv.sources]
+# Consume the GhostCrawl Python SDK (2.3.6) from a VENDORED wheel that ships
+# INSIDE this folder (vendor/), so a downloaded ghostopia/ ALONE installs with a
+# plain `uv sync` — no out-of-folder `../sdks/python` path, no monorepo siblings
+# required (plug-and-play). The wheel is the same 2.3.6 SDK build; repoint here
+# (not PyPI 2.3.5) keeps the pinned version while making the folder self-contained.
+ghostcrawl = { path = "vendor/ghostcrawl-2.3.6-py3-none-any.whl" }
+
+[dependency-groups]
+# Shared dev toolchain for the whole backend workspace. uv installs the dev group
+# by default on `uv sync`.
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.23",
+  "ruff>=0.6",
+  "mypy>=1.10",
+  "pydantic>=2.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests", "apps/server/tests", "packages"]

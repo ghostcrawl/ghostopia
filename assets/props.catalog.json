@@ -1,0 +1,169 @@
+{
+  "_note": "ghostopia PLACEABLE-PROP CATALOG. The DATA MODEL the Graveyard Builder edits: each prop is fully described by its catalog def here + a placed {catalog_id, tile, orientation, state}. Nothing about a prop is hard-coded in the renderer. footprint = tiles occupied (fed into server collision + A*); orientations = facing set (a `mirror` reuses one region flipped); states = optional region pair (e.g. lantern off/on); anim = optional clip; placement = ground|fence|wall. Grid/region/clip refs are validated against sprites.manifest.json + animations.json at load (missing ref throws). Both the NEW original graveyard props AND the existing decor (grave/terminal/crypt/mausoleum/tree/fence/cross/obelisk/candle) are catalogued through this ONE system.",
+  "props": {
+    "crypt": {
+      "category": "landmark",
+      "sprite": "crypt",
+      "footprint": { "w": 2, "h": 2 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "base" } },
+      "defaultOrientation": "s"
+    },
+    "mausoleum": {
+      "category": "landmark",
+      "sprite": "mausoleum",
+      "footprint": { "w": 2, "h": 2 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "base" } },
+      "defaultOrientation": "s"
+    },
+    "grave": {
+      "category": "grave",
+      "sprite": "grave",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "home" } },
+      "defaultOrientation": "s"
+    },
+    "cross": {
+      "category": "grave",
+      "sprite": "cross",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "base" } },
+      "defaultOrientation": "s"
+    },
+    "obelisk": {
+      "category": "grave",
+      "sprite": "obelisk",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "base" } },
+      "defaultOrientation": "s"
+    },
+    "tree": {
+      "category": "flora",
+      "sprite": "tree",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "base" } },
+      "defaultOrientation": "s"
+    },
+    "fence": {
+      "category": "barrier",
+      "sprite": "fence",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "fence",
+      "orientations": { "s": { "region": "seg" } },
+      "defaultOrientation": "s"
+    },
+    "candle": {
+      "category": "light",
+      "sprite": "candle",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "candle0" } },
+      "defaultOrientation": "s",
+      "anim": "world.candle"
+    },
+    "terminal": {
+      "category": "workstation",
+      "sprite": "terminal",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "idle" } },
+      "defaultOrientation": "s",
+      "states": { "off": "idle", "on": "active" },
+      "defaultState": "off",
+      "anim": "world.terminal"
+    },
+    "lantern": {
+      "category": "light",
+      "sprite": "lantern",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "off" } },
+      "defaultOrientation": "s",
+      "states": { "off": "off", "on": "on0" },
+      "defaultState": "on",
+      "anim": "prop.lantern"
+    },
+    "lamppost": {
+      "category": "light",
+      "sprite": "lamppost",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "off" } },
+      "defaultOrientation": "s",
+      "states": { "off": "off", "on": "on" },
+      "defaultState": "on"
+    },
+    "bench": {
+      "category": "furniture",
+      "sprite": "bench",
+      "footprint": { "w": 2, "h": 1 },
+      "placement": "ground",
+      "orientations": { "e": { "region": "side" }, "w": { "mirror": "e" } },
+      "defaultOrientation": "e"
+    },
+    "urn": {
+      "category": "grave",
+      "sprite": "urn",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "base" } },
+      "defaultOrientation": "s"
+    },
+    "statue": {
+      "category": "grave",
+      "sprite": "statue",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "base" } },
+      "defaultOrientation": "s"
+    },
+    "pumpkin": {
+      "category": "light",
+      "sprite": "pumpkin",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "off" } },
+      "defaultOrientation": "s",
+      "states": { "off": "off", "on": "on" },
+      "defaultState": "on"
+    },
+    "shrub": {
+      "category": "flora",
+      "sprite": "shrub",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "base" } },
+      "defaultOrientation": "s"
+    },
+    "gate": {
+      "category": "barrier",
+      "sprite": "gate",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "fence",
+      "orientations": { "e": { "region": "bar" }, "w": { "mirror": "e" } },
+      "defaultOrientation": "e"
+    },
+    "well": {
+      "category": "structure",
+      "sprite": "well",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "base" } },
+      "defaultOrientation": "s"
+    },
+    "candlecluster": {
+      "category": "light",
+      "sprite": "candlecluster",
+      "footprint": { "w": 1, "h": 1 },
+      "placement": "ground",
+      "orientations": { "s": { "region": "c0" } },
+      "defaultOrientation": "s",
+      "anim": "prop.candlecluster"
+    }
+  }
+}

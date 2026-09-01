@@ -1,0 +1,17 @@
+{
+  "name": "@ghostopia/ghost-renderer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ghostopia ghost-renderer — reusable 2D/pixel renderer package (TS-only). PixiJS render loop + camera + directional animated ghost sprite + a Zustand server-authoritative-state bridge. Imports NO GhostCrawl SDK and NO Python backend.",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@ghostopia/ghost-art": "*",
+    "pixi.js": "^8.20.0",
+    "zustand": "^5.0.0"
+  }
+}

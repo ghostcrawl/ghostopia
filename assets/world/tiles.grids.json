@@ -1,0 +1,148 @@
+{
+  "_note": "ghostopia ORIGINAL graveyard tileset — 16x16 autotile-friendly ground (grass/path/dirt), a 16x16 grave (ghost home), and a 32x24 crypt terminal (workstation) with idle/active/active1 frames (active1 = a scanline flicker) (screen flickers cyan when a ghost works). Single-char palette KEYS resolved by legend; ' ' = transparent. All hand-authored; no reference-repo tileset traced or reused. NIGHT RE-PALETTE: the ground ramps (grass/path/dirt) are dark navy/indigo night tones (not day-green) so the field reads as a night graveyard; the section washes + crypt/lantern glows POP against the dark. Same original grids, night legend.",
+  "grids": {
+    "grass": {
+      "transparent": " ",
+      "legend": {
+        "g": "#151d3a",
+        "G": "#1d2748",
+        "d": "#101635"
+      },
+      "rows": [
+        "gggggggggggggggg",
+        "ggGgggggddgggggg",
+        "gggggggggggggGgg",
+        "gggddggggggggggg",
+        "ggggggggGgggggdd",
+        "gGgggggggggggggg",
+        "ggggggddgggGgggg",
+        "gggggggggggggggg",
+        "gggGgggggggddggg",
+        "ddgggggggggggggg",
+        "ggggggGgggggggGg",
+        "ggggddgggggggggg",
+        "gGggggggggGggggg",
+        "ggggggggddgggggg",
+        "gggddgggggggGggg",
+        "gggggggggggggggg"
+      ]
+    },
+    "path": {
+      "transparent": " ",
+      "legend": {
+        "p": "#3a3752",
+        "P": "#4c4a68",
+        "k": "#26243a"
+      },
+      "rows": [
+        "pppppppkpppppppp",
+        "ppPppppppppkpppp",
+        "ppppppppPppppppp",
+        "pkpppppppppppPpp",
+        "ppppPpppkppppppp",
+        "ppppppppppppkppp",
+        "pPpppkpppppppppp",
+        "ppppppppppPppppp",
+        "ppkppppppppppppk",
+        "ppppppPppppppppp",
+        "pppPppppppkppppp",
+        "kpppppppppppppPp",
+        "ppppppkpppPppppp",
+        "ppPpppppppppppkp",
+        "ppppkpppPppppppp",
+        "ppppppppppppkppp"
+      ]
+    },
+    "dirt": {
+      "transparent": " ",
+      "legend": {
+        "t": "#241f30",
+        "T": "#2e2740",
+        "k": "#181428"
+      },
+      "rows": [
+        "tttttttttttttttt",
+        "ttTttttkttttTttt",
+        "tttttttttttttttt",
+        "tkttttttTtttttkt",
+        "ttttTttttttttttt",
+        "tttttttttTtttttt",
+        "tTttkttttttttTtt",
+        "tttttttttttktttt",
+        "ttttttTtttttttTt",
+        "tkttttttttttttTt",
+        "ttttTttktttttttt",
+        "ttTttttttttTtttt",
+        "tttttktttttttttt",
+        "ttttttttTttktttt",
+        "tTtttttttttttttt",
+        "ttttttTtttttkttt"
+      ]
+    },
+    "grave": {
+      "transparent": " ",
+      "legend": {
+        "w": "#6a6480",
+        "W": "#8580a0",
+        "x": "#241f38",
+        "g": "#31624a"
+      },
+      "rows": [
+        "                ",
+        "     xxxxxx     ",
+        "    xWWWWWWx    ",
+        "   xWWWWWWWWx   ",
+        "   xWWwwwwWWx   ",
+        "   xWwwwwwwWx   ",
+        "   xWwxxxxwWx   ",
+        "   xWwwwwwwWx   ",
+        "   xWwwWWwwWx   ",
+        "   xWwwwwwwWx   ",
+        "   xWwwwwwwWx   ",
+        "   xwwwwwwwwx   ",
+        "  xwwwwwwwwwwx  ",
+        " gxxwwwwwwwwxxg ",
+        "gggxxxxxxxxxxggg",
+        "gggggggggggggggg"
+      ]
+    },
+    "terminal": {
+      "transparent": " ",
+      "legend": {
+        "o": "#3a3550",
+        "O": "#524c72",
+        "n": "#241f38",
+        "c": "#2b6f78",
+        "C": "#8ff0ff",
+        "r": "#8ff0ff"
+      },
+      "rows": [
+        "    oooooooo        oooooooo        oooooooo    ",
+        "   oOOOOOOOOo      oOOOOOOOOo      oOOOOOOOOo   ",
+        "  oOcccccccOo    oOCCCCCCCCOo    oOCrCCCCrCOo   ",
+        "  oOcccccccOo    oOCCrCCrCCOo    oOCCCCCCCCOo   ",
+        "  oOcccccccOo    oOCCCCCCCCOo    oOCCCrCCCCOo   ",
+        "  oOcccccccOo    oOCCrCCCCCOo    oOCCCCCCCCOo   ",
+        "  oOcccccccOo    oOCCCCCCrCOo    oOrCCCCCCCOo   ",
+        "  oOcccccccOo    oOCCCCCCCCOo    oOCCCCCrCCOo   ",
+        "  oOcccccccOo    oOCrCCCCCCOo    oOCCrCCCCCOo   ",
+        "  oOnnnnnnnOo    oOnnnnnnnnOo    oOnnnnnnnnOo   ",
+        "  oOOOOOOOOOo    oOOOOOOOOOOo    oOOOOOOOOOOo   ",
+        "   ooOOOOoo       ooOOOOOOoo      ooOOOOOOoo    ",
+        "     oOOo           oOOOOo          oOOOOo      ",
+        "     oOOo           oOOOOo          oOOOOo      ",
+        "    oOOOOo         oOOOOOOo        oOOOOOOo     ",
+        "   oOOOOOOo       oOOOOOOOOo      oOOOOOOOOo    ",
+        "   nnnnnnnn       nnnnnnnnnn      nnnnnnnnnn    ",
+        "                                                ",
+        "                                                ",
+        "                                                ",
+        "                                                ",
+        "                                                ",
+        "                                                ",
+        "                                                "
+      ],
+      "_cols": "idle active active1"
+    }
+  }
+}

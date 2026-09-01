@@ -1,0 +1,1013 @@
+{
+  "$defs": {
+    "Agent": {
+      "description": "An AgentProvider instance (deterministic runner or LLM brain), behind the seam.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "default": "deterministic",
+          "enum": [
+            "deterministic",
+            "llm"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "Agent",
+      "type": "object"
+    },
+    "AgentEvent": {
+      "additionalProperties": false,
+      "description": "A normalized event from an AgentProvider (deterministic runner OR LLM).",
+      "properties": {
+        "agent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Agent Id"
+        },
+        "payload": {
+          "additionalProperties": true,
+          "title": "Payload",
+          "type": "object"
+        },
+        "type": {
+          "minLength": 1,
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "AgentEvent",
+      "type": "object"
+    },
+    "Bounds": {
+      "description": "A tile rectangle on the map (section bounds / region).",
+      "properties": {
+        "h": {
+          "title": "H",
+          "type": "integer"
+        },
+        "w": {
+          "title": "W",
+          "type": "integer"
+        },
+        "x": {
+          "title": "X",
+          "type": "integer"
+        },
+        "y": {
+          "title": "Y",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "w",
+        "h"
+      ],
+      "title": "Bounds",
+      "type": "object"
+    },
+    "BrowserEvent": {
+      "additionalProperties": false,
+      "description": "A browser.* session event.",
+      "properties": {
+        "payload": {
+          "additionalProperties": true,
+          "title": "Payload",
+          "type": "object"
+        },
+        "session_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Session Id"
+        },
+        "type": {
+          "minLength": 1,
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "BrowserEvent",
+      "type": "object"
+    },
+    "BrowserSession": {
+      "description": "A real GhostCrawl browser session bound to a ghost/task.",
+      "properties": {
+        "engine": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Engine"
+        },
+        "ghost_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ghost Id"
+        },
+        "session_id": {
+          "title": "Session Id",
+          "type": "string"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        }
+      },
+      "required": [
+        "session_id"
+      ],
+      "title": "BrowserSession",
+      "type": "object"
+    },
+    "Envelope": {
+      "additionalProperties": false,
+      "description": "The normalized envelope: ``{protocol_version, type, ghost_id, ts, payload}``.",
+      "properties": {
+        "ghost_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ghost Id"
+        },
+        "payload": {
+          "default": null,
+          "title": "Payload"
+        },
+        "protocol_version": {
+          "title": "Protocol Version",
+          "type": "integer"
+        },
+        "ts": {
+          "title": "Ts",
+          "type": "number"
+        },
+        "type": {
+          "minLength": 1,
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "protocol_version",
+        "type",
+        "ts"
+      ],
+      "title": "Envelope",
+      "type": "object"
+    },
+    "ErrorEvent": {
+      "additionalProperties": false,
+      "description": "A mapped SDK error surfaced to the world (GHOSTCRAWL_INTEGRATION error map).",
+      "properties": {
+        "code": {
+          "title": "Code",
+          "type": "string"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        },
+        "retry_after": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After"
+        },
+        "retryable": {
+          "default": false,
+          "title": "Retryable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "title": "ErrorEvent",
+      "type": "object"
+    },
+    "Ghost": {
+      "description": "A visual worker entity. Differentiated by name/section/task/location/UI \u2014\nNOT by RPG class (BRIEF \u00a722/\u00a730).",
+      "properties": {
+        "behavior_override": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Behavior Override"
+        },
+        "home_grave": {
+          "title": "Home Grave",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "position": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Point"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "section": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Section"
+        },
+        "state": {
+          "$ref": "#/$defs/GhostState",
+          "default": "IDLE"
+        },
+        "task_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Task Id"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "home_grave"
+      ],
+      "title": "Ghost",
+      "type": "object"
+    },
+    "GhostCommand": {
+      "additionalProperties": false,
+      "description": "A command issued to a ghost (management/driver \u2192 runtime).",
+      "properties": {
+        "args": {
+          "additionalProperties": true,
+          "title": "Args",
+          "type": "object"
+        },
+        "ghost_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ghost Id"
+        },
+        "kind": {
+          "minLength": 1,
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "GhostCommand",
+      "type": "object"
+    },
+    "GhostEvent": {
+      "additionalProperties": false,
+      "description": "A normalized ghost/browser/task/result event (the payload envelopes carry).",
+      "properties": {
+        "ghost_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ghost Id"
+        },
+        "payload": {
+          "additionalProperties": true,
+          "title": "Payload",
+          "type": "object"
+        },
+        "type": {
+          "minLength": 1,
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "GhostEvent",
+      "type": "object"
+    },
+    "GhostState": {
+      "description": "The authoritative coarse lifecycle FSM (server-owned; client interpolates).",
+      "enum": [
+        "IDLE",
+        "RECEIVING_TASK",
+        "WALKING",
+        "AT_WORKSTATION",
+        "OPENING_BROWSER",
+        "NAVIGATING",
+        "SEARCHING",
+        "READING",
+        "SCROLLING",
+        "EXTRACTING",
+        "PROCESSING",
+        "WAITING",
+        "RETRYING",
+        "ERROR",
+        "COMPLETED",
+        "RETURNING_HOME"
+      ],
+      "title": "GhostState",
+      "type": "string"
+    },
+    "Mission": {
+      "description": "A named collection of tasks (the '500 companies' fan-out).",
+      "properties": {
+        "done": {
+          "default": 0,
+          "title": "Done",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "task_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Task Ids",
+          "type": "array"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "total": {
+          "default": 0,
+          "title": "Total",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "title"
+      ],
+      "title": "Mission",
+      "type": "object"
+    },
+    "MissionSpec": {
+      "additionalProperties": false,
+      "description": "A named collection of tasks (the '500 companies' fan-out).",
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "tasks": {
+          "items": {
+            "$ref": "#/$defs/TaskSpec"
+          },
+          "title": "Tasks",
+          "type": "array"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ],
+      "title": "MissionSpec",
+      "type": "object"
+    },
+    "Point": {
+      "description": "A pixel/tile coordinate.",
+      "properties": {
+        "x": {
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "title": "Point",
+      "type": "object"
+    },
+    "Result": {
+      "description": "One extracted result / record landing in the Data Graveyard.",
+      "properties": {
+        "fields": {
+          "additionalProperties": true,
+          "title": "Fields",
+          "type": "object"
+        },
+        "record": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        }
+      },
+      "required": [
+        "task_id"
+      ],
+      "title": "Result",
+      "type": "object"
+    },
+    "RetrySpec": {
+      "additionalProperties": false,
+      "description": "Retry policy; honors the SDK ``retry_after`` from mapped errors by default.",
+      "properties": {
+        "honor_retry_after": {
+          "default": true,
+          "title": "Honor Retry After",
+          "type": "boolean"
+        },
+        "max": {
+          "default": 2,
+          "title": "Max",
+          "type": "integer"
+        }
+      },
+      "title": "RetrySpec",
+      "type": "object"
+    },
+    "SectionDef": {
+      "additionalProperties": false,
+      "description": "A labelled sub-region of the graveyard: bounds + a workstation pool + a role\n(default behavior) + task-routing rules. Declared as DATA alongside the map.",
+      "properties": {
+        "accepts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Accepts",
+          "type": "array"
+        },
+        "bounds": {
+          "$ref": "#/$defs/Bounds"
+        },
+        "capacity": {
+          "default": 1,
+          "minimum": 0,
+          "title": "Capacity",
+          "type": "integer"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "palette": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Palette"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "routes_to": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Routes To",
+          "type": "array"
+        },
+        "workstation_types": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Workstation Types",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "bounds",
+        "role"
+      ],
+      "title": "SectionDef",
+      "type": "object"
+    },
+    "SectionRef": {
+      "additionalProperties": false,
+      "description": "A lightweight reference to a section a ghost belongs to (role + optional bounds/\nroster), passed into ``BehaviorContext`` without the full ``SectionDef``.",
+      "properties": {
+        "bounds": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Bounds"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "roster": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Roster",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "role"
+      ],
+      "title": "SectionRef",
+      "type": "object"
+    },
+    "Task": {
+      "description": "A unit of work assigned to a ghost (mission fan-out). ``kind`` routes it to a\nsection; ``behavior_hint`` can request a specific behavior (role-resolution \u00a7B).",
+      "properties": {
+        "behavior_hint": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Behavior Hint"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "inputs": {
+          "additionalProperties": true,
+          "title": "Inputs",
+          "type": "object"
+        },
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "mission_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mission Id"
+        },
+        "params": {
+          "additionalProperties": true,
+          "title": "Params",
+          "type": "object"
+        },
+        "target": {
+          "additionalProperties": true,
+          "title": "Target",
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "title": "Task",
+      "type": "object"
+    },
+    "TaskInputs": {
+      "additionalProperties": false,
+      "description": "The work payload.",
+      "properties": {
+        "extract_schema": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extract Schema"
+        },
+        "query": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Query"
+        },
+        "urls": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Urls"
+        }
+      },
+      "title": "TaskInputs",
+      "type": "object"
+    },
+    "TaskSpec": {
+      "additionalProperties": false,
+      "description": "A declarative, parameterized task. Emittable by non-coders and AI; validated\nagainst this schema + the named behavior's own ``paramSchema`` at assign time.",
+      "properties": {
+        "behavior": {
+          "title": "Behavior",
+          "type": "string"
+        },
+        "concurrency": {
+          "default": 5,
+          "maximum": 50,
+          "minimum": 1,
+          "title": "Concurrency",
+          "type": "integer"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "identities": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Identities"
+        },
+        "inputs": {
+          "$ref": "#/$defs/TaskInputs"
+        },
+        "params": {
+          "additionalProperties": true,
+          "title": "Params",
+          "type": "object"
+        },
+        "retry": {
+          "$ref": "#/$defs/RetrySpec"
+        },
+        "target": {
+          "$ref": "#/$defs/TaskTarget"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "behavior"
+      ],
+      "title": "TaskSpec",
+      "type": "object"
+    },
+    "TaskTarget": {
+      "additionalProperties": false,
+      "description": "Where the work runs (dual-target: cloud OR self-host).",
+      "properties": {
+        "gc_target": {
+          "default": "cloud",
+          "enum": [
+            "cloud",
+            "selfhost"
+          ],
+          "title": "Gc Target",
+          "type": "string"
+        },
+        "profile": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Profile"
+        },
+        "section": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Section"
+        }
+      },
+      "title": "TaskTarget",
+      "type": "object"
+    },
+    "Workstation": {
+      "description": "A computer-graveyard workstation a ghost walks to and works at.",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "occupied_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Occupied By"
+        },
+        "section": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Section"
+        },
+        "x": {
+          "title": "X",
+          "type": "integer"
+        },
+        "y": {
+          "title": "Y",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "x",
+        "y"
+      ],
+      "title": "Workstation",
+      "type": "object"
+    },
+    "WorldObject": {
+      "description": "A placed object on the map (grave, terminal, landmark, decoration).",
+      "properties": {
+        "direction": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Direction"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "properties": {
+          "additionalProperties": true,
+          "title": "Properties",
+          "type": "object"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "x": {
+          "title": "X",
+          "type": "integer"
+        },
+        "y": {
+          "title": "Y",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "x",
+        "y"
+      ],
+      "title": "WorldObject",
+      "type": "object"
+    }
+  },
+  "title": "ghostopia-contract"
+}

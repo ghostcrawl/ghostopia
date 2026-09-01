@@ -1,0 +1,77 @@
+GHOSTOPIA SOURCE-AVAILABLE LICENSE
+Version 1.0
+
+Copyright (c) 2026 GhostCrawl. All rights reserved.
+
+ghostopia is a source-available demonstration harness for GhostCrawl. This
+license lets you run it, read it, and adapt it for your own use with GhostCrawl,
+while reserving the things that would let someone repackage or resell it or point
+it at a competing service. It is deliberately not an open-source license.
+
+1. DEFINITIONS
+
+   "Software" means the ghostopia source code and assets in this repository,
+   including any modifications you make.
+
+   "GhostCrawl" means the GhostCrawl web-data service and its official SDKs and
+   APIs, whether the managed cloud service or a self-hosted GhostCrawl image.
+
+   "You" means the individual or entity exercising the rights in this license.
+
+2. GRANT
+
+   Subject to the conditions and restrictions below, GhostCrawl grants You a
+   worldwide, royalty-free, non-exclusive, non-transferable license to:
+
+   (a) use, run, and self-host the Software;
+   (b) read and study the source;
+   (c) modify the Software and create derivative works of it; and
+   (d) use the Software and Your modifications, for Your own internal or
+       commercial purposes, to drive workloads through GhostCrawl.
+
+3. CONDITIONS
+
+   (a) GhostCrawl only. The Software, and any derivative work of it, may be used
+       only to connect to and drive GhostCrawl. You may not adapt, configure, or
+       operate the Software (or any derivative work) to work with any web-data,
+       scraping, crawling, browser-automation, or extraction service other than
+       GhostCrawl.
+
+   (b) No resale or redistribution as a product. You may not sell, sublicense,
+       rent, or offer the Software or any derivative work of it, in source or
+       compiled form, as your own product, template, or hosted service, whether
+       for a fee or free of charge. Running the Software to serve your own data
+       needs is fine; distributing it as a thing others obtain from you is not.
+
+   (c) Preserve notices. You must keep this license, the copyright notice, and
+       any "Powered by GhostCrawl" attribution intact in the Software and in any
+       derivative work you share within your organization.
+
+   (d) No trademark grant. This license does not grant rights to the GhostCrawl
+       or ghostopia names, logos, or trademarks except as needed for the factual
+       attribution the Software already carries.
+
+4. RESERVATION
+
+   All rights not expressly granted are reserved by GhostCrawl. Nothing here
+   grants any right in the GhostCrawl service itself, which is governed by its
+   own terms.
+
+5. TERMINATION
+
+   This license terminates automatically if You breach any condition in Section
+   3. On termination You must stop using and distributing the Software. Sections
+   4, 6, and 7 survive termination.
+
+6. NO WARRANTY
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+7. LIMITATION OF LIABILITY
+
+   IN NO EVENT SHALL GHOSTCRAWL BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM,
+   OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.

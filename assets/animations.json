@@ -1,0 +1,664 @@
+{
+  "_note": "ghostopia animation-clip table — the SINGLE contract the renderer plays. clip name -> ordered [sprite, region, ms] frames + {loop, mirror?}. idle.<facing>/move.<facing> cover all 8 compass facings; the west set (idle.sw/w/nw, move.sw/w/nw) reuses the authored east regions with mirror:true (the renderer flips horizontally). work/success/error are the front expression states; ov.* are the living status overlays; world.* are the ambient crypt-terminal + grave candle flickers. loadAnimations() validates every (sprite,region) against sprites.manifest.json so a typo can never ship a blank frame. Timing is DATA — nothing is hard-coded to a wall clock in the art package.",
+  "clips": {
+    "idle.s": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "s_idle0",
+          "ms": 200
+        },
+        {
+          "sprite": "ghost",
+          "region": "s_idle1",
+          "ms": 180
+        },
+        {
+          "sprite": "ghost",
+          "region": "s_idle2",
+          "ms": 150
+        },
+        {
+          "sprite": "ghost",
+          "region": "s_idle3",
+          "ms": 180
+        }
+      ],
+      "loop": true
+    },
+    "idle.se": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "se_idle0",
+          "ms": 200
+        },
+        {
+          "sprite": "ghost",
+          "region": "se_idle1",
+          "ms": 180
+        },
+        {
+          "sprite": "ghost",
+          "region": "se_idle2",
+          "ms": 150
+        },
+        {
+          "sprite": "ghost",
+          "region": "se_idle3",
+          "ms": 180
+        }
+      ],
+      "loop": true
+    },
+    "idle.e": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "e_idle0",
+          "ms": 200
+        },
+        {
+          "sprite": "ghost",
+          "region": "e_idle1",
+          "ms": 180
+        },
+        {
+          "sprite": "ghost",
+          "region": "e_idle2",
+          "ms": 150
+        },
+        {
+          "sprite": "ghost",
+          "region": "e_idle3",
+          "ms": 180
+        }
+      ],
+      "loop": true
+    },
+    "idle.ne": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "ne_idle0",
+          "ms": 200
+        },
+        {
+          "sprite": "ghost",
+          "region": "ne_idle1",
+          "ms": 180
+        },
+        {
+          "sprite": "ghost",
+          "region": "ne_idle2",
+          "ms": 150
+        },
+        {
+          "sprite": "ghost",
+          "region": "ne_idle3",
+          "ms": 180
+        }
+      ],
+      "loop": true
+    },
+    "idle.n": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "n_idle0",
+          "ms": 200
+        },
+        {
+          "sprite": "ghost",
+          "region": "n_idle1",
+          "ms": 180
+        },
+        {
+          "sprite": "ghost",
+          "region": "n_idle2",
+          "ms": 150
+        },
+        {
+          "sprite": "ghost",
+          "region": "n_idle3",
+          "ms": 180
+        }
+      ],
+      "loop": true
+    },
+    "idle.sw": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "se_idle0",
+          "ms": 200
+        },
+        {
+          "sprite": "ghost",
+          "region": "se_idle1",
+          "ms": 180
+        },
+        {
+          "sprite": "ghost",
+          "region": "se_idle2",
+          "ms": 150
+        },
+        {
+          "sprite": "ghost",
+          "region": "se_idle3",
+          "ms": 180
+        }
+      ],
+      "loop": true,
+      "mirror": true
+    },
+    "idle.w": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "e_idle0",
+          "ms": 200
+        },
+        {
+          "sprite": "ghost",
+          "region": "e_idle1",
+          "ms": 180
+        },
+        {
+          "sprite": "ghost",
+          "region": "e_idle2",
+          "ms": 150
+        },
+        {
+          "sprite": "ghost",
+          "region": "e_idle3",
+          "ms": 180
+        }
+      ],
+      "loop": true,
+      "mirror": true
+    },
+    "idle.nw": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "ne_idle0",
+          "ms": 200
+        },
+        {
+          "sprite": "ghost",
+          "region": "ne_idle1",
+          "ms": 180
+        },
+        {
+          "sprite": "ghost",
+          "region": "ne_idle2",
+          "ms": 150
+        },
+        {
+          "sprite": "ghost",
+          "region": "ne_idle3",
+          "ms": 180
+        }
+      ],
+      "loop": true,
+      "mirror": true
+    },
+    "move.s": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "s_move0",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "s_move1",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "s_move2",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "s_move3",
+          "ms": 120
+        }
+      ],
+      "loop": true
+    },
+    "move.se": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "se_move0",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "se_move1",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "se_move2",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "se_move3",
+          "ms": 120
+        }
+      ],
+      "loop": true
+    },
+    "move.e": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "e_move0",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "e_move1",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "e_move2",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "e_move3",
+          "ms": 120
+        }
+      ],
+      "loop": true
+    },
+    "move.ne": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "ne_move0",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "ne_move1",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "ne_move2",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "ne_move3",
+          "ms": 120
+        }
+      ],
+      "loop": true
+    },
+    "move.n": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "n_move0",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "n_move1",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "n_move2",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "n_move3",
+          "ms": 120
+        }
+      ],
+      "loop": true
+    },
+    "move.sw": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "se_move0",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "se_move1",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "se_move2",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "se_move3",
+          "ms": 120
+        }
+      ],
+      "loop": true,
+      "mirror": true
+    },
+    "move.w": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "e_move0",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "e_move1",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "e_move2",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "e_move3",
+          "ms": 120
+        }
+      ],
+      "loop": true,
+      "mirror": true
+    },
+    "move.nw": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "ne_move0",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "ne_move1",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "ne_move2",
+          "ms": 120
+        },
+        {
+          "sprite": "ghost",
+          "region": "ne_move3",
+          "ms": 120
+        }
+      ],
+      "loop": true,
+      "mirror": true
+    },
+    "work": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "work0",
+          "ms": 160
+        },
+        {
+          "sprite": "ghost",
+          "region": "work1",
+          "ms": 160
+        },
+        {
+          "sprite": "ghost",
+          "region": "work2",
+          "ms": 160
+        }
+      ],
+      "loop": true
+    },
+    "work.navigating": {
+      "frames": [
+        { "sprite": "ghost", "region": "work0", "ms": 140 },
+        { "sprite": "ghost", "region": "work1", "ms": 140 },
+        { "sprite": "ghost", "region": "work2", "ms": 140 }
+      ],
+      "loop": true
+    },
+    "work.searching": {
+      "frames": [
+        { "sprite": "ghost", "region": "work0", "ms": 130 },
+        { "sprite": "ghost", "region": "work1", "ms": 130 },
+        { "sprite": "ghost", "region": "work2", "ms": 190 }
+      ],
+      "loop": true
+    },
+    "work.reading": {
+      "frames": [
+        { "sprite": "ghost", "region": "work0", "ms": 220 },
+        { "sprite": "ghost", "region": "work1", "ms": 220 }
+      ],
+      "loop": true
+    },
+    "work.scrolling": {
+      "frames": [
+        { "sprite": "ghost", "region": "work1", "ms": 110 },
+        { "sprite": "ghost", "region": "work2", "ms": 110 },
+        { "sprite": "ghost", "region": "work0", "ms": 110 }
+      ],
+      "loop": true
+    },
+    "work.extracting": {
+      "frames": [
+        { "sprite": "ghost", "region": "work2", "ms": 150 },
+        { "sprite": "ghost", "region": "work0", "ms": 150 },
+        { "sprite": "ghost", "region": "work1", "ms": 150 }
+      ],
+      "loop": true
+    },
+    "success": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "success0",
+          "ms": 220
+        },
+        {
+          "sprite": "ghost",
+          "region": "success1",
+          "ms": 220
+        }
+      ],
+      "loop": true
+    },
+    "error": {
+      "frames": [
+        {
+          "sprite": "ghost",
+          "region": "error0",
+          "ms": 240
+        },
+        {
+          "sprite": "ghost",
+          "region": "error1",
+          "ms": 240
+        }
+      ],
+      "loop": true
+    },
+    "ov.captcha": {
+      "frames": [
+        {
+          "sprite": "overlays",
+          "region": "captcha0",
+          "ms": 320
+        },
+        {
+          "sprite": "overlays",
+          "region": "captcha1",
+          "ms": 320
+        }
+      ],
+      "loop": true
+    },
+    "ov.cooldown": {
+      "frames": [
+        {
+          "sprite": "overlays",
+          "region": "cooldown0",
+          "ms": 520
+        },
+        {
+          "sprite": "overlays",
+          "region": "cooldown1",
+          "ms": 520
+        }
+      ],
+      "loop": true
+    },
+    "ov.retry": {
+      "frames": [
+        {
+          "sprite": "overlays",
+          "region": "retry0",
+          "ms": 140
+        },
+        {
+          "sprite": "overlays",
+          "region": "retry1",
+          "ms": 140
+        }
+      ],
+      "loop": true
+    },
+    "ov.success": {
+      "frames": [
+        {
+          "sprite": "overlays",
+          "region": "success0",
+          "ms": 220
+        },
+        {
+          "sprite": "overlays",
+          "region": "success1",
+          "ms": 220
+        }
+      ],
+      "loop": true
+    },
+    "ov.zzz": {
+      "frames": [
+        {
+          "sprite": "overlays",
+          "region": "zzz0",
+          "ms": 600
+        },
+        {
+          "sprite": "overlays",
+          "region": "zzz1",
+          "ms": 600
+        }
+      ],
+      "loop": true
+    },
+    "world.terminal": {
+      "frames": [
+        {
+          "sprite": "terminal",
+          "region": "active",
+          "ms": 260
+        },
+        {
+          "sprite": "terminal",
+          "region": "active1",
+          "ms": 220
+        }
+      ],
+      "loop": true
+    },
+    "world.candle": {
+      "frames": [
+        {
+          "sprite": "candle",
+          "region": "candle0",
+          "ms": 240
+        },
+        {
+          "sprite": "candle",
+          "region": "candle1",
+          "ms": 200
+        }
+      ],
+      "loop": true
+    },
+    "world.bat": {
+      "frames": [
+        {
+          "sprite": "bat",
+          "region": "flap0",
+          "ms": 150
+        },
+        {
+          "sprite": "bat",
+          "region": "flap1",
+          "ms": 150
+        }
+      ],
+      "loop": true
+    },
+    "world.wisp": {
+      "frames": [
+        {
+          "sprite": "wisp",
+          "region": "glow0",
+          "ms": 300
+        },
+        {
+          "sprite": "wisp",
+          "region": "glow1",
+          "ms": 300
+        }
+      ],
+      "loop": true
+    },
+    "critter.cat.walk": {
+      "frames": [
+        { "sprite": "cat", "region": "walk0", "ms": 150 },
+        { "sprite": "cat", "region": "walk1", "ms": 150 },
+        { "sprite": "cat", "region": "walk2", "ms": 150 },
+        { "sprite": "cat", "region": "walk3", "ms": 150 }
+      ],
+      "loop": true
+    },
+    "critter.cat.sit": {
+      "frames": [
+        { "sprite": "cat", "region": "sit", "ms": 400 }
+      ],
+      "loop": true
+    },
+    "prop.lantern": {
+      "frames": [
+        { "sprite": "lantern", "region": "on0", "ms": 260 },
+        { "sprite": "lantern", "region": "on1", "ms": 200 }
+      ],
+      "loop": true
+    },
+    "prop.candlecluster": {
+      "frames": [
+        { "sprite": "candlecluster", "region": "c0", "ms": 240 },
+        { "sprite": "candlecluster", "region": "c1", "ms": 200 }
+      ],
+      "loop": true
+    }
+  }
+}

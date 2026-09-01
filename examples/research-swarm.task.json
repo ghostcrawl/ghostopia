@@ -1,0 +1,8 @@
+{
+  "title": "Scout + extract on a topic",
+  "behavior": "scout_urls",
+  "target": { "gc_target": "cloud", "section": "research" },
+  "concurrency": 5,
+  "params": { "kind": "scout", "spawn_kind": "extract" },
+  "inputs": { "query": "series B fintech 2026" }
+}

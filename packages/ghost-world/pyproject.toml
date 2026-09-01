@@ -1,0 +1,23 @@
+[project]
+name = "ghostopia-ghost-world"
+version = "0.0.0"
+description = "ghostopia ghost-world package (module ghostopia_world): tile-grid world model, hand-rolled A*, read-only WorldQuery."
+requires-python = ">=3.12"
+# The world model reuses the shared Pydantic value types (Point/Bounds/Workstation/
+# WorldObject) and satisfies the shared WorldQuery Protocol, so it depends on
+# ghostopia-shared (resolved as a workspace path source below). NO external
+# pathfinding library — the A* is hand-rolled.
+dependencies = ["ghostopia-shared", "pydantic>=2"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ghostopia_world"]
+
+[tool.uv.sources]
+ghostopia-shared = { workspace = true }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

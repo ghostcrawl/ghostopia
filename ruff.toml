@@ -1,0 +1,20 @@
+# ruff config for the ghostopia Python backend workspace.
+# Meaningful rule set for hand-written code — catches real bugs, not just style.
+target-version = "py312"
+line-length = 100
+
+extend-exclude = [
+  ".venv",
+  "node_modules",
+  "dist",
+  "**/_generated",
+]
+
+[lint]
+# F=pyflakes (undefined/unused), E/W=pycodestyle, I=isort (import order),
+# UP=pyupgrade (modern syntax), B=bugbear (real footguns).
+select = ["F", "E", "W", "I", "UP", "B"]
+ignore = [
+  "E501",  # line-length is the formatter's job; long strings/URLs are fine.
+  "B008",  # FastAPI-style callable defaults (Depends(...)) are idiomatic.
+]

@@ -1,0 +1,13 @@
+{
+  "title": "Research 200 companies across identities",
+  "behavior": "navigate_and_extract",
+  "target": { "gc_target": "cloud", "section": "extraction" },
+  "identities": ["us-desktop-chrome", "de-mobile-safari", "jp-desktop-firefox"],
+  "concurrency": 8,
+  "params": { "kind": "extract", "dwell_ms": 600.0, "max_pages": 10 },
+  "inputs": {
+    "urls": ["https://example.com/companies"],
+    "extract_schema": { "name": "str", "hq": "str" }
+  },
+  "retry": { "max": 2, "honor_retry_after": true }
+}

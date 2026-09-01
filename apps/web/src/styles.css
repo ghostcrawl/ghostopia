@@ -1,0 +1,2383 @@
+/* ghostopia web — minimal chrome. The canvas fills the viewport; the HUD floats.
+   Pixel art stays crisp (nearest / pixelated), never smoothed. */
+
+:root {
+  color-scheme: dark;
+  --bg: #141222;
+  --ink: #e8ecff;
+  --panel: rgba(20, 18, 34, 0.72);
+  --rim: #8ff0ff;
+  /* Shared mobile bottom-sheet height. The dock, inspector, and Graveyard Builder sheets all
+     size to this one token so they open to the SAME height, and the zoom/settings controls
+     lift to `calc(var(--sheet-h) + 8px)` to always clear whichever sheet is open. */
+  --sheet-h: min(56dvh, 460px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  overflow: hidden;
+}
+
+.app {
+  position: relative;
+  width: 100vw;
+  height: 100vh; /* fallback for browsers without dynamic-viewport units */
+  height: 100dvh; /* mobile: track the DYNAMIC viewport so the URL bar never clips content */
+}
+
+.stage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none; /* let the render loop own drag/zoom */
+  image-rendering: pixelated; /* crisp pixel art, no blur */
+  cursor: grab;
+}
+
+.stage:active {
+  cursor: grabbing;
+}
+
+.hud {
+  position: absolute;
+  /* safe-area insets so the top HUD clears the notch / status bar on mobile */
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  left: calc(12px + env(safe-area-inset-left, 0px));
+  padding: 10px 14px;
+  max-width: calc(100vw - 24px);
+  background: var(--panel);
+  border: 1px solid rgba(143, 240, 255, 0.35);
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  line-height: 1.5;
+}
+
+.hud__title {
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--rim);
+  text-transform: lowercase;
+}
+
+.hud__poweredby {
+  display: block;
+  margin: 1px 0 4px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  opacity: 0.55;
+  color: inherit;
+  text-decoration: none;
+  pointer-events: auto;
+  width: fit-content;
+}
+.hud__poweredby:hover,
+.hud__poweredby:focus-visible {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.hud__stat {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.legend {
+  list-style: none;
+  margin: 8px 0 2px;
+  padding: 8px 0 0;
+  border-top: 1px solid rgba(143, 240, 255, 0.16);
+  display: grid;
+  gap: 3px;
+}
+
+.legend__row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  opacity: 0.82;
+  text-transform: lowercase;
+}
+
+.legend__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow: 0 0 5px currentColor;
+  flex: 0 0 auto;
+}
+
+.hud__hint {
+  margin-top: 6px;
+  font-size: 11px;
+  opacity: 0.55;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.overlay--error {
+  color: #ff9ec4;
+}
+
+/* The empty-state onboarding CTA. Reuses .overlay geometry + pointer-events:none;
+   only the button re-enables pointer-events so the canvas stays draggable behind the prompt. */
+.overlay__cta {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+  max-width: 320px;
+  padding: 0 16px;
+}
+.overlay__cta-head {
+  font-size: 14px;
+  letter-spacing: 0.08em;
+}
+.overlay__cta-body {
+  font-size: 11px;
+  opacity: 0.6;
+  line-height: 1.5;
+  letter-spacing: normal;
+}
+.overlay__cta-btn {
+  pointer-events: auto;
+  min-height: 32px;
+  padding: 6px 14px;
+}
+
+.mode-toggle {
+  position: absolute;
+  top: calc(12px + env(safe-area-inset-top, 0px));
+  right: calc(12px + env(safe-area-inset-right, 0px));
+  min-height: 40px;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: #e9e6ff;
+  background: rgba(18, 14, 34, 0.72);
+  border: 1px solid rgba(150, 130, 220, 0.4);
+  border-radius: 8px;
+  cursor: pointer;
+  backdrop-filter: blur(3px);
+}
+
+.mode-toggle[aria-pressed="true"] {
+  color: #b7ffd0;
+  border-color: rgba(120, 230, 170, 0.7);
+}
+
+/* the Live (real session) toggle sits just below the Simulated toggle */
+.mode-toggle--live {
+  top: calc(56px + env(safe-area-inset-top, 0px));
+}
+
+/* The Graveyard Builder toggle sits bottom-CENTER: the old top-center
+   placement collided with the top-left HUD once the HUD grew wide enough (legend/hint on
+   desktop, or the 46vw compact HUD on a phone) to reach the horizontal centre. The bottom
+   centre is always clear of the left/right-docked panels (HUD top-left, dock + zoom + settings
+   right, dashboard left), so the toggle never overlaps at any width. High z-index keeps it
+   clickable above everything. (Mobile re-anchors it top-left below the HUD — the bottom is the
+   dock bottom-sheet there — see the ≤640 block.) */
+.mode-toggle--editor {
+  top: auto;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  z-index: 50;
+}
+
+/* When the Graveyard Builder is OPEN, its panel is a ≤244px-wide FULL-HEIGHT
+   column pinned top-left. The bottom-CENTRE toggle can clip that panel on a narrow desktop/
+   tablet window (its left edge crosses 256px). Re-anchor the "Graveyard Builder" toggle (the
+   label) just to the RIGHT of the open panel so the label never overlaps the builder menu at
+   any width ≥641. Closed → it keeps its bottom-centre home. Phones (≤640) use a
+   bottom-sheet editor (see the mobile block) where the top-left toggle is already clear. */
+@media (min-width: 641px) {
+  .mode-toggle--editor[aria-pressed="true"] {
+    left: calc(256px + 16px);
+    right: auto;
+    transform: none;
+  }
+}
+
+/* STAGE-3 mission submit — target NAME + URL (never a key) */
+.mission-form {
+  position: absolute;
+  top: 92px;
+  right: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  width: 240px;
+  background: rgba(18, 14, 34, 0.82);
+  border: 1px solid rgba(150, 130, 220, 0.4);
+  border-radius: 8px;
+  backdrop-filter: blur(3px);
+}
+
+.mission-form__input {
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 8px;
+  color: #e9e6ff;
+  background: rgba(10, 8, 20, 0.7);
+  border: 1px solid rgba(150, 130, 220, 0.4);
+  border-radius: 6px;
+}
+
+.mission-form__submit {
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  padding: 7px 10px;
+  color: #120e22;
+  background: #b7a0ff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.mission-form__submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* STAGE-6 fan-out mission form — urls list + entry section + agent-mode brain (NAMES only) */
+.mission-form--fanout {
+  width: 264px;
+}
+
+.mission-form__input--urls {
+  resize: vertical;
+  min-height: 60px;
+  font-family: ui-monospace, monospace;
+}
+
+.mission-form__row {
+  display: flex;
+  gap: 8px;
+}
+
+.mission-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  font-size: 11px;
+  color: #b9b2e0;
+}
+
+.mission-form__select {
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 6px;
+  color: #e9e6ff;
+  background: rgba(10, 8, 20, 0.7);
+  border: 1px solid rgba(150, 130, 220, 0.4);
+  border-radius: 6px;
+}
+
+/* STAGE-6 runtime management — per-ghost pause/resume/retarget (server-authoritative) */
+.roster__manage {
+  display: flex;
+  gap: 4px;
+  margin: 2px 0 8px;
+}
+
+.roster__manage-btn {
+  font: inherit;
+  font-size: 10px;
+  padding: 3px 6px;
+  color: #d8d2f4;
+  background: rgba(40, 32, 70, 0.85);
+  border: 1px solid rgba(150, 130, 220, 0.35);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.roster__manage-btn:hover {
+  background: rgba(60, 48, 100, 0.95);
+}
+
+/* --- STAGE 4/5 live inspector: section-grouped roster + status popup + inspector --- */
+.roster {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  width: 214px;
+  max-height: 66vh;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.roster__group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.roster__section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 4px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b7a0ff;
+  opacity: 0.85;
+}
+
+.roster__section-count {
+  min-width: 18px;
+  text-align: center;
+  padding: 0 5px;
+  border-radius: 8px;
+  background: rgba(90, 70, 160, 0.5);
+  color: #efeaff;
+}
+
+.roster__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.roster__row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 9px;
+  color: #e9e6ff;
+  background: rgba(14, 11, 26, 0.72);
+  border: 1px solid rgba(150, 130, 220, 0.28);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.roster__row:hover {
+  border-color: rgba(183, 160, 255, 0.7);
+}
+
+.roster__row--open {
+  background: rgba(60, 44, 110, 0.8);
+  border-color: #b7a0ff;
+}
+
+.roster__row-top,
+.roster__row-mid {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.roster__name {
+  font-weight: 600;
+}
+
+.roster__behavior {
+  font-size: 10px;
+  opacity: 0.8;
+  color: #c9bbff;
+}
+
+.roster__state {
+  opacity: 0.65;
+  font-size: 10px;
+  letter-spacing: 0.03em;
+}
+
+.roster__records {
+  font-size: 10px;
+  color: #9be6b0;
+}
+
+.roster__task {
+  font-size: 10px;
+  opacity: 0.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roster__bar {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(150, 130, 220, 0.2);
+  overflow: hidden;
+}
+
+.roster__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7b6bff, #b7a0ff);
+  transition: width 0.4s ease;
+}
+
+/* --- liveness: roster attention flag + ×-dismiss (the fuel-gauge bar was retired) --- */
+.roster__list li {
+  position: relative;
+}
+
+.roster__attn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  margin-right: 5px;
+  font-weight: 900;
+  font-size: 10px;
+  color: #fff4f2;
+  background: #e0574a;
+  border-radius: 50%;
+  animation: roster-attn-pulse 1.1s ease-in-out infinite;
+}
+
+.roster__row--attention {
+  border-color: rgba(224, 87, 74, 0.7);
+  box-shadow: 0 0 0 1px rgba(224, 87, 74, 0.35), 0 0 10px rgba(224, 87, 74, 0.25);
+}
+
+@keyframes roster-attn-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.18); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roster__attn { animation: none; }
+}
+
+.roster__dismiss {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  line-height: 1;
+  font-size: 14px;
+  color: #d8cffd;
+  background: rgba(40, 28, 60, 0.7);
+  border: 1px solid rgba(150, 130, 220, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.roster__dismiss:hover {
+  color: #fff;
+  background: rgba(224, 87, 74, 0.8);
+  border-color: #e0574a;
+}
+
+/* --- connection indicator badge --- */
+/* Pinned top-CENTRE but dropped BELOW the top-right mode-toggle strip (Simulated +12 / Live +56,
+   ~96px tall) so it clears the toggles AND the top-left masthead HUD, sitting in the open central
+   band between the two docked columns. A high z-index + solid pill keep it readable over anything
+   behind it, and pointer-events:none means it never blocks a tap on the world or a control. */
+.conn {
+  position: absolute;
+  top: calc(104px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 11px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #f0ecff;
+  background: rgba(20, 16, 32, 0.86);
+  border: 1px solid rgba(150, 130, 220, 0.4);
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.conn__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e9d266;
+}
+
+.conn--reconnecting .conn__dot { background: #e89a4a; animation: conn-blink 0.9s step-start infinite; }
+.conn--connecting .conn__dot { background: #66e28a; animation: conn-blink 1.1s ease-in-out infinite; }
+.conn--disconnected { border-color: rgba(224, 87, 74, 0.6); }
+.conn--disconnected .conn__dot { background: #e0574a; }
+
+@keyframes conn-blink {
+  50% { opacity: 0.25; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conn__dot { animation: none !important; }
+}
+
+/* --- HUD follow/labels toggles --- */
+.hud__toggles {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  /* The parent `.hud` is `pointer-events: none` (it must let drag/zoom reach the world
+     canvas beneath it). That silently made the follow/labels buttons UNCLICKABLE — the
+     click fell through to the PixiJS canvas. Re-enable pointer events on the interactive
+     toggle row (and the buttons) so they receive clicks/taps above the world canvas,
+     while the rest of the HUD panel stays click-through. */
+  pointer-events: auto;
+}
+
+.hud__toggle {
+  font: inherit;
+  font-size: 10px;
+  /* ≥40px accessible tap target at every viewport, consistent with
+     `.mode-toggle`; the label is small but the hit area is comfortable for touch + mouse. */
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  pointer-events: auto;
+  color: #cfc4ff;
+  background: rgba(30, 22, 48, 0.7);
+  border: 1px solid rgba(150, 130, 220, 0.3);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.hud__toggle--on {
+  color: #fff;
+  background: rgba(90, 70, 160, 0.75);
+  border-color: #b7a0ff;
+}
+
+/* The hover status popup used to sit `right: 220px` — which cleared the OLD
+   floating roster (214px). The roster now docks inside the 300px-wide right `.hud-shell` (right:12
+   → it occupies the right 12–312px band), so `right:220` placed the popup UNDER the dock and it
+   could cover a roster row (the tablet ERROR-state overlap). Anchor it bottom-LEFT — always clear
+   of the right-docked shell/roster at every desktop/tablet width (it stays `display:none` on
+   phones). It is pointer-events:none decoration, so it never intercepts a tap either way. */
+.status-popup {
+  position: absolute;
+  bottom: 20px;
+  left: calc(20px + env(safe-area-inset-left, 0px));
+  z-index: 22;
+  min-width: 160px;
+  padding: 8px 11px;
+  color: #e9e6ff;
+  background: rgba(12, 9, 22, 0.9);
+  border: 1px solid rgba(150, 130, 220, 0.45);
+  border-radius: 8px;
+  backdrop-filter: blur(3px);
+  pointer-events: none;
+}
+
+.status-popup__name {
+  font-weight: 600;
+}
+
+.status-popup__state {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.status-popup__url {
+  margin-top: 4px;
+  font-size: 11px;
+  word-break: break-all;
+  color: #b7a0ff;
+}
+
+.inspector {
+  position: absolute;
+  top: 16px;
+  /* MEDIUM-7: clear the 300px right-docked control column (.hud-shell) + a 24px gutter, so the
+     inspector's right edge no longer sits UNDER the dock on desktop. */
+  right: calc(300px + 24px);
+  z-index: 24;
+  width: 360px;
+  max-height: 78vh;
+  display: flex;
+  flex-direction: column;
+  color: #e9e6ff;
+  background: rgba(12, 9, 22, 0.94);
+  border: 1px solid rgba(150, 130, 220, 0.5);
+  border-radius: 10px;
+  overflow: hidden;
+  backdrop-filter: blur(4px);
+}
+
+.inspector__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: rgba(40, 30, 70, 0.6);
+}
+
+.inspector__name {
+  font-weight: 600;
+}
+
+.inspector__state {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.inspector__close {
+  margin-left: auto;
+  font: inherit;
+  color: #e9e6ff;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.inspector__tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px 0;
+}
+
+.inspector__tab {
+  font: inherit;
+  font-size: 11px;
+  padding: 5px 8px;
+  color: #cfc7f0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+}
+
+.inspector__tab--active {
+  color: #fff;
+  border-bottom-color: #b7a0ff;
+}
+
+.inspector__body {
+  padding: 10px 12px;
+  overflow-y: auto;
+}
+
+.inspector__browser {
+  position: relative;
+}
+
+/* The watchable affordance marking a LIVE-BROWSABLE (featured) ghost —
+   visually distinguishes it from the stateless api-only workforce. */
+.inspector__watchable {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #d8ccff;
+  background: rgba(120, 90, 220, 0.55);
+  border: 1px solid rgba(183, 160, 255, 0.5);
+  border-radius: 999px;
+  padding: 2px 8px;
+  pointer-events: none;
+}
+
+.inspector__frame {
+  width: 100%;
+  border-radius: 6px;
+  display: block;
+  background: #000;
+}
+
+.inspector__placeholder {
+  font-size: 12px;
+  opacity: 0.5;
+  font-style: italic;
+  padding: 18px 4px;
+  text-align: center;
+}
+
+.inspector__overview {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  font-size: 12px;
+}
+
+.inspector__overview dt {
+  opacity: 0.6;
+}
+
+.inspector__overview dd {
+  margin: 0;
+}
+
+.inspector__url {
+  word-break: break-all;
+  color: #b7a0ff;
+}
+
+/* Sanitized persona row — reuses the overview 11px body tone, no new hue/size. */
+.inspector__persona {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.inspector__log,
+.inspector__errors,
+.inspector__records {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.inspector__log {
+  list-style: none;
+  padding-left: 0;
+}
+
+.inspector__log-ts {
+  opacity: 0.5;
+  margin-right: 8px;
+}
+
+/* ── api-only activity feed — structured priced record rows ───── */
+.inspector__haul {
+  margin: 0 0 6px;
+}
+.inspector__records-feed .inspector__records {
+  list-style: none;
+  padding-left: 0;
+}
+.inspector__records-feed .inspector__record {
+  display: block;
+  animation: inspector-record-rise 180ms ease-out;
+}
+.inspector__record-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.inspector__record-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+/* one shared "no image" token across S2/S3 — quiet, no icon glyph inside. */
+.inspector__record-thumb--missing {
+  background: rgba(255, 255, 255, 0.06);
+}
+.inspector__record-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inspector__record-price {
+  flex-shrink: 0;
+}
+.inspector__record-current {
+  display: block;
+  margin-top: 2px;
+  padding-left: 40px;
+  font-size: 10px;
+  opacity: 0.55;
+  word-break: break-all;
+}
+@keyframes inspector-record-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .inspector__records-feed .inspector__record {
+    animation: none;
+  }
+}
+
+.inspector__error-code {
+  color: #ff9b9b;
+  margin-right: 8px;
+}
+
+.inspector__error-retryable {
+  opacity: 0.6;
+}
+
+/* ── STAGE 7: global dashboard (behavior/section-aware) ─────────── */
+.dash {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 21;
+  width: 236px;
+  max-height: 72vh;
+  overflow-y: auto;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(14, 12, 28, 0.82);
+  border: 1px solid rgba(143, 240, 255, 0.16);
+  color: #eae6ff;
+  font-size: 11px;
+}
+.dash__head {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8ff0ff;
+  margin-bottom: 6px;
+}
+.dash__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-bottom: 8px;
+}
+.dash__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 2px;
+  border-radius: 7px;
+  background: rgba(90, 70, 160, 0.22);
+}
+.dash__stat-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+.dash__stat-label {
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  text-align: center;
+}
+.dash__section {
+  margin-top: 6px;
+}
+.dash__section-head {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b7a0ff;
+  margin-bottom: 3px;
+}
+.dash__missions,
+.dash__sections,
+.dash__behaviors {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dash__mission,
+.dash__srow,
+.dash__brow {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 2px 4px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.dash__mission-title,
+.dash__sname,
+.dash__bname {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dash__sstat,
+.dash__mission-prog,
+.dash__bcount {
+  opacity: 0.85;
+}
+.dash__sfail,
+.dash__fail {
+  color: #ff9b9b;
+}
+.dash__empty,
+.graveyard__empty {
+  opacity: 0.5;
+  font-style: italic;
+  padding: 2px 4px;
+}
+
+/* ── STAGE 7: Sections panel (management surface) ─────────────────────────── */
+.sections {
+  position: absolute;
+  left: 12px;
+  top: 210px;
+  z-index: 21;
+  width: 210px;
+  max-height: 44vh;
+  overflow-y: auto;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(14, 12, 28, 0.8);
+  border: 1px solid rgba(143, 240, 255, 0.14);
+  color: #eae6ff;
+  font-size: 11px;
+}
+.sections__head {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8ff0ff;
+  margin-bottom: 6px;
+}
+.sections__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sections__row {
+  padding: 5px 6px;
+  border-radius: 7px;
+  background: rgba(90, 70, 160, 0.18);
+}
+.sections__row-top {
+  display: flex;
+  justify-content: space-between;
+}
+.sections__name {
+  font-weight: 600;
+}
+.sections__role {
+  font-size: 9px;
+  opacity: 0.7;
+}
+.sections__cap {
+  margin: 4px 0 2px;
+}
+.sections__cap-bar {
+  height: 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.sections__cap-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6cf0c8, #8ff0ff);
+}
+.sections__cap-label {
+  font-size: 9px;
+  opacity: 0.7;
+}
+.sections__target {
+  font-size: 9px;
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sections__role-pick,
+.ghost-inspector__field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}
+.sections__select,
+.ghost-inspector__select {
+  background: rgba(20, 18, 36, 0.9);
+  color: #eae6ff;
+  border: 1px solid rgba(143, 240, 255, 0.2);
+  border-radius: 5px;
+  padding: 3px 4px;
+  font-size: 11px;
+}
+
+/* ── STAGE 7: Ghost inspector (management surface) ────────────────────────── */
+.ghost-inspector {
+  position: absolute;
+  right: 240px;
+  bottom: 16px;
+  z-index: 25;
+  width: 200px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(14, 12, 28, 0.86);
+  border: 1px solid rgba(143, 240, 255, 0.2);
+  color: #eae6ff;
+  font-size: 11px;
+}
+
+/* diagnostics panel — real per-ghost + system health read-out */
+.diagnostics {
+  position: absolute;
+  right: 16px;
+  top: 96px;
+  z-index: 24;
+  width: 186px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(14, 12, 28, 0.86);
+  border: 1px solid rgba(143, 240, 255, 0.18);
+  color: #d7d2f0;
+  font-size: 10px;
+}
+.diagnostics__head {
+  font-weight: 700;
+  color: #8ff0ff;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.diagnostics__group {
+  margin-top: 6px;
+  padding-top: 5px;
+  border-top: 1px solid rgba(143, 240, 255, 0.12);
+}
+.diagnostics__grouptitle {
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8a80c0;
+  margin-bottom: 3px;
+}
+.diagnostics__list {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1px 8px;
+  margin: 0;
+}
+.diagnostics__list dt {
+  color: #8a80c0;
+}
+.diagnostics__list dd {
+  margin: 0;
+  text-align: right;
+  color: #eae6ff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 110px;
+}
+.diagnostics__empty {
+  color: #6d6690;
+  font-style: italic;
+}
+.diagnostics__sections {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.diagnostics__sections li {
+  display: flex;
+  gap: 3px;
+  padding: 1px 4px;
+  border-radius: 5px;
+  background: rgba(143, 240, 255, 0.08);
+}
+.diagnostics__count {
+  color: #8ff0ff;
+}
+.diagnostics__notice {
+  margin: 6px 0 0;
+  padding: 3px 6px;
+  border-radius: 5px;
+  font-size: 11px;
+  color: #ffd27a;
+  background: rgba(255, 179, 71, 0.1);
+  border: 1px solid rgba(255, 179, 71, 0.25);
+}
+.ghost-inspector__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.ghost-inspector__name {
+  font-weight: 600;
+  color: #fff;
+}
+.ghost-inspector__state {
+  font-size: 9px;
+  color: #8ff0ff;
+}
+.ghost-inspector__meta {
+  display: flex;
+  gap: 8px;
+  font-size: 9px;
+  opacity: 0.8;
+  margin: 2px 0 4px;
+}
+/* Sanitized persona chip on the management card — reuses the panel-tone badge + 11px
+   body tone, no new hue/size. */
+.ghost-inspector__persona {
+  font-size: 11px;
+  opacity: 0.9;
+  padding: 2px 6px;
+  border-radius: 5px;
+  background: rgba(90, 70, 160, 0.5);
+  margin: 0 0 4px;
+}
+.ghost-inspector__actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.ghost-inspector__btn {
+  flex: 1;
+  padding: 4px 0;
+  border-radius: 5px;
+  border: 1px solid rgba(143, 240, 255, 0.2);
+  background: rgba(90, 70, 160, 0.3);
+  color: #eae6ff;
+  font-size: 10px;
+  cursor: pointer;
+}
+.ghost-inspector__btn:hover {
+  background: rgba(120, 95, 200, 0.45);
+}
+
+/* ── STAGE 7: Data Graveyard (results section) ────────────────────────────── */
+.graveyard {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 21;
+  width: 214px;
+  max-height: 50vh;
+  overflow-y: auto;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(14, 12, 28, 0.82);
+  border: 1px solid rgba(143, 240, 255, 0.16);
+  color: #eae6ff;
+  font-size: 11px;
+}
+.graveyard__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.graveyard__title {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8ff0ff;
+}
+.graveyard__count {
+  font-size: 9px;
+  opacity: 0.7;
+}
+.graveyard__missions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.graveyard__mission {
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: rgba(90, 70, 160, 0.2);
+}
+/* The completed-mission row is a real click-through affordance (reveals its found
+   results). Reuse the violet interactive accent + the mode-toggle focus-visible model. */
+.graveyard__mission[role="button"] {
+  cursor: pointer;
+  min-height: 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.graveyard__mission[role="button"]:hover {
+  background: rgba(90, 70, 160, 0.32);
+}
+.graveyard__mission--open {
+  border: 1px solid rgba(183, 160, 255, 0.7);
+}
+.graveyard__mission[role="button"]:focus-visible {
+  outline: 2px solid #b7a0ff;
+  outline-offset: 1px;
+}
+.graveyard__mission-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.graveyard__mission-preview {
+  margin: 0 0 2px 0;
+  padding-left: 6px;
+}
+
+/* Group-by toggle + per-department priced list. */
+.graveyard__view-toggles {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.graveyard__view-toggle {
+  font: inherit;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(183, 160, 255, 0.35);
+  background: transparent;
+  color: #b7a0ff;
+  cursor: pointer;
+}
+.graveyard__view-toggle[aria-pressed="true"] {
+  background: rgba(183, 160, 255, 0.2);
+  color: #e6ddff;
+}
+.graveyard__departments {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.graveyard__dept-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.graveyard__dept-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.graveyard__dept-title {
+  font-weight: 600;
+  color: #f0d8a0;
+}
+.graveyard__dept-count {
+  font-size: 9px;
+  opacity: 0.75;
+  margin-left: auto;
+}
+.graveyard__priced-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 10px;
+}
+.graveyard__rec-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.graveyard__rec-price {
+  color: #6cf0c8;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+/* The winning (lowest-price) offer for a product is marked with a "best" badge. */
+.graveyard__priced-row--best {
+  background: rgba(108, 240, 200, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(108, 240, 200, 0.35);
+}
+.graveyard__best-badge {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #6cf0c8;
+  color: #04211a;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.graveyard__mission-title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.graveyard__mission-stats {
+  display: flex;
+  gap: 8px;
+  font-size: 9px;
+  opacity: 0.85;
+}
+.graveyard__ok {
+  color: #6cf0c8;
+}
+.graveyard__preview-head {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b7a0ff;
+  margin-bottom: 3px;
+}
+.graveyard__preview-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.graveyard__preview-row {
+  padding: 3px 5px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 10px;
+}
+.graveyard__preview-url {
+  display: block;
+  color: #8ff0ff;
+  font-size: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.graveyard__preview-fields {
+  opacity: 0.85;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+/* ── Camera UX: +/- zoom controls + fading readout ──────────────────── */
+.zoomctl {
+  position: absolute;
+  right: calc(12px + env(safe-area-inset-right, 0px));
+  /* Anchored to the bottom-right, stacked ABOVE the settings gear — NOT vertically
+     centered. The old `top:50%` center placed the zoom buttons under the right-docked
+     `.hud-shell` control column (overlap). The dock reserves matching bottom room
+     (see `.hud-shell` max-height) so the two never collide at any height. */
+  top: auto;
+  bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  transform: none;
+  z-index: 26;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.zoomctl__btn {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  color: #e9e6ff;
+  background: rgba(18, 14, 34, 0.72);
+  border: 1px solid rgba(150, 130, 220, 0.4);
+  border-radius: 9px;
+  cursor: pointer;
+  backdrop-filter: blur(3px);
+  user-select: none;
+}
+
+.zoomctl__btn:hover {
+  border-color: rgba(183, 160, 255, 0.7);
+}
+
+.zoomctl__readout {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: #cfe0ff;
+  background: rgba(12, 9, 22, 0.75);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.zoomctl__readout--on {
+  opacity: 0.9;
+}
+
+/* ── SETTINGS: a small gear opening a sound toggle + volume. ── */
+.settings {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 27;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.settings__gear {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  color: #e9e6ff;
+  background: rgba(18, 14, 34, 0.72);
+  border: 1px solid rgba(150, 130, 220, 0.4);
+  border-radius: 9px;
+  cursor: pointer;
+  backdrop-filter: blur(3px);
+  user-select: none;
+}
+
+.settings__gear:hover {
+  border-color: rgba(183, 160, 255, 0.7);
+}
+
+.settings__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  min-width: 148px;
+  color: #e9e6ff;
+  background: rgba(14, 10, 26, 0.86);
+  border: 1px solid rgba(150, 130, 220, 0.4);
+  border-radius: 10px;
+  backdrop-filter: blur(4px);
+}
+
+.settings__title {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b9aef0;
+}
+
+.settings__toggle {
+  font: inherit;
+  font-size: 12px;
+  padding: 7px 10px;
+  color: #e9e6ff;
+  background: rgba(30, 22, 52, 0.8);
+  border: 1px solid rgba(150, 130, 220, 0.4);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.settings__toggle--on {
+  border-color: rgba(139, 224, 74, 0.7);
+  color: #d6f5c2;
+}
+
+.settings__vol {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: #cfe0ff;
+}
+
+.settings__vol input {
+  width: 100%;
+}
+
+/* ── ACCESSIBILITY: a clear, consistent keyboard focus ring on every
+      interactive control — mirrors the shipped `.mode-toggle` / `.graveyard__mission[role=button]`
+      model (violet accent, no new hue). `:focus-visible` paints ONLY for keyboard / AT focus,
+      so mouse/touch users see no ring. This gives every touched control (inspector ghost-type
+      tab, roster rows, dock controls, workforce, steppers, editor tools, mission form) a visible
+      non-mouse focus state; native <button>/<input> already carry Enter/Space activation. ── */
+.mode-toggle:focus-visible,
+.hud-shell__collapse:focus-visible,
+.hud-shell__workforce:focus-visible,
+.hud-shell__group-title:focus-visible,
+.inspector__tab:focus-visible,
+.inspector__close:focus-visible,
+.roster__row:focus-visible,
+.roster__manage-btn:focus-visible,
+.roster__dismiss:focus-visible,
+.ghost-inspector__btn:focus-visible,
+.ghost-inspector__select:focus-visible,
+.sections__select:focus-visible,
+.hud__toggle:focus-visible,
+.zoomctl__btn:focus-visible,
+.settings__gear:focus-visible,
+.settings__toggle:focus-visible,
+.sections__step:focus-visible,
+.editor__tool:focus-visible,
+.editor__btn:focus-visible,
+.editor__select:focus-visible,
+.palette__swatch:focus-visible,
+.mission-form__submit:focus-visible,
+.mission-form__input:focus-visible,
+.mission-form__select:focus-visible {
+  outline: 2px solid #b7a0ff;
+  outline-offset: 1px;
+}
+
+/* ── MOBILE / touch: phone/small-tablet-width
+      layout — collapse/dock/scroll, tap-sized targets, and never cover the whole world.
+      Verified at 390×844. The breakpoint was RAISED 480→640 so this per-panel compact
+      scheme shares ONE boundary with the `.hud-shell` dock scheme below (which was already
+      640): a device in the old 480–640 gap no longer got the bottom-sheet dock while its
+      floating panels stayed at desktop absolute positions (the overlap the audit found).
+      No THIRD breakpoint value is introduced — the two existing schemes now agree at 640.
+   MEDIUM-6: the scheme also fires on a SHORT viewport (max-height:480px) so phone-landscape
+   (wide but short) gets the compact bottom-sheet layout instead of the crushed desktop one. ── */
+@media (max-width: 640px), (max-height: 480px) {
+  /* compact HUD — drop the legend + hint to keep the world visible */
+  .hud {
+    top: max(8px, env(safe-area-inset-top));
+    left: max(8px, env(safe-area-inset-left));
+    padding: 7px 10px;
+    max-width: 46vw;
+  }
+  .legend,
+  .hud__hint {
+    display: none;
+  }
+
+  /* tap-sized mode toggles, docked top-right below the safe area */
+  .mode-toggle {
+    top: max(8px, env(safe-area-inset-top));
+    right: max(8px, env(safe-area-inset-right));
+    padding: 10px 12px;
+    min-height: 40px;
+    font-size: 12px;
+  }
+  .mode-toggle--live {
+    top: calc(max(8px, env(safe-area-inset-top)) + 46px);
+  }
+  /* HIGH-1: the three mode toggles form ONE top-RIGHT vertical strip on a phone
+     (Simulated +0 / Live +46 / Graveyard Builder +92). Right-anchoring the Editor toggle stops
+     it colliding with the top-LEFT compact HUD follow/labels buttons (the old top-left +136px
+     placement crossed the HUD). LOW-10: z-index drops to 31 so the toggle stops painting over
+     the bottom sheets / department card. */
+  .mode-toggle--editor {
+    top: calc(max(8px, env(safe-area-inset-top)) + 92px);
+    bottom: auto;
+    left: auto;
+    right: max(8px, env(safe-area-inset-right));
+    transform: none;
+    z-index: 31;
+  }
+
+  .zoomctl__btn {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+
+  /* mission form → a scrollable bottom sheet, full width, tap-sized inputs */
+  .mission-form,
+  .mission-form--fanout {
+    top: auto;
+    left: max(8px, env(safe-area-inset-left));
+    right: max(8px, env(safe-area-inset-right));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: auto;
+    max-height: 44dvh;
+    overflow-y: auto;
+  }
+  .mission-form__input,
+  .mission-form__select,
+  .mission-form__submit {
+    min-height: 40px;
+    font-size: 13px;
+  }
+
+  /* roster → a narrow right column that scrolls, leaving the world readable */
+  .roster {
+    top: calc(max(8px, env(safe-area-inset-top)) + 92px);
+    right: max(8px, env(safe-area-inset-right));
+    width: 44vw;
+    max-width: 168px;
+    max-height: 42dvh;
+  }
+  .roster__row {
+    padding: 8px 10px;
+  }
+  .roster__manage-btn,
+  .ghost-inspector__btn {
+    min-height: 34px;
+  }
+  /* tap-sized ×-dismiss on a phone */
+  .roster__dismiss {
+    width: 26px;
+    height: 26px;
+    font-size: 16px;
+  }
+
+  /* MEDIUM-5: drop the connection badge BELOW the compact HUD (top-left, ~140px tall with its
+     toggles) so it no longer overlaps the HUD. Centred + pointer-events:none, so it never blocks
+     a tap and stays clear of the right-column mode-toggle strip. */
+  .conn {
+    top: calc(env(safe-area-inset-top, 0px) + 158px);
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+  }
+
+  /* keep the follow/labels toggles reachable + tappable in the compact HUD */
+  .hud__toggles {
+    display: flex;
+    pointer-events: auto;
+  }
+  .hud__toggle {
+    /* ≥40px tap target on a phone */
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 11px;
+    pointer-events: auto;
+  }
+
+  /* HIGH-3: the inspector detail view is a TAKEOVER bottom sheet on a phone. It shares the
+     `--sheet-h` height with the dock/editor, sits ABOVE the control dock (z-index 45 vs the
+     dock's 30), and paints on a SOLID background so the equal-height dock underneath does not
+     bleed through. Its close control stays in the sheet header, always reachable. */
+  .inspector {
+    top: auto;
+    left: max(8px, env(safe-area-inset-left));
+    right: max(8px, env(safe-area-inset-right));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: auto;
+    height: var(--sheet-h);
+    max-height: var(--sheet-h);
+    background: #0c0916;
+    z-index: 45;
+  }
+
+  /* ghost-inspector (management) → a compact bottom-left sheet */
+  .ghost-inspector {
+    right: auto;
+    left: max(8px, env(safe-area-inset-left));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: 52vw;
+    max-width: 220px;
+    z-index: 28;
+  }
+
+  /* MEDIUM-4: the empty-state onboarding CTA is centred by `.overlay`, which drops it onto the
+     bottom sheet. Anchor it in the UPPER free zone on a phone so it sits ABOVE any open sheet.
+     The floor keeps it BELOW the connection badge (top-centre, ~158px + its own height) so the
+     two never overlap when the socket is reconnecting while the yard is still empty. */
+  .overlay--onboard {
+    align-content: start;
+    align-items: start;
+    padding-top: max(22dvh, 200px);
+  }
+
+  /* LOW-11: ≥40px tap targets for the small dismiss/toggle/export controls on a phone. */
+  .dept-card__close,
+  .inspector__close,
+  .graveyard__view-toggle,
+  .export-btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  /* secondary panels collapse away on a phone so the world stays visible */
+  .dash,
+  .sections,
+  .graveyard,
+  .diagnostics,
+  .status-popup {
+    display: none;
+  }
+}
+
+/* ---- Graveyard Builder (in-app map/prop editor) ---- */
+.editor {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 244px;
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  padding: 10px 12px;
+  color: #e9e6ff;
+  background: rgba(14, 11, 28, 0.86);
+  border: 1px solid rgba(150, 130, 220, 0.45);
+  border-radius: 10px;
+  backdrop-filter: blur(4px);
+  font-size: 12px;
+  z-index: 40;
+}
+.editor__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.editor__title {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.editor__x {
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  color: #d8d2ff;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.editor__tools,
+.editor__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.editor__tool,
+.editor__btn {
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 11px;
+  color: #e9e6ff;
+  background: rgba(30, 24, 52, 0.8);
+  border: 1px solid rgba(150, 130, 220, 0.35);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.editor__tool--on {
+  color: #b7ffd0;
+  border-color: rgba(120, 230, 170, 0.75);
+}
+.editor__btn--save {
+  color: #b7ffd0;
+  border-color: rgba(120, 230, 170, 0.6);
+}
+.editor__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.editor__paint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.editor__select {
+  flex: 1;
+  font: inherit;
+  font-size: 11px;
+  color: #e9e6ff;
+  background: rgba(30, 24, 52, 0.9);
+  border: 1px solid rgba(150, 130, 220, 0.35);
+  border-radius: 6px;
+  padding: 3px 4px;
+}
+.palette {
+  margin-bottom: 8px;
+}
+.palette__head {
+  font-weight: 700;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+.palette__cat {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+  margin: 4px 0 2px;
+}
+.palette__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.palette__swatch {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 6px 3px 3px;
+  font: inherit;
+  font-size: 10px;
+  color: #e9e6ff;
+  background: rgba(30, 24, 52, 0.8);
+  border: 1px solid rgba(150, 130, 220, 0.3);
+  border-radius: 5px;
+  cursor: pointer;
+}
+.palette__swatch--on {
+  border-color: rgba(120, 230, 170, 0.8);
+}
+.palette__chip {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+}
+.editor__status {
+  font-size: 11px;
+  opacity: 0.85;
+}
+.editor__result {
+  font-size: 11px;
+  color: #ffd28a;
+  margin-top: 2px;
+}
+.editor__hint {
+  margin-top: 6px;
+  font-size: 10px;
+  opacity: 0.55;
+}
+
+/* The departments guide line precedes the list, so it hangs BELOW the head rather
+   than above a form — flip the .editor__hint top margin to a bottom margin. */
+.departments__guide {
+  margin-top: 0;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+/* The opt-in advanced real-retail departments — a quiet block with an on/off
+   toggle so the operator can clearly see which departments spend the real key (off by default). */
+.advanced-depts {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.advanced-depts__head {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+.advanced-depts__note {
+  margin-top: 0;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+.advanced-depts__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.advanced-depts__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+.advanced-depts__label {
+  flex: 1 1 auto;
+}
+.advanced-depts__cat {
+  opacity: 0.6;
+  font-size: 10px;
+}
+.advanced-depts__toggle {
+  min-width: 44px;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  padding: 2px 8px;
+  font-size: 11px;
+}
+.advanced-depts__toggle--on {
+  border-color: rgba(139, 224, 74, 0.7);
+  background: rgba(139, 224, 74, 0.16);
+}
+
+/* Phone: the Graveyard Builder menu → a scrollable bottom sheet (like the
+   mission/inspector sheets) so it never collides with the top-left "Graveyard Builder" toggle
+   on a phone — the full-height top-left column overlapped that toggle at ≤640. This block MUST
+   live AFTER the base `.editor` rules above (equal specificity → later source wins) so it is
+   not clobbered; the shared mobile block earlier in the file precedes these base rules. */
+@media (max-width: 640px), (max-height: 480px) {
+  .editor {
+    top: auto;
+    left: max(8px, env(safe-area-inset-left));
+    right: max(8px, env(safe-area-inset-right));
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: auto;
+    height: var(--sheet-h);
+    max-height: var(--sheet-h);
+  }
+}
+
+/* ============================================================================
+   HUD SHELL — one docked, non-overlapping, collapsible control column.
+   The Live-mode panels are re-parented into this shell (see App.tsx); their old
+   absolute positioning is neutralized below so they flow in one scroll column and
+   never stack on each other or cover the in-world section labels.
+   ============================================================================ */
+.hud-shell {
+  position: absolute;
+  top: calc(96px + env(safe-area-inset-top, 0px));
+  right: calc(12px + env(safe-area-inset-right, 0px));
+  z-index: 30;
+  width: 300px;
+  max-width: calc(100vw - 24px);
+  /* Reserve ~180px of bottom-right room for the zoom controls + settings gear stack so the
+     dock's lower edge never reaches them (no-overlap). The dock scrolls internally when
+     its content exceeds this height. Overridden entirely by the ≤640 bottom-sheet rules. */
+  max-height: calc(100dvh - 108px - 180px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  background: rgba(16, 14, 28, 0.82);
+  border: 1px solid rgba(150, 130, 220, 0.4);
+  border-radius: 10px;
+  backdrop-filter: blur(5px);
+  overflow: hidden;
+}
+
+.hud-shell__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-bottom: 1px solid rgba(150, 130, 220, 0.28);
+  flex: 0 0 auto;
+}
+
+.hud-shell__title {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rim);
+  opacity: 0.85;
+}
+
+.hud-shell__collapse {
+  min-width: 32px;
+  min-height: 32px;
+  font: inherit;
+  color: #e9e6ff;
+  background: rgba(30, 24, 52, 0.7);
+  border: 1px solid rgba(150, 130, 220, 0.4);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.hud-shell[data-collapsed="true"] {
+  width: auto;
+}
+
+.hud-shell__body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hud-shell__actions {
+  flex: 0 0 auto;
+}
+
+.hud-shell__workforce {
+  width: 100%;
+  min-height: 40px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #05130d;
+  background: linear-gradient(180deg, #7bffcf, #34d399);
+  border: 1px solid rgba(120, 230, 170, 0.8);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.hud-shell__workforce:hover {
+  filter: brightness(1.06);
+}
+
+.hud-shell__group {
+  border: 1px solid rgba(150, 130, 220, 0.22);
+  border-radius: 8px;
+  background: rgba(20, 18, 34, 0.5);
+}
+
+.hud-shell__group-title {
+  cursor: pointer;
+  list-style: none;
+  padding: 8px 10px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--rim);
+  opacity: 0.9;
+  user-select: none;
+}
+
+.hud-shell__group-title::-webkit-details-marker {
+  display: none;
+}
+
+.hud-shell__group-title::before {
+  content: "▸ ";
+  opacity: 0.7;
+}
+
+.hud-shell__group[open] > .hud-shell__group-title::before {
+  content: "▾ ";
+}
+
+.hud-shell__group-body {
+  padding: 4px 8px 10px;
+}
+
+/* Neutralize the docked panels' legacy absolute positioning: inside the shell they
+   flow in the column (static), full-width, no floating offsets — no overlap. */
+.hud-shell .mission-form,
+.hud-shell .sections,
+.hud-shell .ghost-inspector,
+.hud-shell .dash,
+.hud-shell .diagnostics,
+.hud-shell .graveyard,
+.hud-shell .roster {
+  position: static;
+  top: auto;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  z-index: auto;
+}
+
+/* per-section add/remove stepper (EASY): a clear +/- with a live count. */
+.sections__stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 2px;
+}
+
+.sections__step {
+  min-width: 32px;
+  min-height: 32px;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1;
+  color: #e9e6ff;
+  background: rgba(30, 24, 52, 0.8);
+  border: 1px solid rgba(150, 130, 220, 0.5);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.sections__step--add {
+  color: #b7ffd0;
+  border-color: rgba(120, 230, 170, 0.7);
+}
+
+.sections__step--rm {
+  color: #ffb0c8;
+  border-color: rgba(230, 130, 160, 0.6);
+}
+
+.sections__step:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sections__step-count {
+  min-width: 20px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ============================================================================
+   MOBILE — the control dock becomes a safe-area bottom-sheet so the top HUD
+   and bottom controls are never clipped by the URL bar / notch (390x844 target).
+   ============================================================================ */
+@media (max-width: 640px), (max-height: 480px) {
+  .hud-shell {
+    position: fixed;
+    top: auto;
+    left: env(safe-area-inset-left, 0px);
+    right: env(safe-area-inset-right, 0px);
+    bottom: 0;
+    width: auto;
+    max-width: none;
+    /* a bottom-sheet that shares the `--sheet-h` height with the inspector + Graveyard Builder
+       sheets, so whichever one is open occupies the SAME footprint. `--sheet-h` is dvh-based, so
+       it stays fluid across the URL-bar show/hide AND across portrait↔landscape (a short
+       landscape viewport shrinks it proportionally — no separate orientation query needed). */
+    max-height: var(--sheet-h);
+    border-radius: 12px 12px 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .hud-shell__body {
+    padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Reconciliation: now that the per-panel compact scheme reaches 640px it
+     hides the FLOATING dashboard/sections/graveyard/diagnostics (Simulated mode) — but their
+     copies re-parented INTO the dock (Live mode) must stay visible. This higher-specificity
+     rule re-shows the docked copies so the same dock renders the same panels at 481–640px as
+     it did at 641px+ (the pre-reconciliation inconsistency the audit found). */
+  .hud-shell .dash,
+  .hud-shell .sections,
+  .hud-shell .graveyard,
+  .hud-shell .diagnostics {
+    display: block;
+  }
+
+  /* tap-sized controls on mobile */
+  .hud-shell__collapse,
+  .sections__step,
+  .ghost-inspector__btn,
+  .hud-shell__workforce {
+    min-height: 44px;
+  }
+
+  /* the ZoomControls lift to clear the shared-height bottom sheet (`--sheet-h` + 8px), bottom-right,
+     so whichever sheet is open never covers them. */
+  .zoomctl {
+    right: max(8px, env(safe-area-inset-right));
+    top: auto;
+    bottom: calc(var(--sheet-h) + 8px) !important;
+    transform: none;
+  }
+
+  /* the settings gear also lifts above the shared-height sheet, docked bottom-LEFT so it never
+     collides with the ZoomControls (bottom-right) nor is swallowed by the dock. */
+  .settings {
+    right: auto;
+    left: max(8px, env(safe-area-inset-left));
+    bottom: calc(var(--sheet-h) + 8px);
+    align-items: flex-start;
+  }
+}
+
+/* --- 196: floating DEPARTMENT FINDINGS card (click a department plot on the map) --- */
+.dept-card {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 40;
+  width: min(360px, calc(100vw - 32px));
+  max-height: min(60vh, 520px);
+  display: flex;
+  flex-direction: column;
+  padding: 14px 14px 10px;
+  border-radius: 14px;
+  background: rgba(16, 13, 28, 0.92);
+  border: 1px solid rgba(150, 130, 220, 0.45);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(150, 130, 220, 0.12) inset;
+  backdrop-filter: blur(8px);
+  color: #ece7ff;
+  animation: dept-card-rise 180ms ease-out;
+}
+@keyframes dept-card-rise {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 10px)); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dept-card { animation: none; }
+}
+.dept-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.dept-card__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dept-card__eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(200, 190, 255, 0.6);
+}
+.dept-card__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f0d8a0;
+}
+.dept-card__close {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  border: 1px solid rgba(150, 130, 220, 0.3);
+  background: rgba(255, 255, 255, 0.04);
+  color: #d8d2f0;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+}
+.dept-card__close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.dept-card__count {
+  margin: 6px 0 8px;
+  font-size: 10px;
+  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* the shared "export findings" control — one component, two call sites. */
+.export-btns {
+  display: inline-flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.export-btn {
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 10px;
+  color: #b7ffd0;
+  background: rgba(30, 24, 52, 0.8);
+  border: 1px solid rgba(120, 230, 170, 0.4);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.export-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* product thumbnails on the findings surfaces (S3): 28px dept-card, 20px graveyard. The
+   missing/broken placeholder reuses the shared "no image" token (rgba(255,255,255,0.06)). */
+.dept-card__row-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.graveyard__rec-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.export-thumb--missing {
+  background: rgba(255, 255, 255, 0.06);
+}
+.dept-card__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dept-card__empty {
+  padding: 14px 8px;
+  text-align: center;
+  font-size: 11px;
+  opacity: 0.6;
+  line-height: 1.5;
+}
+.dept-card__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 11px;
+}
+.dept-card__row-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dept-card__row-meta {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  align-items: baseline;
+}
+.dept-card__row-price {
+  color: #6cf0c8;
+  font-weight: 700;
+}
+.dept-card__row-rating {
+  color: #f5c451;
+}
+.dept-card__row-avail {
+  opacity: 0.7;
+}
+.dept-card__row-fields {
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

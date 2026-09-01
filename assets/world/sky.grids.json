@@ -1,0 +1,54 @@
+{
+  "_note": "ghostopia ORIGINAL night-backdrop art — a 24x24 pale moon (with soft upper-left rim highlight + a few craters) and a tiny 5x5 twinkle star, drawn once behind the world as the night sky. Single-char palette KEYS; ' ' = transparent. Hand-authored generic celestial motifs; no reference-repo asset traced or reused.",
+  "grids": {
+    "moon": {
+      "transparent": " ",
+      "legend": {
+        "m": "#f6f3dc",
+        "M": "#fffef0",
+        "c": "#d8d0ac"
+      },
+      "rows": [
+        "                        ",
+        "           MM           ",
+        "       MMMMMMMMMM       ",
+        "      MMmmmmmmmmMm      ",
+        "     MMmmmmmmmmmmmm     ",
+        "    Mmmmmmmmmmmmmmmm    ",
+        "   MMmmmmmmmmmmmmmmmm   ",
+        "  MMmmmmcmmmmmcmmmmmmm  ",
+        "  Mmmmmcccmmmcccmmmmmm  ",
+        "  Mmmmcccccmmmcmmmmmmm  ",
+        "  Mmmmmcccmmmmmmmmmmmm  ",
+        " MMmmmmmcmmmmmmcmmmmmmm ",
+        " MMmmmmmmmmmmmcccmmmmmm ",
+        "  Mmmmmmmmmmmcccccmmmm  ",
+        "  Mmmmmmmmmmmmcccmmmmm  ",
+        "  Mmmmmmmmmcmmmcmmmmmm  ",
+        "  MMmmmmmmcccmmmmmmmmm  ",
+        "   mmmmmmmmcmmmmmmmmm   ",
+        "    mmmmmmmmmmmmmmmm    ",
+        "     mmmmmmmmmmmmmm     ",
+        "      mmmmmmmmmmmm      ",
+        "       mmmmmmmmmm       ",
+        "           mm           ",
+        "                        "
+      ]
+    },
+    "star": {
+      "transparent": " ",
+      "legend": {
+        "s": "#9fb0e0",
+        "S": "#dfe8ff",
+        "X": "#ffffff"
+      },
+      "rows": [
+        "  s  ",
+        "  S  ",
+        "sSXSs",
+        "  S  ",
+        "  s  "
+      ]
+    }
+  }
+}

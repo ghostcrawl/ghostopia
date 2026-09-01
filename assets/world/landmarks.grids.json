@@ -1,0 +1,275 @@
+{
+  "_note": "ghostopia ORIGINAL section landmarks — a 24x24 crypt and mausoleum (section identity anchors) + a 16x16 tileable fog overlay (now used as OVERHEAD mist) for ambient tint. Single-char palette KEYS; ' ' = transparent. A small 8x8 two-frame grave candle (candle0/candle1 flame flicker) rides beside the graves. NIGHT DECOR (all hand-authored original graveyard motifs, nothing traced from either reference repo): a 16x24 bare/dead tree, a 16x16 tileable iron picket fence segment, a 16x16 stone cross grave, a 16x24 obelisk monument, and two 8x8 two-frame OVERHEAD flyers — a bat (flap0/flap1) + a will-o'-wisp (glow0/glow1). Hand-authored, no reference-repo landmark/map traced or reused.",
+  "grids": {
+    "crypt": {
+      "transparent": " ",
+      "legend": {
+        "w": "#5a5470",
+        "W": "#736c90",
+        "x": "#221d34",
+        "d": "#3a3550",
+        "c": "#8ff0ff"
+      },
+      "rows": [
+        "          xx            ",
+        "         xWWx           ",
+        "        xWWWWx          ",
+        "       xWWWWWWx         ",
+        "      xWWWWWWWWx        ",
+        "     xWWWWWWWWWWx       ",
+        "    xWWWWWWWWWWWWx      ",
+        "   xWWWWWWWWWWWWWWx     ",
+        "  xWWWWWWWWWWWWWWWWx    ",
+        "  xWwwwwwwwwwwwwwWWx    ",
+        "  xWwwwwwwwwwwwwwWWx    ",
+        "  xWwwxxxxxxxxwwwWWx    ",
+        "  xWwwxdcccdxwwwwWWx    ",
+        "  xWwwxdccccdxwwwWWx    ",
+        "  xWwwxdccccdxwwwWWx    ",
+        "  xWwwxdcccdxwwwwWWx    ",
+        "  xWwwxxddddxxwwwWWx    ",
+        "  xWwwwwwwwwwwwwwWWx    ",
+        "  xWwwwwwwwwwwwwwWWx    ",
+        "  xWwwwwwwwwwwwwwWWx    ",
+        "  xWwwwwwwwwwwwwwWWx    ",
+        "  xxwwwwwwwwwwwwwwxx    ",
+        "   xxxxxxxxxxxxxxxx     ",
+        "                       "
+      ]
+    },
+    "mausoleum": {
+      "transparent": " ",
+      "legend": {
+        "w": "#5f5975",
+        "W": "#7a7398",
+        "x": "#221d34",
+        "d": "#3a3550",
+        "c": "#ffd23f"
+      },
+      "rows": [
+        "                        ",
+        "   xxxxxxxxxxxxxxxxxx    ",
+        "   xWWWWWWWWWWWWWWWWx    ",
+        "  xWWWWWWWWWWWWWWWWWWx   ",
+        "  xWdddddddddddddddWx   ",
+        "  xWdWWWWWWWWWWWWWdWx   ",
+        "  xWdWwwwwwwwwwwwWdWx   ",
+        "  xWdWwwxxxxxxwwwWdWx   ",
+        "  xWdWwwxdccddxwwWdWx   ",
+        "  xWdWwwxdccddxwwWdWx   ",
+        "  xWdWwwxdccddxwwWdWx   ",
+        "  xWdWwwxdccddxwwWdWx   ",
+        "  xWdWwwxdccddxwwWdWx   ",
+        "  xWdWwwxxddddxxwwWdWx  ",
+        "  xWdWwwwwwwwwwwwWdWx   ",
+        "  xWdWwwwwwwwwwwwWdWx   ",
+        "  xWdWWWWWWWWWWWWWdWx   ",
+        "  xWddddddddddddddddWx  ",
+        "  xWwwwwwwwwwwwwwwwwWx   ",
+        "  xWwwwwwwwwwwwwwwwwWx   ",
+        "  xWwwwwwwwwwwwwwwwwWx   ",
+        "  xxwwwwwwwwwwwwwwwwxx   ",
+        "   xxxxxxxxxxxxxxxxxx    ",
+        "                        "
+      ]
+    },
+    "fog": {
+      "transparent": " ",
+      "legend": {
+        "f": "#aeb6d8",
+        "F": "#c6cde8"
+      },
+      "rows": [
+        "  ff      ff  fF ",
+        " ffFf   ffFff ff ",
+        "ffFFff ffFFff  f ",
+        " ffFf   ffFf     ",
+        "  ff  f   ff   ff",
+        "     ffFf     ffF",
+        "  ff ffFFf   ffFf",
+        " ffFf ffFf    ff ",
+        "ffFFff  ff    f  ",
+        " ffFf      ff    ",
+        "  ff   ff ffFf  f",
+        "      ffFfffFf ff",
+        "  ff ffFFf ff ffF",
+        " ffFf ffFf    ff ",
+        "ffFFf  ff     f  ",
+        " ff       ff     "
+      ]
+    },
+    "candle": {
+      "transparent": " ",
+      "legend": {
+        "y": "#ffd23f",
+        "Y": "#fff2b0",
+        "w": "#e8ecff",
+        "k": "#3a3550"
+      },
+      "rows": [
+        "  yy       yy   ",
+        "  yy       Y    ",
+        "  Y        yy   ",
+        "  yy      yy    ",
+        " kwwk    kwwk   ",
+        " kwwk    kwwk   ",
+        " kwwk    kwwk   ",
+        " kkkk    kkkk   "
+      ]
+    },
+    "tree": {
+      "transparent": " ",
+      "legend": {
+        "b": "#3a2f24",
+        "B": "#4d4032",
+        "k": "#2a2119"
+      },
+      "rows": [
+        "       kk       ",
+        "   k   kk   k   ",
+        "   kk kkkk kk   ",
+        "    kkkbbkkk    ",
+        "   k kbBBbk k   ",
+        "    kkbBBbkk    ",
+        "      bBBb      ",
+        "      bBBb      ",
+        "      bBBb      ",
+        "      bBBb      ",
+        "      bBBb      ",
+        "      bBBb      ",
+        "      bBBb      ",
+        "      bBBb      ",
+        "      bBBb      ",
+        "      bBBb      ",
+        "     bBBBBb     ",
+        "     bBBBBb     ",
+        "    bBB  BBb    ",
+        "   bBB    BBb   ",
+        "  bBk      kBb  ",
+        " kk          kk ",
+        "                ",
+        "                "
+      ]
+    },
+    "fence": {
+      "transparent": " ",
+      "legend": {
+        "i": "#41414f",
+        "x": "#26262f"
+      },
+      "rows": [
+        " i   i   i   i  ",
+        " i   i   i   i  ",
+        "iii iii iii iii ",
+        "xxxxxxxxxxxxxxxx",
+        " i   i   i   i  ",
+        " i   i   i   i  ",
+        " i   i   i   i  ",
+        " i   i   i   i  ",
+        "xxxxxxxxxxxxxxxx",
+        " i   i   i   i  ",
+        " i   i   i   i  ",
+        " i   i   i   i  ",
+        " i   i   i   i  ",
+        "iii iii iii iii ",
+        "                ",
+        "                "
+      ]
+    },
+    "cross": {
+      "transparent": " ",
+      "legend": {
+        "s": "#5a5470",
+        "S": "#736c90",
+        "x": "#221d34"
+      },
+      "rows": [
+        "                ",
+        "      xx        ",
+        "     xSSx       ",
+        "     xSSx       ",
+        "  xxxxSSxxxx    ",
+        "  xSSSSSSSSx    ",
+        "  xxxxSSxxxx    ",
+        "     xSSx       ",
+        "     xSSx       ",
+        "     xSSx       ",
+        "     xSSx       ",
+        "    xSSSSx      ",
+        "   xSSSSSSx     ",
+        "  xssssssssx    ",
+        "  xxxxxxxxxx    ",
+        "                "
+      ]
+    },
+    "obelisk": {
+      "transparent": " ",
+      "legend": {
+        "s": "#5a5470",
+        "S": "#736c90",
+        "x": "#221d34"
+      },
+      "rows": [
+        "      xx        ",
+        "     xSSx       ",
+        "     xSSx       ",
+        "    xSSSSx      ",
+        "    xSSSSx      ",
+        "    xSSSSx      ",
+        "    xSSSSx      ",
+        "    xSSSSx      ",
+        "    xSSSSx      ",
+        "    xSSSSx      ",
+        "    xSSSSx      ",
+        "    xSSSSx      ",
+        "    xSSSSx      ",
+        "    xSSSSx      ",
+        "    xSSSSx      ",
+        "    xSSSSx      ",
+        "   xSSSSSSx     ",
+        "   xSSSSSSx     ",
+        "  xSSSSSSSSx    ",
+        "  xSSSSSSSSx    ",
+        "  xxssssssxx    ",
+        "  xxxxxxxxxx    ",
+        "                ",
+        "                "
+      ]
+    },
+    "bat": {
+      "transparent": " ",
+      "legend": {
+        "b": "#1a1622",
+        "B": "#2c2438"
+      },
+      "rows": [
+        "b      b        ",
+        "bb    bb   bb   ",
+        "bBb  bBb  bBBb  ",
+        " bBBBBb bbbBBbbb",
+        "  bBBb  bBb  bBb",
+        "   bb   b      b",
+        "                ",
+        "                "
+      ]
+    },
+    "wisp": {
+      "transparent": " ",
+      "legend": {
+        "w": "#bfffcf",
+        "W": "#eafff0",
+        "g": "#6fd89a"
+      },
+      "rows": [
+        "                ",
+        "  gwg           ",
+        " gwWwg     gg   ",
+        " wWWWw    gWwg  ",
+        " gwWwg    gwg   ",
+        "  gwg           ",
+        "                ",
+        "                "
+      ]
+    }
+  }
+}

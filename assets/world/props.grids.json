@@ -1,0 +1,299 @@
+{
+  "_note": "ghostopia ORIGINAL placeable graveyard PROPS. Hand-authored palette-key grids, night-legible (rim/glow), nothing traced from any reference repo: a 3-cell lantern (off/on flicker), a 2-cell lamp-post (off/on), a stone bench, a funerary urn, an angel statue, a 2-cell jack-o'-lantern (off/on carved face), a dead shrub, an iron gate, a stone well, and a 2-cell candle cluster (flicker). Each is catalogued in assets/props.catalog.json with a footprint + orientation + (where apt) on/off state; the footprint contributes to server collision + A*. ' ' = transparent; single-char KEYS.",
+  "grids": {
+    "lantern": {
+      "transparent": " ",
+      "legend": {
+        "x": "#221d34",
+        "M": "#4a4560",
+        "g": "#7a5a24",
+        "G": "#ffd23f",
+        "H": "#fff2b0",
+        "k": "#201c2c"
+      },
+      "rows": [
+        "                                                ",
+        "     xMMx            xMMx            xMMx       ",
+        "     x  x            x  x            x  x       ",
+        "    xMMMMMMx        xMMMMMMx        xMMMMMMx    ",
+        "    xMggggMx        xMGGGGMx        xMGGGGMx    ",
+        "    xMggggMx        xMGHHGMx        xMGHHGMx    ",
+        "    xMggggMx        xMGHHGMx        xGHHHHGx    ",
+        "    xMggggMx        xMGGGGMx        xMGHHGMx    ",
+        "    xMggggMx        xMGGGGMx        xMGGGGMx    ",
+        "    xMMMMMMx        xMMMMMMx        xMMMMMMx    ",
+        "     xkkkx           xkkkx           xkkkx      ",
+        "     xkkkkx          xkkkkx          xkkkkx     ",
+        "                                                ",
+        "                                                ",
+        "                                                ",
+        "                                                "
+      ]
+    },
+    "lamppost": {
+      "transparent": " ",
+      "legend": {
+        "x": "#221d34",
+        "M": "#4a4560",
+        "m": "#2a2636",
+        "g": "#7a5a24",
+        "G": "#ffd23f",
+        "H": "#fff2b0",
+        "k": "#201c2c"
+      },
+      "rows": [
+        "      xxxx            xxxx      ",
+        "     xMMMMx          xMMMMx     ",
+        "     xMggMx          xMGGMx     ",
+        "     xMggMx          xGHHGx     ",
+        "     xMggMx          xMGGMx     ",
+        "     xMMMMx          xMMMMx     ",
+        "      xMMx            xMMx      ",
+        "       mM              mM       ",
+        "       mM              mM       ",
+        "       mM              mM       ",
+        "       mM              mM       ",
+        "       mM              mM       ",
+        "       mM              mM       ",
+        "       mM              mM       ",
+        "       mM              mM       ",
+        "       mM              mM       ",
+        "       mM              mM       ",
+        "       mM              mM       ",
+        "       mM              mM       ",
+        "       mM              mM       ",
+        "       mM              mM       ",
+        "      xmMx            xmMx      ",
+        "     xkkkkx          xkkkkx     ",
+        "                                "
+      ]
+    },
+    "bench": {
+      "transparent": " ",
+      "legend": {
+        "s": "#5a5470",
+        "S": "#736c90",
+        "x": "#221d34",
+        "k": "#201c2c"
+      },
+      "rows": [
+        "                ",
+        "                ",
+        "                ",
+        "                ",
+        "                ",
+        "  xssssssssssx  ",
+        "  xSSSSSSSSSSx  ",
+        "   xk      kx   ",
+        "   ss      ss   ",
+        "   ss      ss   ",
+        "   ss      ss   ",
+        "   kk      kk   ",
+        "                ",
+        "                ",
+        "                ",
+        "                "
+      ]
+    },
+    "urn": {
+      "transparent": " ",
+      "legend": {
+        "s": "#5a5470",
+        "S": "#736c90",
+        "x": "#221d34",
+        "k": "#201c2c"
+      },
+      "rows": [
+        "                ",
+        "                ",
+        "                ",
+        "                ",
+        "      xssx      ",
+        "     xSSSSx     ",
+        "      ssss      ",
+        "     sSSSSs     ",
+        "    sSSSSSSs    ",
+        "    sSSSSSSs    ",
+        "    sSSSSSSs    ",
+        "     sSSSSs     ",
+        "     xkkkkx     ",
+        "      xkkx      ",
+        "     xkkkkx     ",
+        "                "
+      ]
+    },
+    "statue": {
+      "transparent": " ",
+      "legend": {
+        "v": "#3f7d6a",
+        "V": "#6fbfa3",
+        "s": "#5a5470",
+        "S": "#736c90",
+        "x": "#221d34",
+        "k": "#201c2c"
+      },
+      "rows": [
+        "                ",
+        "       vv       ",
+        "       vv       ",
+        "      vvvv      ",
+        "     vVvvVv     ",
+        "    vVvvvvVv    ",
+        "   vVvvvvvvVv   ",
+        "    Vvvvvvvv    ",
+        "     vvvvvv     ",
+        "     vvvvvv     ",
+        "     vvvvvv     ",
+        "     vvvvvv     ",
+        "     vvvvvv     ",
+        "     vvvvvv     ",
+        "    vvvvvvvv    ",
+        "    vvvvvvvv    ",
+        "   vvvvvvvvvv   ",
+        "   ssssssssss   ",
+        "   xSSSSSSSSx   ",
+        "   xSSSSSSSSx   ",
+        "   xSSSSSSSSx   ",
+        "   xssssssssx   ",
+        "  xkkkkkkkkkkx  ",
+        "                "
+      ]
+    },
+    "pumpkin": {
+      "transparent": " ",
+      "legend": {
+        "p": "#b35a1e",
+        "P": "#d9772b",
+        "b": "#3a2f24",
+        "k": "#201c2c",
+        "G": "#ffd23f"
+      },
+      "rows": [
+        "                                ",
+        "                                ",
+        "       bb              bb       ",
+        "      pppp            pppp      ",
+        "    ppPPPPpp        ppPPPPpp    ",
+        "   ppPPPPPPpp      ppPPPPPPpp   ",
+        "  ppPkkPPkkPpp    ppPGGPPGGPpp  ",
+        "  pPPPPPPPPPPp    pPPPPPPPPPPp  ",
+        "  pPPkPkkPkPPp    pPPGPGGPGPPp  ",
+        "  ppPPPPPPPPpp    ppPPPPPPPPpp  ",
+        "   ppPPPPPPpp      ppPPPPPPpp   ",
+        "    pppppppp        pppppppp    ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                "
+      ]
+    },
+    "shrub": {
+      "transparent": " ",
+      "legend": {
+        "k": "#2a2119",
+        "b": "#3a2f24",
+        "B": "#4d4032"
+      },
+      "rows": [
+        "                ",
+        "                ",
+        "                ",
+        "                ",
+        "                ",
+        "                ",
+        "                ",
+        "                ",
+        "      k  k      ",
+        "     k kk k     ",
+        "   k  kkkk  k   ",
+        "    kkbbbbkk    ",
+        "   k kbBBbk k   ",
+        "     kbBBbk     ",
+        "     kbbbbk     ",
+        "      kkkk      "
+      ]
+    },
+    "gate": {
+      "transparent": " ",
+      "legend": {
+        "r": "#41414f",
+        "i": "#565663",
+        "R": "#26262f"
+      },
+      "rows": [
+        "  rr  iiiii  rr ",
+        "  rr  i i i  rr ",
+        "  rr  i i i  rr ",
+        "  rr  iiiii  rr ",
+        "  rr  i i i  rr ",
+        "  rr  i i i  rr ",
+        "  rr  i i i  rr ",
+        "  rr  iiiii  rr ",
+        "  rr  i i i  rr ",
+        "  rr  i i i  rr ",
+        "  rr  i i i  rr ",
+        "  rr  iiiii  rr ",
+        "  rr  i i i  rr ",
+        "  rr  i i i  rr ",
+        "  rr         rr ",
+        "  RR         RR "
+      ]
+    },
+    "well": {
+      "transparent": " ",
+      "legend": {
+        "s": "#5a5470",
+        "S": "#736c90",
+        "x": "#221d34",
+        "k": "#2a2636",
+        "w": "#2b5a6e"
+      },
+      "rows": [
+        "    xxxxxxxx    ",
+        "   xSSSSSSSSx   ",
+        "  xSSSSSSSSSSx  ",
+        "    k      k    ",
+        "    k      k    ",
+        "    k      k    ",
+        "   ssssssssss   ",
+        "   xSSSSSSSSx   ",
+        "   xwwwwwwwwx   ",
+        "   xwwwwwwwwx   ",
+        "   xSSSSSSSSx   ",
+        "   xssssssssx   ",
+        "   xssssssssx   ",
+        "   xssssssssx   ",
+        "   xkkkkkkkkx   ",
+        "                "
+      ]
+    },
+    "candlecluster": {
+      "transparent": " ",
+      "legend": {
+        "y": "#ffd23f",
+        "Y": "#fff2b0",
+        "w": "#e8ecff",
+        "W": "#f6f2ff",
+        "k": "#3a3550"
+      },
+      "rows": [
+        "        y               Y       ",
+        "   y    Y    y     Y    y    Y  ",
+        "   Y    Y    Y     y    Y    y  ",
+        "        Y               y       ",
+        "  kwwk kwwk kwwk  kwwk kwwk kwwk",
+        "  kWWk kWWk kWWk  kWWk kWWk kWWk",
+        "  kwwk kwwk kwwk  kwwk kwwk kwwk",
+        "  kwwk kwwk kwwk  kwwk kwwk kwwk",
+        "  kWWk kWWk kWWk  kWWk kWWk kWWk",
+        "  kwwk kwwk kwwk  kwwk kwwk kwwk",
+        "  kkkk kkkk kkkk  kkkk kkkk kkkk",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                ",
+        "                                "
+      ]
+    }
+  }
+}

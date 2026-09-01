@@ -1,0 +1,36 @@
+{
+  "_note": "ghostopia ONE cute-spooky base ghost ramp + per-section palettes + per-status tints. One authored ghost family -> N looks purely by data: a section palette swaps the base ramp (recolor), a status tint multiplies over it (applyStatusTint). Section ramp keys mirror the base ramp keys (body/bodyShade/rim); the loader resolves them to base-hex -> section-hex maps. Original palette; every section hue-shifts off the ONE base so the world stays cohesive.",
+  "base": {
+    "body": "#e8ecff",
+    "bodyShade": "#b0b8e0",
+    "rim": "#8ff0ff",
+    "eye": "#101018",
+    "blush": "#ff9ec4",
+    "outline": "#1b1730"
+  },
+  "world": {
+    "_note": "NIGHT presentation constants read by the renderer (and preview bg) — NOT the ghost recolor ramp: the ghost family + section ghost palettes above are UNCHANGED. A dark navy/indigo night ground + a cool STATIC vignette + the moon/star backdrop tints, tuned so the bright section washes above read as glows POPPING against the dark ground (crypt cyan / mausoleum amber / ghost rim). Original night theme, no reference-repo asset traced.",
+    "background": "#080814",
+    "groundTint": "#12183a",
+    "vignette": "#04030d",
+    "vignetteAlpha": 0.66,
+    "washAlpha": 0.17,
+    "moon": "#f6f3dc",
+    "moonGlow": "#5a6bb0",
+    "star": "#cfe0ff"
+  },
+  "sections": {
+    "research": { "body": "#bfe3ff", "bodyShade": "#5b8fd6", "rim": "#8ff0ff" },
+    "extraction": { "body": "#ffe0a8", "bodyShade": "#d69a4a", "rim": "#ffd070" },
+    "verify": { "body": "#c7f2cf", "bodyShade": "#5fae72", "rim": "#9dffb0" },
+    "error": { "body": "#d8c6cf", "bodyShade": "#8a5d6b", "rim": "#e69aa8" },
+    "home": { "body": "#dcd2ff", "bodyShade": "#8a7bd0", "rim": "#c3b3ff" }
+  },
+  "statusTints": {
+    "idle": { "brightness": 1.0, "saturation": 1.0 },
+    "working": { "brightness": 1.06, "saturation": 1.08 },
+    "retry": { "brightness": 0.85, "saturation": 0.7 },
+    "error": { "brightness": 0.68, "saturation": 0.35, "tint": [120, 40, 60, 255], "tintStrength": 0.18 },
+    "success": { "brightness": 1.22, "saturation": 1.15, "tint": [120, 255, 190, 255], "tintStrength": 0.12 }
+  }
+}

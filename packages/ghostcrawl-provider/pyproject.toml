@@ -1,0 +1,32 @@
+[project]
+name = "ghostopia-ghostcrawl-provider"
+version = "0.0.0"
+description = "The ONLY package that imports the ghostcrawl Python SDK: GhostCrawlProvider (the concrete BrowserProvider over the SDK) + the dual-target registry + the SDK error -> ghostopia event map. The full-primitive surface + CDP-WS relay extend this same provider."
+requires-python = ">=3.12"
+# This is the sole SDK-importing package: it depends on the editable
+# in-repo ghostcrawl 2.3.6 SDK, implements the shared BrowserProvider Protocol
+# from ghostopia-browser-provider, and returns the shared Pydantic models.
+dependencies = [
+  "ghostcrawl",
+  "ghostopia-browser-provider",
+  "ghostopia-shared",
+  # The ONE non-SDK path: the thin Python CDP-WebSocket transport that drives
+  # raw Input.dispatch* over the signed cdp.url() relay. Pinned to the workspace major
+  # (apps/server already depends on websockets; uv.lock pins 17.0.1). Operator-approved
+  # package-legitimacy gate 2026-08-26 (canonical aaugustin/python-websockets, BSD-3).
+  "websockets>=17,<18",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ghostopia_ghostcrawl_provider"]
+
+[tool.uv.sources]
+ghostopia-browser-provider = { workspace = true }
+ghostopia-shared = { workspace = true }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

@@ -1,0 +1,30 @@
+[project]
+name = "ghostopia-sections"
+version = "0.0.0"
+description = "ghostopia sections package (module ghostopia_sections): the ghostopia-original Section model — a labelled sub-region of the graveyard (bounds + workstation pool + roster + a role) declared as DATA (graveyard.sections.json). Missions/tasks fan out to sections BY ROLE (accepts/routes_to, capacity-bounded) or to an explicit TaskSpec.target.section; per-ghost behavior resolves by a fixed precedence (override > hint > role > idle). Roles/hints/overrides are BehaviorRegistry names, so adding or re-roling a section is a data change — no renderer/core-loop edit."
+requires-python = ">=3.12"
+# A Section overlays SectionDef.bounds on the WorldMap (ghostopia-ghost-world) and
+# resolves per-ghost behavior against the BehaviorRegistry (ghostopia-behaviors),
+# sharing the contract types from ghostopia-shared. Pure logic — no ghostcrawl SDK,
+# no server import (the orchestrator/task-manager inject the live pool).
+dependencies = [
+  "ghostopia-shared",
+  "ghostopia-ghost-world",
+  "ghostopia-behaviors",
+  "pydantic>=2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ghostopia_sections"]
+
+[tool.uv.sources]
+ghostopia-shared = { workspace = true }
+ghostopia-ghost-world = { workspace = true }
+ghostopia-behaviors = { workspace = true }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

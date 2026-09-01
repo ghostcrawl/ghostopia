@@ -1,0 +1,180 @@
+{
+  "sections": [
+    {
+      "id": "resting",
+      "label": "resting",
+      "bounds": { "x": 1, "y": 18, "w": 38, "h": 9 },
+      "role": "idle_wander",
+      "workstation_types": [],
+      "capacity": 8,
+      "accepts": [],
+      "routes_to": [],
+      "palette": "home"
+    },
+    {
+      "id": "research",
+      "label": "research",
+      "bounds": { "x": 1, "y": 9, "w": 12, "h": 8 },
+      "role": "scout_urls",
+      "workstation_types": ["workstation"],
+      "capacity": 4,
+      "accepts": ["scout"],
+      "routes_to": ["extraction"],
+      "palette": "research"
+    },
+    {
+      "id": "extraction",
+      "label": "extraction",
+      "bounds": { "x": 15, "y": 9, "w": 12, "h": 8 },
+      "role": "navigate_and_extract",
+      "workstation_types": ["workstation"],
+      "capacity": 4,
+      "accepts": ["extract"],
+      "routes_to": ["verify"],
+      "palette": "extraction"
+    },
+    {
+      "id": "verify",
+      "label": "verify",
+      "bounds": { "x": 29, "y": 9, "w": 10, "h": 8 },
+      "role": "verify",
+      "workstation_types": ["workstation"],
+      "capacity": 3,
+      "accepts": ["verify"],
+      "routes_to": [],
+      "palette": "verify"
+    },
+    {
+      "id": "best-price",
+      "label": "Bargain Crypt",
+      "kind": "department",
+      "bounds": { "x": 1, "y": 6, "w": 18, "h": 2 },
+      "role": "navigate_and_extract",
+      "workstation_types": ["workstation"],
+      "capacity": 3,
+      "accepts": ["extract"],
+      "routes_to": [],
+      "palette": "extraction",
+      "target_url": "https://books.toscrape.com/catalogue/category/books/classics_6/index.html",
+      "query": "classics best price",
+      "category": "best price across editions",
+      "extract_schema": {
+        "title": "str",
+        "price": "str",
+        "rating": "str",
+        "availability": "str",
+        "image": "str",
+        "link": "str"
+      }
+    },
+    {
+      "id": "haunted-market",
+      "label": "Haunted Market (advanced)",
+      "kind": "department",
+      "advanced": true,
+      "bounds": { "x": 21, "y": 6, "w": 18, "h": 2 },
+      "role": "search_and_detail",
+      "workstation_types": ["workstation"],
+      "capacity": 3,
+      "accepts": ["extract"],
+      "routes_to": [],
+      "palette": "research",
+      "query": "wireless earbuds",
+      "category": "real-store price comparison",
+      "extract_schema": {
+        "title": "str",
+        "price": "str",
+        "image": "str",
+        "link": "str"
+      }
+    },
+    {
+      "id": "horror-books",
+      "label": "Horror Books",
+      "kind": "department",
+      "bounds": { "x": 1, "y": 1, "w": 8, "h": 5 },
+      "role": "navigate_and_extract",
+      "workstation_types": ["workstation"],
+      "capacity": 3,
+      "accepts": ["extract"],
+      "routes_to": [],
+      "palette": "extraction",
+      "target_url": "https://books.toscrape.com/catalogue/category/books/horror_31/index.html",
+      "category": "horror",
+      "extract_schema": {
+        "title": "str",
+        "price": "str",
+        "rating": "str",
+        "availability": "str",
+        "image": "str",
+        "link": "str"
+      }
+    },
+    {
+      "id": "mystery-books",
+      "label": "Mystery Books",
+      "kind": "department",
+      "bounds": { "x": 11, "y": 1, "w": 8, "h": 5 },
+      "role": "navigate_and_extract",
+      "workstation_types": ["workstation"],
+      "capacity": 3,
+      "accepts": ["extract"],
+      "routes_to": [],
+      "palette": "extraction",
+      "target_url": "https://books.toscrape.com/catalogue/category/books/mystery_3/index.html",
+      "category": "mystery",
+      "extract_schema": {
+        "title": "str",
+        "price": "str",
+        "rating": "str",
+        "availability": "str",
+        "image": "str",
+        "link": "str"
+      }
+    },
+    {
+      "id": "spooky-masks",
+      "label": "Spooky Masks",
+      "kind": "department",
+      "bounds": { "x": 21, "y": 1, "w": 8, "h": 5 },
+      "role": "search_and_detail",
+      "workstation_types": ["workstation"],
+      "capacity": 3,
+      "accepts": ["extract"],
+      "routes_to": [],
+      "palette": "research",
+      "advanced": true,
+      "query": "devil masks",
+      "target_url": "https://www.halloweencostumes.com/devil-masks.html",
+      "category": "masks",
+      "extract_schema": {
+        "title": "str",
+        "price": "str",
+        "image": "str",
+        "link": "str"
+      }
+    },
+    {
+      "id": "spooky-costumes",
+      "label": "Spooky Costumes",
+      "kind": "department",
+      "bounds": { "x": 31, "y": 1, "w": 8, "h": 5 },
+      "role": "search_and_detail",
+      "workstation_types": ["workstation"],
+      "capacity": 3,
+      "accepts": ["extract"],
+      "routes_to": [],
+      "palette": "research",
+      "advanced": true,
+      "query": "vampire costumes",
+      "target_url": "https://www.halloweencostumes.com/vampire-costumes.html",
+      "category": "costumes",
+      "extract_schema": {
+        "title": "str",
+        "price": "str",
+        "image": "str",
+        "link": "str"
+      }
+    }
+  ]
+}

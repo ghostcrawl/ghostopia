@@ -1,0 +1,22 @@
+{
+  "_note": "ghostopia ORIGINAL graveyard critter grids \u2014 a black CAT side-profile with a 4-frame walk (walk0..3) + a sit pose (sit), 11x8 cells laid horizontally. Hand-authored generic graveyard critter (NOT the reference repos' pets/Claudio/Gitcat). The will-o'-wisp + bat critters reuse the existing overhead flyer grids in landmarks.grids.json (wisp/bat). Single-char palette KEYS; ' ' = transparent.",
+  "grids": {
+    "cat": {
+      "transparent": " ",
+      "legend": {
+        "b": "#1a1622",
+        "e": "#8be04a"
+      },
+      "rows": [
+        "        b b        b b        b b        b b        b b",
+        " b     bbbb b     bbbb       bbbb b     bbbb        bbb",
+        " bb   bbebb bb   bbebb bbb  bbebb bb   bbebb       bbeb",
+        "  bbbbbbbbb  bbbbbbbbb  bbbbbbbbb  bbbbbbbbb  b    bbbb",
+        "  bbbbbbbb   bbbbbbbb   bbbbbbbb   bbbbbbbb   bb  bbbbb",
+        "  b b  b b    bb  bb    b  bb  b    b b  b b  bbbbbbbbb",
+        "                                              b      b ",
+        "                                                       "
+      ]
+    }
+  }
+}

@@ -1,0 +1,51 @@
+[project]
+name = "ghostopia-server"
+version = "0.0.0"
+description = "ghostopia server — FastAPI + websockets host that owns the GhostCrawl SDK and credentials."
+requires-python = ">=3.12"
+# ghostcrawl is resolved from the vendored wheel (vendor/ghostcrawl-2.3.6-py3-none-any.whl)
+# via the workspace root's [tool.uv.sources] — so a downloaded ghostopia/ alone installs
+# with no monorepo sibling (no sdks/python path). The server is the ONLY place the SDK + any
+# credential lives (the TS frontend never imports it).
+dependencies = [
+  "ghostcrawl",
+  "ghostopia-shared",
+  "ghostopia-core",
+  "ghostopia-ghost-runtime",
+  "ghostopia-ghost-world",
+  "ghostopia-agent-runtime",
+  "ghostopia-ghostcrawl-provider",
+  "ghostopia-behaviors",
+  "ghostopia-behavior-executor",
+  "ghostopia-sections",
+  "ghostopia-orchestration",
+  "ghostopia-task-manager",
+  "fastapi",
+  "uvicorn",
+  "websockets",
+  "pyjwt>=2.8",
+  "pydantic>=2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ghostopia_server"]
+
+[tool.uv.sources]
+ghostopia-shared = { workspace = true }
+ghostopia-core = { workspace = true }
+ghostopia-ghost-runtime = { workspace = true }
+ghostopia-ghost-world = { workspace = true }
+ghostopia-agent-runtime = { workspace = true }
+ghostopia-ghostcrawl-provider = { workspace = true }
+ghostopia-behaviors = { workspace = true }
+ghostopia-behavior-executor = { workspace = true }
+ghostopia-sections = { workspace = true }
+ghostopia-orchestration = { workspace = true }
+ghostopia-task-manager = { workspace = true }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

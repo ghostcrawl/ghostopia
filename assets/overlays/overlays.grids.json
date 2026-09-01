@@ -1,0 +1,31 @@
+{
+  "_note": "ghostopia ORIGINAL living status overlays — a 13x13 icon library, TWO frames per icon (captcha pulse, cooldown sand-tick, retry quarter-turn, success pop, zzz drift). Packed L->R: captcha0/1 cooldown0/1 retry0/1 success0/1 zzz0/1. Palette KEYS y=warn k=dark w=white c=cyan g=green v=lavender; ' ' = transparent. Frame 1 is a deterministic transform of the hand-authored frame 0 (see scripts/author_overlays.mjs). Hand-authored, original.",
+  "grids": {
+    "overlays": {
+      "transparent": " ",
+      "legend": {
+        "y": "#ffd23f",
+        "k": "#241f38",
+        "w": "#e8ecff",
+        "c": "#8ff0ff",
+        "g": "#6ee87a",
+        "v": "#b6a7ff"
+      },
+      "rows": [
+        "      y                    kkkkkkkkkkk  kkkkkkkkkkk    cccccc        cccccc                               vvvvv                   ",
+        "      y            y       kwwwwwwwwwk  kwwwwwwwwwk   cc    cc      cc    cc            g                    v          vvvvv     ",
+        "     yyy           y        kwwwwwwwk    k wwwww k   cc      cc    cc      cc          gg            g      v              v      ",
+        "     yky          yyy        kwwwwwk      k www k    c        c    c        c         gg            gg     v              v       ",
+        "    yykyy         yky         kwwwk        k w k    cc        c c cc        c        gg            gg     vvvvv          v        ",
+        "    yykyy        yykyy         kwk          k k     c   cccc  ccc c   cccc  cc  g   gg            gg            vvv     vvvvv     ",
+        "   yyykyyy       yykyy          k            k      c  c    c  c  c  c    c  c  gg gg        g   gg              v            vvv ",
+        "   yyyyyyy      yyykyyy        k k          kwk     c        c    c        c     ggg         gg gg              v              v  ",
+        "  yyyykyyyy     yyyyyyy       k w k        kwwwk     c        c    c        c     g           ggg               vvv           v   ",
+        "  yyyyyyyyy    yyyykyyyy     k www k      kwwwwwk    cc      cc    cc      cc                  g                              vvv ",
+        " yyyyyyyyyyy   yyyyyyyyy    k wwwww k    kwwwwwwwk    cc    cc      cc    cc                                       vv             ",
+        "yyyyyyyyyyyyy yyyyyyyyyyy  kwwwwwwwwwk  kwwwwwwwwwk    cccccc        cccccc                                        v             v",
+        "             yyyyyyyyyyyyy kkkkkkkkkkk  kkkkkkkkkkk                                                               vv             v"
+      ]
+    }
+  }
+}

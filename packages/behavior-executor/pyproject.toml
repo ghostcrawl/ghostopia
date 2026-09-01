@@ -1,0 +1,29 @@
+[project]
+name = "ghostopia-behavior-executor"
+version = "0.0.0"
+description = "ghostopia behavior-executor package: the trust/isolation model — a capability-scoped BehaviorContext builder (only ghost/browser/world/emit/task/section/rng/log; never host/SDK/keys), an SSRF-guarded BrowserProvider wrapper that validates every navigated URL at the handle, and a pluggable Executor seam whose v0 InProcessExecutor (wall-clock + tick deadlines) swaps for a subprocess/isolate hardening executor with ZERO behavior-contract change. No ghostcrawl SDK import; the SSRF gate is injected."
+requires-python = ">=3.12"
+# The executor BUILDS the capability-scoped BehaviorContext (ghostopia-behaviors),
+# wraps the full-primitive BrowserProvider seam (ghostopia-browser-provider), and shares
+# the contract types (ghostopia-shared). Deliberately NO ghostcrawl dependency and NO
+# native-isolate dependency in v0 — the SSRF validator is INJECTED (not imported).
+dependencies = [
+  "ghostopia-shared",
+  "ghostopia-behaviors",
+  "ghostopia-browser-provider",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ghostopia_behavior_executor"]
+
+[tool.uv.sources]
+ghostopia-shared = { workspace = true }
+ghostopia-behaviors = { workspace = true }
+ghostopia-browser-provider = { workspace = true }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

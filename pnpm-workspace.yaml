@@ -1,0 +1,6 @@
+# ghostopia TS frontend workspace (mirror of package.json "workspaces" so either
+# npm or pnpm resolves the same member set). The canonical bring-up uses npm.
+packages:
+  - "apps/web"
+  - "packages/ghost-renderer"
+  - "packages/ghost-art"

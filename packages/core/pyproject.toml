@@ -1,0 +1,41 @@
+[project]
+name = "ghostopia-core"
+version = "0.0.0"
+description = "ghostopia core package: the composition layer that wires an EventSource -> GhostDriver + mounted Behaviors -> visual commands -> a broadcast sink (the STAGE-2 world-comes-alive plumbing). Behind the EventSource seam a SimEventSource (stages 1-2) or real GhostCrawl events (stage 3+) drive the identical world."
+requires-python = ">=3.12"
+# The core wires the runtime<->render<->behavior pipeline behind the EventSource
+# seam. It composes: the shared contract types (ghostopia-shared), the async bus
+# (ghostopia-event-bus), the world model + A* + WorldQuery (ghostopia-ghost-world),
+# the GhostDriver + concrete GhostHandle (ghostopia-ghost-runtime), the
+# full-primitive FakeBrowserProvider (ghostopia-browser-provider), the
+# DeterministicRunner (ghostopia-agent-runtime), and the dynamic Behavior registry
+# (ghostopia-behaviors). No ghostcrawl SDK import lives here — the sim runs on the
+# FakeBrowserProvider; the real provider slots in behind the same seam upstream.
+dependencies = [
+  "ghostopia-shared",
+  "ghostopia-event-bus",
+  "ghostopia-ghost-world",
+  "ghostopia-ghost-runtime",
+  "ghostopia-browser-provider",
+  "ghostopia-agent-runtime",
+  "ghostopia-behaviors",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ghostopia_core"]
+
+[tool.uv.sources]
+ghostopia-shared = { workspace = true }
+ghostopia-event-bus = { workspace = true }
+ghostopia-ghost-world = { workspace = true }
+ghostopia-ghost-runtime = { workspace = true }
+ghostopia-browser-provider = { workspace = true }
+ghostopia-agent-runtime = { workspace = true }
+ghostopia-behaviors = { workspace = true }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

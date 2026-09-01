@@ -1,0 +1,22 @@
+[project]
+name = "ghostopia-browser-provider"
+version = "0.0.0"
+description = "ghostopia browser-provider package: the full-primitive, capability-scoped BrowserProvider Protocol + FakeBrowserProvider + a reusable contract suite. No ghostcrawl SDK import (the real GhostCrawlProvider lands in a separate package)."
+requires-python = ">=3.12"
+# Reuses the shared Point/Button value types and returns Pydantic models
+# (BrowserSessionHandle/ScrapeResult), so it depends on ghostopia-shared + pydantic.
+# Deliberately NO ghostcrawl dependency — this seam never touches the SDK.
+dependencies = ["ghostopia-shared", "pydantic>=2"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ghostopia_browser_provider"]
+
+[tool.uv.sources]
+ghostopia-shared = { workspace = true }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

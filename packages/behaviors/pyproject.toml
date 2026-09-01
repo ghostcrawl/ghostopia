@@ -1,0 +1,36 @@
+[project]
+name = "ghostopia-behaviors"
+version = "0.0.0"
+description = "ghostopia behaviors package: the first-class dynamic Behavior system — a one-file Behavior contract, a register-by-name BehaviorRegistry with capability meta (param_schema/examples) as data, a builtin/ auto-discovery loader, four example behaviors, and an AgentBehavior adapter that runs BOTH brains (deterministic + LLM) behind ONE contract. No ghostcrawl SDK import."
+requires-python = ">=3.12"
+# A Behavior reaches GhostCrawl ONLY through the full-primitive ctx.browser
+# (ghostopia-browser-provider); it emits normalized Envelopes onto the shared bus
+# (ghostopia-event-bus), reads the world via ghostopia-ghost-world's WorldQuery, and
+# shares the contract types from ghostopia-shared. No ghostcrawl SDK dependency.
+dependencies = [
+  "ghostopia-shared",
+  "ghostopia-browser-provider",
+  "ghostopia-event-bus",
+  "ghostopia-ghost-world",
+  "ghostopia-agent-runtime",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ghostopia_behaviors"]
+
+[tool.uv.sources]
+ghostopia-shared = { workspace = true }
+ghostopia-browser-provider = { workspace = true }
+ghostopia-event-bus = { workspace = true }
+ghostopia-ghost-world = { workspace = true }
+ghostopia-agent-runtime = { workspace = true }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+  "network: exercises a real network target (books.toscrape.com); skips cleanly offline",
+]
