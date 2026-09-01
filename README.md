@@ -1,5 +1,7 @@
 # ghostopia
 
+![ghostopia — a pixel-art town where each ghost is a real GhostCrawl session bringing back product data](images/ghostopia-desktop.png)
+
 **A visual scraping workforce, powered by [GhostCrawl](https://ghostcrawl.io).**
 
 ghostopia turns your GhostCrawl account into a small pixel-art town. Every ghost
@@ -13,7 +15,8 @@ You bring GhostCrawl (cloud or self-hosted); ghostopia is the thin program on to
 **GhostCrawl does all the browsing and scraping work** — ghostopia points a
 workforce at your targets and shows you what it brings back.
 
-See it running: **https://ghostcrawl.io/ghostopia**
+Read the story behind it: **[Ghostopia: Your Scraping Workforce, as a Little
+Pixel Town](https://ghostcrawl.io/blog/ghostopia-your-scraping-workforce/)**.
 
 ## Quickstart
 
@@ -72,6 +75,16 @@ ghostopia is the app on top that makes it visible.
   full priced grid, with no model to configure and nothing third-party in the loop.
   Connecting your own model is optional, only for pages that carry no structured
   data.
+
+## Screenshots
+
+Click a department to open its findings; click a ghost to watch what it is doing
+right now. The whole surface is mobile-friendly, so you can watch the workforce
+from a phone.
+
+<p align="center">
+  <img src="images/ghostopia-mobile.png" alt="ghostopia on mobile — the town, the live/simulated toggle, and the mission control panel" width="320">
+</p>
 
 ## Scraping departments
 
