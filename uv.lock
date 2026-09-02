@@ -181,7 +181,7 @@ dependencies = [
     { name = "typer" },
 ]
 wheels = [
-    { filename = "ghostcrawl-2.3.6-py3-none-any.whl", hash = "sha256:39ff4ee32d27bd163ed3d5677ffe88718b90150e5d5a5231434dd17049a11c81" },
+    { filename = "ghostcrawl-2.3.6-py3-none-any.whl", hash = "sha256:b3bff7e86a452cb7a8f191e2cbaa1dc9af0404434c503b4a4d69fb923062c1c4" },
 ]
 
 [package.metadata]

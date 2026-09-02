@@ -13,6 +13,15 @@ const ghostopiaRoot = resolve(here, "../..");
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    // Consume the internal TS workspace packages from SOURCE so a fresh clone
+    // builds with no per-package build step (their published `exports` point at
+    // a `dist/` that only exists after a separate build).
+    alias: {
+      "@ghostopia/ghost-art": resolve(ghostopiaRoot, "packages/ghost-art/src/index.ts"),
+      "@ghostopia/ghost-renderer": resolve(ghostopiaRoot, "packages/ghost-renderer/src/index.ts"),
+    },
+  },
   server: {
     fs: {
       // allow importing the shared assets/ + maps/ DATA above the app root
