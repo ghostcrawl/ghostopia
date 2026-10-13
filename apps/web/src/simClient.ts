@@ -77,7 +77,7 @@ function asFacing(v: unknown): Facing | null {
   return typeof v === "string" && FACINGS.has(v as Facing) ? (v as Facing) : null;
 }
 
-/** anim name -> the ghost state whose clip the GhostSprite plays (incl. per-kind work). */
+/** anim name -> the ghost state whose clip the GhostSprite plays (incl. per-kind work, P8). */
 const ANIM_STATE: Record<string, GhostState> = {
   work: "EXTRACTING",
   "work.navigating": "NAVIGATING",
@@ -177,7 +177,7 @@ export class SimClient {
     } catch {
       return; // ignore non-JSON frames
     }
-    // Optional sound cues off the sim stream (off unless the operator enabled it).
+    //: optional sound cues off the sim stream (off unless the operator enabled it).
     soundboard.handle(env.type, (env.payload ?? {}) as Record<string, unknown>, env.ghost_id ?? undefined);
     if (env.type === "ghost.spawned") this.applySpawn(env);
     else if (env.type === "ghost.command") this.applyCommand(env);
@@ -231,7 +231,7 @@ export class SimClient {
       }
       case "face": {
         this.walks.delete(gid);
-        // Honor the explicit server facing. `target:"rest"` is an idle-arrival
+        //: honor the explicit server facing. `target:"rest"` is an idle-arrival
         // resting facing (stays IDLE → true grave-rest Zzz); anything else is the
         // working ghost facing its workstation (AT_WORKSTATION).
         const facing = asFacing(args.facing);
@@ -272,7 +272,7 @@ export class SimClient {
   private advanceWalks(dt: number): void {
     if (this.walks.size === 0) return;
     const store = useWorldStore.getState();
-    // Pitfall 2: accumulate EVERY moved ghost for this frame and flush in ONE
+    // (Pitfall 2): accumulate EVERY moved ghost for this frame and flush in ONE
     // store write, not N — the segment-lerp math below is unchanged, only the flush.
     const moved: Record<string, Point> = {};
     for (const [gid, w] of this.walks) {

@@ -1,8 +1,8 @@
-"""``select_agent_provider(mode)`` — the per-mission brain factory.
+"""``select_agent_provider(mode)`` — the per-mission brain factory (plan-14 selector).
 
-The composition layer (orchestrator) picks a brain PER MISSION without
-knowing the concrete type: both returned values satisfy the ONE ``AgentProvider``
-Protocol, so the call site is provider-agnostic and the ``AgentBehavior`` wraps
+The composition layer (sim / orchestrator) picks a brain PER MISSION without
+knowing the concrete type: both returned values satisfy the ONE plan-05 ``AgentProvider``
+Protocol, so the call site is provider-agnostic and plan 17's ``AgentBehavior`` wraps
 either. The 'llm' branch is the REAL ``AnthropicAgentProvider`` wired to a transport built
 from server-side config (injected for tests). An unknown mode RAISES — no silent fallback.
 """

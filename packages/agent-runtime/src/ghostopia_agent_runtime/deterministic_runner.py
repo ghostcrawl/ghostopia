@@ -12,7 +12,7 @@ A deterministic navigate→scrape→store pipeline driven ENTIRELY through the
     → result.record_extracted (per record)
     → task.completed
 
-The same sequence is produced regardless of the concrete provider, so the
+The same sequence is produced regardless of the concrete provider, so plan 17's
 ``AgentBehavior`` wraps this unchanged and the LLM provider slots in behind the
 same seam with an identical emit shape.
 """

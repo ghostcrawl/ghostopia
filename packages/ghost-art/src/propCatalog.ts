@@ -1,4 +1,4 @@
-// ghostopia ghost-art — the data-driven PLACEABLE-PROP CATALOG.
+// ghostopia ghost-art — the data-driven PLACEABLE-PROP CATALOG (clean-room P19).
 //
 // A prop is DATA: an id + category, the manifest sprite (grid) it draws from, a tile
 // FOOTPRINT (how many tiles it occupies — fed into server collision + A*), an ORIENTATION
@@ -6,7 +6,7 @@
 // optional on/off STATE region pair (lantern lit/dark), an optional animation CLIP, and a
 // PLACEMENT rule (on-ground / against-fence / against-wall). A placed prop is then fully
 // described by {catalog_id, tile, orientation, state} — nothing about a prop is hard-coded
-// in the renderer, so the SAME catalog powers both the shipped world AND the in-app editor.
+// in the renderer, so the SAME catalog powers both the shipped world AND the editor.
 //
 // `loadPropCatalog(json, manifest, book?)` VALIDATES every grid/region ref against the
 // manifest and every anim clip against the animation book (when supplied) — a missing ref
@@ -21,7 +21,7 @@ export interface Footprint {
   h: number;
 }
 
-/** Where a prop may be placed (the in-app editor uses this to gate placement). */
+/** Where a prop may be placed (the editor uses this to gate placement). */
 export type Placement = "ground" | "fence" | "wall";
 
 /**

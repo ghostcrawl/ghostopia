@@ -6,7 +6,8 @@ over the JWT-gated ``section.save`` / ``section.remove`` WS verbs. This module i
 BOUNDARY, mirroring :class:`~ghostopia_server.map_editor.MapEditor` (``map.save``):
 
 * the verbs are registered ONLY on the authed :class:`~ghostopia_server.ws_gateway.WsGateway`
-  (the operator JWT is verified pre-accept), so there is no second unauthed authoring path;
+  (the operator JWT is verified pre-accept), so there is no second unauthed authoring path
+;
 * the submitted payload is validated into a STRICT :class:`~ghostopia_sections.section.SectionDef`
   (``extra='forbid'`` — a hallucinated/unknown field is rejected cleanly);
 * any ``target_url`` passes the SSRF gate (``validate_mission_url``) BEFORE the department goes
@@ -22,11 +23,11 @@ emits ``section.saved {ok:True}``. Every failure emits a clean ``{ok:False, reas
 mutating live state. ``section.remove`` drops the department, rebroadcasts, and reports whether
 it existed.
 
-Persistence: the shipped ``maps/graveyard.sections.json`` seed is NEVER
+Persistence (R9/): the shipped ``maps/graveyard.sections.json`` seed is NEVER
 rewritten (static seeding stays a separate concern), but every authored department IS written
 back to a SEPARATE user data file via :class:`AuthoredSectionStore`. A boot merge
 (:func:`merge_authored_sections`) lays that file on top of the seed so a user's own targets
-survive a server restart — the fix for the "authored departments are
+survive a server restart — the fix for the RESEARCH Cluster D "authored departments are
 memory-only" root cause. The seed stays pristine; the user's edits live in the user file.
 """
 
@@ -75,7 +76,7 @@ def authored_sections_path() -> Path:
 
 
 class AuthoredSectionStore:
-    """The write-back file for runtime-authored departments.
+    """The write-back file for runtime-authored departments (R9/).
 
     A tiny JSON list of :class:`SectionDef` dumps keyed by id. :meth:`save` upserts a
     department and dumps the whole list to disk; :meth:`remove` drops one and rewrites;
@@ -229,7 +230,7 @@ class SectionEditor:
 
         # validated → go live atomically (runtime CRUD preserves live rosters), then rebroadcast.
         self._orchestrator.upsert_section(defn)
-        # write the authored department back to the user data file so it
+        # (R9/): write the authored department back to the user data file so it
         # survives a restart. Only a FULLY-validated department reaches here, so a hostile /
         # malformed one is never persisted.
         if self._store is not None:
@@ -244,7 +245,7 @@ class SectionEditor:
         payload = envelope.payload if isinstance(envelope.payload, dict) else {}
         section_id = str(payload.get("id", ""))
         existed = self._orchestrator.remove_section(section_id)
-        # Drop the persisted authored copy too (if any), so a removed department does
+        #: drop the persisted authored copy too (if any), so a removed department does
         # not resurrect on the next boot merge.
         if existed and self._store is not None:
             self._store.remove(section_id)

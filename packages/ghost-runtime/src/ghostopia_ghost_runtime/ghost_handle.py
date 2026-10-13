@@ -1,8 +1,8 @@
-"""The concrete GhostHandle.
+"""The concrete GhostHandle (Task 2).
 
 ``create_ghost_handle(ghost_id, command_sink, map)`` builds the concrete implementation of
 the shared :class:`ghostopia_shared.GhostHandle` Protocol — the NARROW command surface both
-Behaviors and the :class:`~ghostopia_ghost_runtime.ghost_driver.GhostDriver`
+Behaviors (plan 17) and the :class:`~ghostopia_ghost_runtime.ghost_driver.GhostDriver`
 speak. Every method pushes ONE server-authoritative visual command
 (:class:`ghostopia_shared.GhostCommand`) onto the sink (which the server broadcasts over the
 WS); movement methods compute an A* path via :func:`ghostopia_world.find_path` and carry it
@@ -10,7 +10,7 @@ on the command. Read-only queries reflect the ghost's motion state.
 
 The ghost entity stays DUMB: this handle holds NO decision logic — it only translates
 imperative commands into visual commands + tracks motion state. Behaviors decide; the handle
-moves/animates (three-layer seam).
+moves/animates (RESEARCH-2 Design A three-layer seam).
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ import math
 import random
 from collections.abc import Callable
 
-from ghostopia_shared import GhostCommand, Point
+from ghostopia_shared import GhostCommand, Point, Workstation
 from ghostopia_world import WorldMap, find_path
 
 CommandSink = Callable[[GhostCommand], None]
@@ -83,7 +83,7 @@ class _GhostHandle:
         # so same-department ghosts pick DIFFERENT seats) and released on departure/despawn, so
         # a seat is never double-booked and never leaks. Load-time occupancy stays in map.py.
         self._reserved_ws_id: str | None = None
-        # The idle/rest ``wander`` beat picks a RANDOM grave (not the nearest), but
+        # (R6): the idle/rest ``wander`` beat picks a RANDOM grave (not the nearest), but
         # determinism is a project invariant (no bare RNG) — so the draw is SEEDED by the ghost id.
         # ``random.Random(str)`` hashes the seed via SHA-512, giving a stable per-ghost sequence
         # across processes/runs (independent of PYTHONHASHSEED) while varying by ghost id.
@@ -173,7 +173,7 @@ class _GhostHandle:
         self.emit_walk("home", Point(x=float(grave[0]), y=float(grave[1])))
 
     def walk_to_section_workstation(self, section_id: str) -> None:
-        """Walk to + reserve a workstation seat in a NAMED, possibly non-rostered section.
+        """Walk to + reserve a workstation seat in a NAMED, possibly non-rostered section (R6).
 
         The cross-section movement primitive the staged pipeline needs: a solo ghost hops from a
         research desk to an extraction desk to a verify desk; a baton stage ghost sits at its stage
@@ -187,7 +187,7 @@ class _GhostHandle:
         self.emit_walk("workstation", Point(x=float(ws[0]), y=float(ws[1])))
 
     def walk_to_section_drop(self, section_id: str | None = None) -> None:
-        """Walk to a department to DELIVER a finished result (deliver beat).
+        """Walk to a department to DELIVER a finished result (D: deliver beat; R6 extends it).
 
         The drop point is the centre tile of the target region — the ghost visibly carries its work
         INTO the department instead of abandoning it to a grave. ``section_id`` names an EXPLICIT
@@ -207,7 +207,7 @@ class _GhostHandle:
         self.emit_walk("deliver", Point(x=float(cx), y=float(cy)))
 
     def wander(self) -> None:
-        """Walk to a RANDOM (seeded) grave for the idle/rest beat.
+        """Walk to a RANDOM (seeded) grave for the idle/rest beat (R6).
 
         Unlike :meth:`walk_home` (nearest grave), ``wander`` draws a random grave from ``self._rng``
         (seeded by the ghost id at construction) so idle ghosts scatter across the graveyard instead
@@ -244,8 +244,8 @@ class _GhostHandle:
 
     def play_work(self, kind: str | None = None) -> None:
         """Play the work animation. ``kind`` (navigating/searching/reading/scrolling/extracting)
-        selects the per-kind ``work.<kind>`` clip so the renderer shows WHAT the ghost is doing.
-        ``None`` keeps the generic ``work`` clip."""
+        selects the per-kind ``work.<kind>`` clip so the renderer shows WHAT the ghost is doing
+        (P8); ``None`` keeps the generic ``work`` clip."""
         anim = f"work.{kind}" if kind else "work"
         self._emit("anim", anim=anim)
 
@@ -279,14 +279,14 @@ class _GhostHandle:
 
     # -- destination resolution (data-driven, deterministic) -------------------
 
-    def _select_workstation(self, target_section: str | None = None):  # type: ignore[no-untyped-def]
+    def _select_workstation(self, target_section: str | None = None) -> Workstation | None:
         """Pure seat selection (no mutation). Prefers a seat this ghost ALREADY holds (so a
         working ghost keeps its desk and ``face_browser`` orients to it), else the NEAREST free
         seat in the PREFERRED section, else any free seat, else any seat at all — a section with
         no/occupied free seats degrades to the shared pool (never a dead ghost). Returns the
         chosen ``Workstation`` (or None if the map has no workstations).
 
-        ``target_section`` names an explicit FOREIGN section to seat in, overriding
+        ``target_section`` (R6) names an explicit FOREIGN section to seat in, overriding
         the ghost's own ``_section_id`` — the cross-section hop primitive. When ``None`` the ghost's
         own department is preferred (the original behavior)."""
         stations = sorted(self._map.workstations.values(), key=lambda w: w.id)
@@ -316,7 +316,7 @@ class _GhostHandle:
     def _reserve_workstation(self, target_section: str | None = None) -> tuple[int, int]:
         """Claim a seat at RUNTIME: mark ``occupied_by = ghost_id`` so same-section peers skip it
         (196 FIX 3). Idempotent — re-reserving keeps the same held seat; switching seats releases
-        the prior one first. ``target_section`` seats the ghost in an explicit foreign
+        the prior one first. ``target_section`` (R6) seats the ghost in an explicit foreign
         section (the cross-section hop). Returns the seat coords."""
         chosen = self._select_workstation(target_section)
         if chosen is None:
@@ -356,7 +356,7 @@ class _GhostHandle:
         return (nearest.x, nearest.y)
 
     def _pick_random_grave(self) -> tuple[int, int]:
-        """A RANDOM grave for the :meth:`wander` idle beat — drawn from the ghost's
+        """A RANDOM grave for the:meth:`wander` idle beat (R6) — drawn from the ghost's
         SEEDED ``_rng`` (seeded by ghost id) so idle ghosts scatter across the graveyard yet the
         choice is deterministic per ghost. Iterates a ``sorted``-by-id snapshot so the seeded draw
         is reproducible regardless of dict ordering."""

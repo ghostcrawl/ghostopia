@@ -1,4 +1,4 @@
-"""Layer 1 (always-on): build the capability-scoped ``BehaviorContext``.
+"""Layer 1 (always-on): build the capability-scoped ``BehaviorContext`` (RESEARCH-3 §5.2).
 
 User/AI-authored behaviors run server-side driving real browsers with real GhostCrawl keys.
 So a behavior must reach the outside world ONLY through a bounded context: its visual
@@ -11,7 +11,7 @@ This builder is deliberately thin: it constructs the SAME ``BehaviorContext`` th
 contract documents — a plain dataclass whose OWN attributes are exactly the eight
 bounded fields — with a freshly seeded :class:`random.Random`. Building the canonical type
 (rather than a bespoke one) is what guarantees a future subprocess/isolate executor can
-marshal the ctx across a process boundary UNCHANGED.
+marshal the ctx across a process boundary UNCHANGED (RESEARCH-3 §5.4).
 
 The context holds no back-reference to host globals: ``emit`` and ``log`` are the injected
 callbacks (no ``print``/global reach), and ``rng`` is a per-context stream (never the process

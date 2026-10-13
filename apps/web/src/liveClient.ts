@@ -1,11 +1,11 @@
 // ghostopia web — the Live-mode client (STAGE 3: real GhostCrawl sessions).
 //
 // A DROP-IN for `simClient`: the SAME store-applying path (ghost.spawned upsert +
-// ghost.command walk/face/anim/say driving the store, with client-side rAF
+// ghost.command walk/face/anim/say driving the plan-06 store, with client-side rAF
 // interpolation along the server's A* path) — only the SOURCE differs. Here the envelopes
 // are REAL: the Python server ran one real GhostCrawl session (server-side SDK, no key here)
 // and streamed the ghost's real work over the authed WS. The renderer is unchanged; the
-// ghost animates real navigation + real extracted records.
+// ghost animates real navigation + real extracted records (RESEARCH Pattern 3).
 //
 // A mission is submitted as `mission.submit {target_name, url}` — the client sends ONLY a
 // target NAME + a URL, never a key. This file imports NO backend package and NO SDK.
@@ -32,7 +32,7 @@ import { applyWorldEnvelope } from "./worldEnvelope";
 import { PROTOCOL_VERSION, WsClient, type Envelope } from "./wsClient";
 
 /**
- * Build a re-fetching token provider from the backend's `/token` endpoint URL. Returns
+ *: build a re-fetching token provider from the backend's `/token` endpoint URL. Returns
  * undefined when no url is given (sim). The provider GETs the endpoint and returns the fresh
  * `token`; any failure returns null so the WsClient keeps its last good token — a fresh tab
  * authenticates the self-hosted backend, and a stale-tab reconnect after a restart self-heals.
@@ -76,13 +76,13 @@ export function parseAttention(v: unknown): GhostAttention | null {
   if (typeof v !== "object" || v === null) return null;
   const o = v as Record<string, unknown>;
   if (o.needs !== true) return null;
-  // Boundary: the server already curates the reason, but the client guards it too so a
+  // boundary: the server already curates the reason, but the client guards it too so a
   // raw/vendor reason can never reach the roster "!" tooltip (renders "needs operator" instead).
   const reason = typeof o.reason === "string" ? safeSurfaceText(o.reason, "needs operator") : null;
   return { needs: true, reason };
 }
 
-/** anim name -> the ghost state whose clip the GhostSprite plays (incl. per-kind work). */
+/** anim name -> the ghost state whose clip the GhostSprite plays (incl. per-kind work, P8). */
 const ANIM_STATE: Record<string, GhostState> = {
   work: "EXTRACTING",
   "work.navigating": "NAVIGATING",
@@ -138,9 +138,9 @@ class StoreApplier {
   apply(env: Envelope): void {
     // STAGE-7 dashboard: count real nav/session/retry/error signals off the same stream.
     this.countMetrics(env);
-    // Tap the stream for optional sound cues (off unless the operator enabled it).
+    //: tap the stream for optional sound cues (off unless the operator enabled it).
     soundboard.handle(env.type, (env.payload ?? {}) as Record<string, unknown>, env.ghost_id);
-    // World envelopes (critters + reactive props) route to the shared world applier.
+    //: world envelopes (critters + reactive props) route to the shared world applier.
     if (applyWorldEnvelope(env.type, (env.payload ?? {}) as Record<string, unknown>)) return;
     if (env.type === "ghost.spawned") this.applySpawn(env);
     else if (env.type === "ghost.despawned") this.applyDespawn(env);
@@ -148,7 +148,7 @@ class StoreApplier {
     // STAGE-5 roster status: the frame-FREE cadence keeps every ghost's roster row fresh
     // (state/behavior/task/progress/records). No frame stream rides this envelope.
     else if (env.type === "ghost.status_changed") this.applyRosterStatus(env);
-    // An applied management command (reassign / assign_section) authoritatively moved
+    //: an applied management command (reassign / assign_section) authoritatively moved
     // the ghost's section — reflect it in the roster + world IMMEDIATELY (the frame-free status
     // poll skips the SELECTED ghost, so we cannot wait for it to carry the new section).
     else if (env.type === "management.applied") this.applyManagement(env);
@@ -164,7 +164,7 @@ class StoreApplier {
     // real activity — its finds — instead of the empty "still gathering" placeholder.
     else if (env.type === "result.scraped" || env.type === "result.record_extracted")
       this.applyScrapedRecord(env);
-    // Diagnostics: a frame-free REAL system-health snapshot (pool/governor/sections).
+    // diagnostics: a frame-free REAL system-health snapshot (pool/governor/sections).
     else if (env.type === "diagnostics.system")
       diagnosticsStore.getState().applySystem((env.payload ?? {}) as Record<string, unknown>);
     // STAGE-4 inspector envelopes: the server relays the SELECTED ghost's real frames +
@@ -173,7 +173,7 @@ class StoreApplier {
     else this.applyInspector(env);
   }
 
-  /** Count the REAL dashboard signals off the server stream. */
+  /** Count the REAL dashboard signals (BRIEF §24) off the server stream. */
   private countMetrics(env: Envelope): void {
     const p = (env.payload ?? {}) as Record<string, unknown>;
     const m = metricsStore.getState();
@@ -219,7 +219,7 @@ class StoreApplier {
     }
   }
 
-  /** Reflect an applied section move (reassign / assign_section) at once. */
+  /**: reflect an applied section move (reassign / assign_section) at once. */
   private applyManagement(env: Envelope): void {
     const gid = env.ghost_id;
     if (!gid) return;
@@ -297,7 +297,7 @@ class StoreApplier {
         );
         break;
       case "browser.view": {
-        // The server's ghost-type-aware view-mode envelope. `view:"live"` →
+        // /06: the server's ghost-type-aware view-mode envelope. `view:"live"` →
         // browser-nav (live frame), `view:"activity"` → api-only (activity/data view). It
         // also carries the SESSION-scoped sanitized persona sentence. We mirror both
         // onto the world-store ghost so the inspector branches on `ghost.workKind` and shows
@@ -314,7 +314,7 @@ class StoreApplier {
           ...(workKind ? { workKind } : {}),
           persona,
         });
-        // The server's HONEST reason the live view can't stream yet (session
+        // (R7): the server's HONEST reason the live view can't stream yet (session
         // opening, or the workspace live-view capability off). Guard it here too (last line) so
         // a raw/vendor reason is dropped to null rather than stored; a null clears it.
         const reason =
@@ -326,7 +326,7 @@ class StoreApplier {
       }
       case "browser.error":
       case "task.retry": {
-        // Boundary: render the SERVER-curated `display` phrase; if absent (e.g. a raw
+        // boundary: render the SERVER-curated `display` phrase; if absent (e.g. a raw
         // relayed error) fall back to a safe generic — NEVER the raw provider/vendor `code`.
         const shown = safeSurfaceText(
           typeof p.display === "string" ? p.display : p.code,
@@ -368,7 +368,7 @@ class StoreApplier {
     );
   }
 
-  /** An operator removed a ghost (per-section '-' control) — drop it everywhere. */
+  /**: an operator removed a ghost (per-section '-' control) — drop it everywhere. */
   private applyDespawn(env: Envelope): void {
     const p = (env.payload ?? {}) as Record<string, unknown>;
     const id = typeof p.ghost_id === "string" ? p.ghost_id : env.ghost_id;
@@ -409,7 +409,7 @@ class StoreApplier {
       }
       case "face": {
         this.walks.delete(gid);
-        // Honor the explicit server facing. `target:"rest"` is an idle-arrival
+        //: honor the explicit server facing. `target:"rest"` is an idle-arrival
         // resting facing (stays IDLE → true grave-rest Zzz); anything else is the
         // working ghost facing its workstation (AT_WORKSTATION).
         const facing = asFacing(args.facing);
@@ -453,7 +453,7 @@ class StoreApplier {
   private advanceWalks(dt: number): void {
     if (this.walks.size === 0) return;
     const store = useWorldStore.getState();
-    // Pitfall 2: accumulate EVERY moved ghost for this frame and flush in ONE
+    // (Pitfall 2): accumulate EVERY moved ghost for this frame and flush in ONE
     // store write, not N — the segment-lerp math below is unchanged, only the flush.
     const moved: Record<string, Point> = {};
     for (const [gid, w] of this.walks) {
@@ -487,7 +487,7 @@ export interface LiveClientOptions {
   url?: string;
   token?: string;
   /**
-   * The backend's real `/token` endpoint. When set, the client re-fetches a fresh token
+   *: the backend's real `/token` endpoint. When set, the client re-fetches a fresh token
    * before every (re)connect so a fresh tab authenticates the self-hosted backend and a tab whose
    * baked token predates a restart self-heals instead of reconnecting forever with the stale one.
    */
@@ -495,21 +495,21 @@ export interface LiveClientOptions {
   /** walk interpolation speed in world px/sec (default 220 — matches sim). */
   walkSpeed?: number;
   /**
-   * The server rebroadcast the authoritative world after a validated `map.save` (or on
+   *: the server rebroadcast the authoritative world after a validated `map.save` (or on
    * `map.load`/`map.reset`). `map` is the EditableMap wire shape — the app applies it to the
    * live render loop so all clients + running ghosts pick up the new graveyard.
    */
   onWorldSnapshot?: (map: Record<string, unknown>) => void;
-  /** The result of a `map.save`/`map.reset` (ok + a reject reason on failure). */
+  /**: the result of a `map.save`/`map.reset` (ok + a reject reason on failure). */
   onMapSaved?: (ok: boolean, reason: string | null) => void;
   /**
-   * The result of a `section.save`/`section.remove` (the department editor). `ok`
+   *: the result of a `section.save`/`section.remove` (the department editor). `ok`
    * false carries the server's reject reason (SSRF-blocked target, disallowed label, or a
    * malformed payload) — the editor keeps the form values and surfaces the reason.
    */
   onSectionSaved?: (ok: boolean, reason: string | null) => void;
   /**
-   * The server-owned set of ADVANCED real-retail departments currently switched
+   *: the server-owned set of ADVANCED real-retail departments currently switched
    * on, relayed on every `workforce.advanced` ack. The App keeps the toggle UI in sync with it.
    */
   onAdvancedToggled?: (advanced: string[]) => void;
@@ -520,7 +520,7 @@ export interface MissionFanout {
   title: string;
   urls: string[];
   /**
-   * A search-driven (query/category) seed for the mission — the alternative to a
+   *: a search-driven (query/category) seed for the mission — the alternative to a
    * `urls` list. When present the server splits the mission from the SEARCH results (the
    * backend already supports `query` seed missions). NAMES/targets only, never a key.
    */
@@ -569,7 +569,7 @@ export interface LiveClientHandle {
   stopWorkforce: () => void;
   /**
    * Send `workforce.advanced {id, enabled}` — toggle an opt-in ADVANCED real-retail department
-   * Enabling it runs that department against real stores with the operator's own
+   *. Enabling it runs that department against real stores with the operator's own
    * key; disabling it stops it. NAMES only, no key.
    */
   enableAdvanced: (id: string, enabled: boolean) => void;
@@ -579,7 +579,7 @@ export interface LiveClientHandle {
   despawnGhost: (ghostId: string) => void;
   /**
    * Send `ghost.select {ghost_id}` — the server streams ONLY this ghost's real frames
-   * `null` deselects (server stops the stream). Drives the STAGE-4 inspector.
+   * (BRIEF §36); `null` deselects (server stops the stream). Drives the STAGE-4 inspector.
    */
   selectGhost: (ghostId: string | null) => void;
   /** Send `critter.pet {critter_id}` — the server acks a `critter.petted` heart/spark flash. */
@@ -678,7 +678,7 @@ export function startLiveClient(options: LiveClientOptions = {}): LiveClientHand
         payload: {
           title: mission.title,
           urls: mission.urls,
-          // Forward the query seed only when non-empty (a search-driven mission);
+          //: forward the query seed only when non-empty (a search-driven mission);
           // a url-list mission omits it, unchanged.
           ...(mission.query && mission.query.trim().length > 0
             ? { query: mission.query.trim() }

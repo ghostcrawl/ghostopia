@@ -1,4 +1,4 @@
-"""Ergonomic ``mouse``/``keyboard`` helpers over the CDP-WS relay.
+"""Ergonomic ``mouse``/``keyboard`` helpers over the CDP-WS relay (RESEARCH-3 §1.3).
 
 ``make_input_helpers(session_ref, transport, cdp_input)`` returns the ``mouse``/``keyboard``
 sub-surfaces a behavior drives. Engine feature-detect + graceful degrade:
@@ -100,7 +100,7 @@ class _Mouse:
             raise FeatureUnavailable(
                 "mouse.drag (a HELD stroke) is chromium-relay-only; cdp.input cannot express it"
             )
-        # Whiteboard payload: mousePressed(buttons:1) at frm →
+        # Whiteboard payload (RESEARCH-3 §1.3): mousePressed(buttons:1) at frm →
         # N× mouseMoved(buttons:1) → mouseReleased(buttons:0). Press AT frm (no pre-move).
         self._x, self._y = frm.x, frm.y
         await self.down(button)
@@ -115,6 +115,66 @@ class _Mouse:
         # Press AND HOLD at ``at`` (no release) — the stroke stays down until a later up/drag.
         self._x, self._y = at.x, at.y
         await self.down(button)
+
+
+# CDP touch phase (a ``touch`` op ``phase``) → ``Input.dispatchTouchEvent`` ``type``.
+_TOUCH_PHASE_TO_CDP: dict[str, str] = {
+    "start": "touchStart",
+    "move": "touchMove",
+    "end": "touchEnd",
+    "cancel": "touchCancel",
+}
+
+
+class _Touch:
+    """``touch.*`` — raw touch on the relay; degrades a tap to ``cdp.input``.
+
+    A MOBILE identity taps; a phone has NO mouse (a mouse event on a touch identity is a
+    synthetic tell). On chromium + a live ``transport`` each touch op (start/move*/end)
+    becomes an ``Input.dispatchTouchEvent`` frame; on FF/WebKit (no transport) a tap DEGRADES to
+    the ``cdp.input`` ``tap`` path at the gesture's start point — an honest touch, never a mouse.
+    """
+
+    def __init__(
+        self, session_ref: Any, transport: CdpWsTransport | None, cdp_input: CdpInputFn | None
+    ) -> None:
+        self._session = session_ref
+        self._transport = transport
+        self._cdp_input = cdp_input
+
+    def _relay(self) -> bool:
+        return self._transport is not None and getattr(self._session, "engine", None) == "chromium"
+
+    async def dispatch(self, ops: list[dict[str, Any]]) -> None:
+        """Dispatch a touch-op list (``{"kind":"touch","phase":...,"points":[...]}``).
+
+        On the relay every op is an ``Input.dispatchTouchEvent`` frame; off-relay the gesture
+        degrades to a single ``cdp.input`` tap at its start point. NEVER emits a mouse event.
+        """
+        if not ops:
+            return
+        if self._relay():
+            assert self._transport is not None
+            for op in ops:
+                phase = str(op.get("phase", "start"))
+                pts = op.get("points", []) or []
+                touch_points = [
+                    {"x": float(p.get("x", 0)), "y": float(p.get("y", 0)), "id": int(p.get("id", 0))}
+                    for p in pts
+                ]
+                await self._transport.send(
+                    "Input.dispatchTouchEvent",
+                    {"type": _TOUCH_PHASE_TO_CDP.get(phase, "touchStart"), "touchPoints": touch_points},
+                )
+            return
+        # DEGRADE: an honest cdp.input tap at the gesture's start point (never a mouse click).
+        if self._cdp_input is None:
+            raise FeatureUnavailable("touch.dispatch: no relay and no cdp.input degrade path")
+        start = next((o for o in ops if o.get("phase") == "start"), ops[0])
+        pts = start.get("points", []) or []
+        if pts:
+            p = pts[0]
+            await self._cdp_input("tap", x=float(p.get("x", 0)), y=float(p.get("y", 0)))
 
 
 class _Keyboard:
@@ -158,6 +218,7 @@ class InputHelpers:
 
     mouse: _Mouse
     keyboard: _Keyboard
+    touch: _Touch
 
 
 def make_input_helpers(
@@ -174,6 +235,7 @@ def make_input_helpers(
     return InputHelpers(
         mouse=_Mouse(session_ref, transport, cdp_input),
         keyboard=_Keyboard(session_ref, transport, cdp_input),
+        touch=_Touch(session_ref, transport, cdp_input),
     )
 
 

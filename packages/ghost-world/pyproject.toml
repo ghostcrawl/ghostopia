@@ -6,7 +6,7 @@ requires-python = ">=3.12"
 # The world model reuses the shared Pydantic value types (Point/Bounds/Workstation/
 # WorldObject) and satisfies the shared WorldQuery Protocol, so it depends on
 # ghostopia-shared (resolved as a workspace path source below). NO external
-# pathfinding library — the A* is hand-rolled.
+# pathfinding library — the A* is hand-rolled (RESEARCH-2 Design C).
 dependencies = ["ghostopia-shared", "pydantic>=2"]
 
 [build-system]

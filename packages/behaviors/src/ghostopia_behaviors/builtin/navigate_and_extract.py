@@ -1,4 +1,4 @@
-"""``NavigateAndExtract`` — the canonical dynamic behavior.
+"""``NavigateAndExtract`` — the canonical dynamic behavior (RESEARCH-2 Design A).
 
 Walks a ghost to a workstation, opens a GhostCrawl session through the full-primitive
 ``ctx.browser``, and steps NAVIGATE → READING(dwell) → EXTRACT → NAVIGATE over a url queue,
@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field
 
 from ghostopia_behaviors.behavior import BehaviorContext
 from ghostopia_behaviors.builtin._async_op import AsyncOp
+from ghostopia_behaviors.product_match import Target, match_candidate, parse_query
 from ghostopia_behaviors.builtin._session_retry import (
     MAX_SESSION_ATTEMPTS,
     retry_after_floor,
@@ -104,6 +105,22 @@ class NavigateAndExtractParams(BaseModel):
             "stays correct across every stage role."
         ),
     )
+    target_product: str = Field(
+        default="",
+        description=(
+            "When set, the EXACT product the crawl is hunting: each extracted record is gated "
+            "through the deterministic product matcher and only emitted when its title is the "
+            "SAME product (brand/model/attribute match, accessories rejected). Empty (default) "
+            "emits every record — the prior behavior."
+        ),
+    )
+    match_threshold: float | None = Field(
+        default=None,
+        description=(
+            "Same-product threshold (0..1) for target_product gating. None uses the env "
+            "GHOSTOPIA_MATCH_THRESHOLD / the built-in default."
+        ),
+    )
 
 
 class _Step(Enum):
@@ -154,6 +171,8 @@ class NavigateAndExtract:
         # the department DEGRADES to sessionless stateless scraping — ``ctx.browser.scrape``
         # needs no live session — so it still delivers its finds instead of dying with no data.
         self._sessionless = False
+        # EXACT-product gate: parsed once from target_product (empty = no gating, emit all).
+        self._target: Target | None = None
 
     @property
     def is_done(self) -> bool:
@@ -194,6 +213,8 @@ class NavigateAndExtract:
             if isinstance(seed, str) and seed not in self._queue:
                 self._queue.insert(0, seed)
             self._seed_urls = {u for u in self._queue if isinstance(u, str)}
+            if self._params.target_product.strip():
+                self._target = parse_query(self._params.target_product)
         # Stateless departments never open a live session (no slot churn / leak); they scrape
         # server-side. The visual navigate/work beats still play, so the ghost looks identical.
         self._sessionless = self._params.stateless
@@ -346,6 +367,17 @@ class NavigateAndExtract:
             # never lost.
             if not (current in self._seed_urls and queued_any):
                 for record in result.records:
+                    # EXACT-product gate (opt-in): with target_product set, drop a record whose
+                    # title is NOT the same product (wrong item / accessory) so the crawl records
+                    # only listings of the searched product. No target → emit every record.
+                    if self._target is not None and isinstance(record, dict):
+                        verdict = match_candidate(
+                            self._target,
+                            record.get("title"),
+                            threshold=self._params.match_threshold,
+                        )
+                        if not verdict.is_match:
+                            continue
                     self._records += 1
                     await ctx.emit_event(
                         "result.scraped",

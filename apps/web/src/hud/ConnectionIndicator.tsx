@@ -1,4 +1,4 @@
-// ghostopia web — the WS connection-state badge.
+// ghostopia web — the WS connection-state badge (P18).
 //
 // A small always-available badge bound to the shared `connectionStore` (fed by the live/sim WS
 // transports). It surfaces Connecting / Reconnecting / Disconnected so the operator knows when

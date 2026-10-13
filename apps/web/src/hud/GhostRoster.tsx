@@ -4,7 +4,7 @@
 // row showing the ghost's name, state, active behavior name, current task, a progress bar, and
 // record count. Rows are fed by the frame-FREE `ghost.status_changed` cadence (`rosterStore`);
 // clicking a row selects that ghost (`ghost.select`) so the server streams ITS live frames
-// (only one at a time). Selection ALSO works by clicking the ghost sprite on the
+// (only one at a time — BRIEF §36). Selection ALSO works by clicking the ghost sprite on the
 // PixiJS canvas (render-loop pointer hit-test → the same `ghost.select`); this HTML roster is
 // an equivalent path, not the only one.
 //
@@ -27,7 +27,7 @@ function pct(progress: number): string {
   return `${Math.round(Math.max(0, Math.min(1, progress)) * 100)}%`;
 }
 
-/** Select a ghost + fit the camera on it (double-click zoom-to-ghost). */
+/** Select a ghost + fit the camera on it (double-click zoom-to-ghost, P11). */
 function zoomToGhost(ghostId: string, onSelect: (id: string | null) => void): void {
   onSelect(ghostId);
   const g = useWorldStore.getState().ghosts[ghostId];

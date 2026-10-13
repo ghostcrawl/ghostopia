@@ -1,4 +1,4 @@
-// ghostopia ghost-renderer — an autonomous graveyard critter sprite.
+// ghostopia ghost-renderer — an autonomous graveyard critter sprite (P14).
 //
 // Renders a server-authoritative `Critter` (black cat on the ground, will-o'-wisp / bat
 // overhead). It plays the critter's clip on a ms clock, flips the ground cat by its travel

@@ -2,8 +2,8 @@
 
 Every URL a mission/task would dispatch against is validated HERE before any GhostCrawl
 call. Even though GhostCrawl egress is itself proxy-mediated, ghostopia must still refuse
-private/loopback/link-local/metadata targets at its own boundary, so a user (or an
-AI-authored task) cannot pivot the server
+private/loopback/link-local/metadata targets at its own boundary (RESEARCH §Security —
+SSRF via mission target URL), so a user (or an AI-authored task) cannot pivot the server
 into the internal network or the cloud metadata endpoint (169.254.169.254).
 
 Policy:
@@ -11,7 +11,7 @@ Policy:
   * the host is resolved to IP(s) and EVERY resolved address must be a global/public
     address — any loopback / private / link-local / reserved / multicast / unspecified
     address blocks the URL;
-  * the configured self-host target host(s) are an EXPLICIT, SCOPED allow
+  * the configured self-host target host(s) are an EXPLICIT, SCOPED allow (self-host)
     — allowing ``localhost`` does NOT open other private ranges, only that exact host.
 
 The DNS resolver is injectable (``resolver=``) so the gate is testable without real DNS
@@ -20,7 +20,9 @@ and so a caller can supply a pinned resolver; the default uses ``socket.getaddri
 
 from __future__ import annotations
 
+import concurrent.futures
 import ipaddress
+import os
 import socket
 from collections.abc import Callable
 from urllib.parse import urlsplit
@@ -29,14 +31,42 @@ Resolver = Callable[[str], list[str]]
 
 _ALLOWED_SCHEMES = frozenset({"http", "https"})
 
+# ``socket.getaddrinfo`` has NO native timeout and IGNORES ``socket.setdefaulttimeout``, so an
+# unreachable or slow DNS server blocks it INDEFINITELY. Because this validator runs inside the
+# async ``create_session`` path, an unbounded resolve hangs session-create (and every other
+# coroutine on the loop). Bound it in a small worker pool and fail CLOSED on timeout — an
+# unresolvable host is NOT proven public, so SSRF policy must refuse it. Tunable via env.
+_RESOLVE_TIMEOUT_S = float(os.environ.get("GHOSTOPIA_SSRF_DNS_TIMEOUT_S", "5.0"))
+_resolver_pool: concurrent.futures.ThreadPoolExecutor | None = None
+
+
+def _get_resolver_pool() -> concurrent.futures.ThreadPoolExecutor:
+    global _resolver_pool
+    if _resolver_pool is None:
+        _resolver_pool = concurrent.futures.ThreadPoolExecutor(
+            max_workers=4, thread_name_prefix="ssrf-dns"
+        )
+    return _resolver_pool
+
 
 class SsrfBlockedError(ValueError):
     """Raised when a mission target URL is refused by the SSRF policy."""
 
 
 def _default_resolver(host: str) -> list[str]:
-    """Resolve ``host`` to its IP addresses via the system resolver."""
-    infos = socket.getaddrinfo(host, None)
+    """Resolve ``host`` to its IP addresses via the system resolver, BOUNDED by a timeout.
+
+    A bare ``socket.getaddrinfo`` would block forever on a dead/slow DNS server; we run it in a
+    worker thread and refuse the URL (fail-closed) if it exceeds ``_RESOLVE_TIMEOUT_S``.
+    """
+    fut = _get_resolver_pool().submit(socket.getaddrinfo, host, None)
+    try:
+        infos = fut.result(timeout=_RESOLVE_TIMEOUT_S)
+    except concurrent.futures.TimeoutError:
+        fut.cancel()  # best-effort; the hung getaddrinfo thread is a daemon and dies with the proc
+        raise SsrfBlockedError(
+            f"DNS resolution for {host!r} exceeded {_RESOLVE_TIMEOUT_S:g}s — refused (fail-closed)"
+        ) from None
     # ``sockaddr[0]`` is the numeric address for both AF_INET and AF_INET6.
     return [str(info[4][0]) for info in infos]
 

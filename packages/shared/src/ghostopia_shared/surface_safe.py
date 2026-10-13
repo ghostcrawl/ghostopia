@@ -43,8 +43,20 @@ BANNED_SURFACE_TERMS: frozenset[str] = frozenset(
         "clearance",
         "cf_clearance",
         "captcha-bypass",
+        "evasion",
+        "undetectable",
         # customer-surface language that must never label a session
         "human",
+        # internal engine codenames + sibling-harness / low-level control vocabulary that must
+        # never surface (ghostopia's own vocabulary is ghosts / workforce / browser engine)
+        "nochrome",
+        "nofox",
+        "nokit",
+        "nodom",
+        "analogsoul",
+        "soul",
+        "souls",
+        "juggler",
     }
 )
 
@@ -56,7 +68,8 @@ _BANNED_REGEX = re.compile(
     r"datadome|kasada|perimeterx|imperva|akamai|cloudflare|waf|anti[\s_-]?bot|"
     r"proxy|residential|data[\s_-]?center|datacenter|fingerprint|stealth|spoof(?:ing|ed)?|"
     r"bypass|clearance|cf[\s_-]?clearance|captcha[\s_-]?bypass|"
-    r"human|real[\s_-]?human"
+    r"evasion|undetectable|human|real[\s_-]?human|"
+    r"nochrome|nofox|nokit|nodom|analogsoul|souls?|juggler"
     r")\b",
     re.IGNORECASE,
 )

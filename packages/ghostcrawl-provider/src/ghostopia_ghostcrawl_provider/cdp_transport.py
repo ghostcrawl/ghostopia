@@ -5,8 +5,8 @@ paid tier + ``cdp_passthrough_enabled``) that speaks full ``Input.dispatchMouseE
 ``Input.dispatchKeyEvent`` — the ONLY way to express a HELD mouse drag (the whiteboard
 recipe), which ``cdp.input``'s ``{navigate,click,type}`` steps cannot. The ghostcrawl
 Python SDK is a Kiota REST client and ships NO persistent CDP-WS transport, so ghostopia
-builds this one here (disposition (a)); the proposed SDK ``cdp.connect(session_id)``
-live-driver that would absorb it is tracked as a known follow-up.
+builds this one here; a proposed SDK ``cdp.connect(session_id)``
+live-driver that would absorb it is tracked in the project backlog.
 
 Design notes:
 - ``mint_url()`` is an injected async callable returning ``{url, expires_in_seconds,
@@ -16,7 +16,7 @@ Design notes:
   in-memory socket with ZERO network.
 - Re-mint is bounded to token expiry (a monotonic-clock deadline from
   ``expires_in_seconds``) AND an auth-close during a frame — an in-flight long stroke
-  survives a re-mint (the token is held server-side, re-mint is not
+  survives a re-mint (/03: the token is held server-side, re-mint is not
   per-frame).
 """
 
@@ -161,7 +161,7 @@ def create_cdp_ws_transport(
 
 
 def interpolate_stroke(frm: Any, to: Any, *, step_px: float = 12.0) -> list[Any]:
-    """Intermediate points between ``frm`` and ``to`` at ~8-16px steps.
+    """Intermediate points between ``frm`` and ``to`` at ~8-16px steps (RESEARCH-3 §1.3).
 
     Returns the interior points only (excludes the endpoints); a HELD drag glides through
     these with ``buttons:1`` between the ``down`` and the ``up``. ``frm``/``to`` are

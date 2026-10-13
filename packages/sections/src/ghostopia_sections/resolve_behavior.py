@@ -1,11 +1,11 @@
-"""Per-ghost behavior vs section role resolution.
+"""Per-ghost behavior vs section role resolution (RESEARCH-2 Design B).
 
 A ghost's active behavior resolves by a FIXED precedence — a per-ghost override wins,
 else a task hint, else the section's role (the area default), else the idle-wander
 fallback::
 
     resolve_behavior(ghost, section, task):
-      1. ghost.behavior_override    # operator pinned a behavior on this ghost
+      1. ghost.behavior_override    # operator pinned a behavior on this ghost (Design D)
       2. task.behavior_hint         # a mission/task requested a specific behavior
       3. section.role               # the section's default behavior
       4. "idle_wander"              # fallback when nothing else applies

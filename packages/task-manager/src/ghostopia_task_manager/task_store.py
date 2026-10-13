@@ -1,4 +1,4 @@
-"""Injectable persistence for task/mission records.
+"""Injectable persistence for task/mission records (RESEARCH-3 §4.2).
 
 The :class:`TaskManager` (the management COMMAND surface) never touches a database
 directly — it holds a :class:`TaskStore`, a narrow ``Protocol`` (``create``/``get``/

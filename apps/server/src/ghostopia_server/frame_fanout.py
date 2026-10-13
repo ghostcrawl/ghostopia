@@ -6,11 +6,11 @@ Python server opens ``recordings.visual(session_id).watch()`` for THAT ghost's R
 authed WS as a ``browser.frame`` envelope; the thin TS inspector draws it into an ``<img>``.
 The client never calls GhostCrawl and holds no key.
 
-Performance invariant: only ONE frame stream is ever
+Performance invariant (BRIEF §36 / RESEARCH §Perf/Polling): only ONE frame stream is ever
 active — the SELECTED ghost. Selecting a different ghost CANCELS the prior ``watch()`` and
 starts the new one; a deselect stops the stream entirely. No ``watch()`` is ever opened for a
 non-selected ghost (that would fan out N concurrent recordings and hammer proxy/governor
-concurrency — a known anti-pattern).
+concurrency — the anti-pattern RESEARCH calls out).
 
 Threat model: frames ride only the authenticated WS; a single active
 cancel scope enforces the one-stream ceiling; a ghost only ever streams its own
@@ -116,7 +116,7 @@ class FrameFanout:
     async def select_ghost_frames(self, ghost_id: str | None) -> None:
         """Stream the selected ghost's real frames — cancelling any prior stream first.
 
-        The one-stream invariant: whatever was streaming is cancelled BEFORE a new
+        The one-stream invariant (BRIEF §36): whatever was streaming is cancelled BEFORE a new
         stream starts, so at most one ``watch()`` is ever open. A ``None`` ghost id (deselect)
         stops streaming and returns. A ghost with no live session (not yet spawned / already
         released) is a no-op after the stop — no phantom stream.
@@ -163,7 +163,7 @@ class FrameFanout:
         """DYNAMICALLY stream the ghost's real frames/activity until cancelled/deselected (R7).
 
         The mode is re-evaluated on an interval instead of snapshotted once at select time
-        a session opening AFTER select UPGRADES activity→frames, and a
+        (RESEARCH Cluster C R7): a session opening AFTER select UPGRADES activity→frames, and a
         live view that can't stream (session not open yet, or the workspace's live-view
         capability is off) shows an HONEST reason rather than an eternal "No live view yet"
         placeholder. ``browser.view`` is re-emitted whenever the mode/reason FLIPS so the

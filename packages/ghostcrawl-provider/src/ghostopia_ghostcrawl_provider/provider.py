@@ -2,20 +2,20 @@
 
 This is the ONLY concrete provider that crosses to the network/SDK. It fulfils
 the shared ``BrowserProvider`` Protocol (``ghostopia-browser-provider``) by delegating to
-the ``AsyncGhostCrawl`` client resolved from the :class:`TargetRegistry`.
+the ``AsyncGhostCrawl`` client resolved from the:class:`TargetRegistry`.
 
 The FULL primitive surface is wired to the REAL Python SDK: session lifecycle,
 ``nav`` (goto/current_url via ``cdp.url``), ``scrape``, ``live_frames`` over
 ``recordings.visual(session_id).watch()``, the ``page.*`` primitives (``eval``/``scroll``/
 ``dom_snapshot``/``wait_for``/``cookies``/``upload``/``download``/``har`` → ``client.page.*``),
 ``extract``/``search``/``screenshot`` (→ ``client.extract``/``search``/``screenshot``), and
-``release``. Every member that the SDK expresses IS an SDK method — no stubs (SDK-first
-+ the operator's SDK-parity directive).
+``release``. Every member that the SDK expresses IS an SDK method — no stubs (
+SDK-first + the operator's SDK-parity directive).
 
 The ONE thing the SDK cannot express — a raw HELD mouse drag — rides the CDP-WebSocket
 relay minted by ``client.cdp.url(session_id=...)`` through the thin
 :class:`~ghostopia_ghostcrawl_provider.cdp_transport.CdpWsTransport` (the ONE documented
-non-SDK path). The ergonomic ``mouse``/``keyboard`` helpers drive
+non-SDK path in the SDK-Gap Ledger). The ergonomic ``mouse``/``keyboard`` helpers drive
 the relay on chromium and DEGRADE to ``client.cdp.input`` click/type on FF/WebKit.
 
 Capability scoping: the SDK client is held privately; this provider
@@ -61,7 +61,7 @@ _DEFAULT_PROFILE = "default"
 _WORK_KIND_BROWSER_NAV = "browser-nav"
 _WORK_KIND_API_ONLY = "api-only"
 
-# The ONLY session-persona fields ghostopia may surface. The SDK's accessor
+# The ONLY session-persona fields ghostopia may surface. The SDK's plan-02 accessor
 # already whitelists these; we rebuild the sentence from them and NEVER echo any other key
 # (a raw user-agent / engine codename / fingerprint internal can never reach the wire).
 _PERSONA_WHITELIST = ("device_class", "os_class", "browser_class", "locale")
@@ -75,7 +75,7 @@ _PERSONA_WHITELIST = ("device_class", "os_class", "browser_class", "locale")
 # were streamable — this set accepts both names.
 _LIVE_VIEW_ENGINES = frozenset({"chromium", "chrome"})
 
-# Customer-safe, HONEST reasons the live browser frame can't stream right now. Each is a
+# Customer-safe, HONEST reasons the live browser frame can't stream right now (R7). Each is a
 # surface-language-safe sentence (no vendor / engine codename / internal flag name) so the
 # inspector shows WHY instead of an eternal "No live view yet…" placeholder. Surfacing the
 # real, product-enforced capability gate is honest reporting, NOT a ghostopia-side cover for
@@ -230,21 +230,35 @@ class _Nav:
     async def goto(self, url: str) -> None:
         client = self._owner._require_client()
         self._owner._mark_work("nav")
-        # cdp.url MUST carry the bound session_id, else the backend has no session to drive and
-        # replies bad_request (this was why session-backed navigation silently failed). The
-        # session is always bound before nav runs (OPENING → NAVIGATE in the behaviors).
+        # The session-DRIVE navigate is cdp.input step_type="navigate" (certified 3-engine in
+        #) — it actually LOADS the page into the live interactive session that cdp.frame /
+        # page.eval observe. cdp.url(session_id=..., navigate=True) only MINTS a signed relay +
+        # issues a shallow navigate that does NOT render into the captured surface: the live-view
+        # frame came back a blank white 1280x720 JPEG and page.eval step-timed-out (the
+        # live-view root cause). Drive every engine through the proven cdp.input seam.
         await self._owner._guarded(
-            client.cdp.url(session_id=self._owner._session_id_or_raise(), url=url, navigate=True)
+            client.cdp.input(
+                session_id=self._owner._session_id_or_raise(),
+                step_type="navigate",
+                url=url,
+            )
         )
 
     async def current_url(self) -> str:
-        # NOTE: cdp.url(session_id=...) MINTS A RELAY, it does not report the page URL — the route
-        # has no "read current url" mode — so we never pass session_id here (that path would return
-        # a wss:// relay, not the page). Not on the workforce hot path; behaviors track their own
-        # current url. Kept for the full-primitive surface.
+        # Read the live page URL via the engine-agnostic page.eval seam (STEP_EVAL). The
+        # deployed /v1/cdp/url route has NO no-session "read url" mode (it 422s: session_id
+        # required), and cdp.url(session_id=...) only MINTS a relay (not the page URL). A
+        # page.eval("location.href") over the bound session returns the real current URL.
+        # The vendored SDK (2.3.6 rebuild, 2026-09-24) sends the expression under the wire
+        # name the API validates on (``script``) — no extra kwarg needed.
+        sid = self._owner._session_id_or_raise()
         client = self._owner._require_client()
-        res = await self._owner._guarded(client.cdp.url())
-        return str(res.get("url", "")) if isinstance(res, dict) else ""
+        res = await self._owner._guarded(
+            client.page.eval("location.href", session_id=sid)
+        )
+        if isinstance(res, dict):
+            return str(res.get("result", res.get("url", "")))
+        return str(res or "")
 
 
 def _to_bytes(res: Any) -> bytes:
@@ -276,7 +290,14 @@ class _Page:
     async def eval(self, expr: str) -> Any:
         client = self._owner._require_client()
         self._owner._mark_work("render")
-        res = await self._owner._guarded(client.page.eval(expr))
+        # session-path contract: /v1/page/eval dispatches STEP_EVAL over Redis keyed on
+        # `session_id`. The vendored SDK (2.3.6 rebuild, 2026-09-24) sends the expression under
+        # the wire name the API validates on (``script``); session_id still rides
+        # additional_data — else the deployed route rejects with 422 (session_id required).
+        sid = self._owner._session_id_or_raise()
+        res = await self._owner._guarded(
+            client.page.eval(expr, session_id=sid)
+        )
         return res.get("result", res) if isinstance(res, dict) else res
 
     async def scroll(self, dx: float = 0.0, dy: float = 0.0) -> None:
@@ -360,9 +381,8 @@ class GhostCrawlProvider:
         self._byo_extract_key = byo_extract_key
         # The BYO structured-extraction MODEL: the operator's own connected LLM as a
         # ``{type, api_key, model, base_url?}`` dict. When set, ``extract_products`` runs
-        # GhostCrawl's ``/v1/extract`` BYO-model path — the fleet renders + solves the page's
-        # challenge, then the operator's OWN model lifts the FULL priced product list from the
-        # listing. When UNSET, ``extract_products`` degrades to the in-session rendered read
+        # GhostCrawl's ``/v1/extract`` BYO-model path — GhostCrawl renders the page, then the
+        # operator's OWN model lifts the FULL priced product list from the listing. When UNSET, ``extract_products`` degrades to the in-session rendered read
         # (content-only, no structured prices) — no operator-model inference (harness-not-AI).
         self._byo_model_provider = dict(byo_model_provider) if byo_model_provider else None
         # Injectable ws-connect for the CDP-WS relay (default: real websockets.connect;
@@ -405,8 +425,8 @@ class GhostCrawlProvider:
     async def persona(self, _handle: Any = None) -> str | None:
         """The session's customer-safe persona sentence over the SDK, or ``None``.
 
-        Reads the SDK accessor ``client.session_persona(session_id)`` (an
-        ``AsyncGhostCrawl`` member), rebuilds a sentence from the whitelist ONLY
+        Reads the plan-02 SDK accessor ``client.session_persona(session_id)`` (an
+        ``AsyncGhostCrawl`` member —), rebuilds a sentence from the whitelist ONLY
         (device / OS / browser-class / locale), and runs it through the surface-language
         backstop. A value carrying a banned/internal token is OMITTED (returns ``None``)
         rather than leaked as a fallback (Pitfall 3). No session / no accessor / a not-found
@@ -448,7 +468,7 @@ class GhostCrawlProvider:
 
         Returns ``{url, expires_in_seconds, engine}`` — the ONE non-SDK path's ONLY SDK
         touch-point (the relay URL itself IS an SDK method; only the persistent WS driver
-        that consumes it is non-SDK).
+        that consumes it is non-SDK, per the SDK-Gap Ledger).
         """
         client = self._require_client()
         session = self._require_session()
@@ -508,6 +528,55 @@ class GhostCrawlProvider:
     def page(self) -> _Page:
         return self._page
 
+    async def arrive(
+        self,
+        dest_url: str,
+        source_url: str,
+        *,
+        referrer_shape: str = "origin",
+        source_title: str = "",
+    ) -> dict[str, Any]:
+        """Land on ``dest_url`` carrying an ORGANIC referral chain from ``source_url``.
+
+        Wraps the public SDK ``client.page.arrival`` (session-scoped) — a real referrer-carrying
+        arrival instead of a bare navigate, so a ghost enters a site the way a person following a
+        link does. Any SDK error routes through ``_guarded`` for the caller to swallow (the journey
+        continues on the already-loaded page when arrival is unavailable/gated).
+        """
+        client = self._require_client()
+        self._mark_work("render")
+        return await self._guarded(
+            client.page.arrival(
+                dest_url,
+                source_url,
+                referrer_shape=referrer_shape,
+                source_title=source_title,
+                session_id=self._session_id_or_raise(),
+            )
+        )
+
+    async def agent(
+        self,
+        *,
+        instruction: str | None = None,
+        url: str | None = None,
+        task: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Drive one agent step via the public SDK ``client.agent`` — observe + act by role/name.
+
+        This is the user-facing agent endpoint (``POST /v1/agent``): the server runs observe/act on
+        its browser driver and returns a result dict, letting a brain act on the CURRENT page by
+        INTENT (click a button, fill a field) instead of URL-navigation only. The capability is
+        per-account gated — when it is not enabled the API replies 404 and the SDK returns a
+        ``not_found``-shaped dict (NOT an exception), which this returns unchanged so callers degrade
+        cleanly. Any other SDK error routes through ``_guarded``.
+        """
+        client = self._require_client()
+        self._mark_work("render")
+        return await self._guarded(
+            client.agent(instruction=instruction, url=url, task=task)
+        )
+
     def _session_id_or_raise(self) -> str:
         """The bound session id for a session-scoped CDP call, or a clear error if unbound."""
         if self._session is None:
@@ -524,12 +593,9 @@ class GhostCrawlProvider:
     ) -> BrowserSessionHandle:
         client = self._require_client()
         # ENGINE-BASED (ad-hoc) session. ``profile_name`` here is the ghost id — a per-ghost
-        # label, NOT a server-side saved profile — so sending it as ``profile`` 404s ("no profile
-        # named ..."); a fresh org (cloud or self-host) owns zero named profiles anyway. This was
-        # why live sessions never opened (every create 404'd) and the inspector showed nothing.
-        # ghostopia's per-ghost identity is delivered via mask_config on the managed fleet, not via
-        # named profiles, so we open an ad-hoc session on the target engine — the zero-setup path
-        # that works with just an API key.
+        # label, NOT a server-side saved profile — so sending it as ``profile`` would 404 on a
+        # fresh account (which owns zero named profiles). ghostopia opens an ad-hoc session on the
+        # target engine: the zero-setup path that works with just an API key.
         res = await self._guarded(client.sessions.create(engine=self._engine))
         session_id = str(res["session_id"]) if isinstance(res, dict) else str(res)
         engine = (
@@ -576,15 +642,10 @@ class GhostCrawlProvider:
         self._rebuild_input()
         if transport is not None:
             await transport.close()
-        # TERMINATE, not release: ``/release`` only UNPINS a sticky session (it leaves the lease
-        # + the per-tenant ``live:sessions`` slot HELD until the reaper TTL-reclaims it), whereas
-        # ``/terminate`` deletes the lease AND frees the live-session slot immediately. A ghost is
-        # DONE with its session (ghostopia never reuses a session across cycles — each loop opens a
-        # fresh one), so unpinning would leak the tenant's tiny concurrent-live-session budget
-        # (e.g. growth = 2): every opened session would hold a slot for its whole TTL, the budget
-        # would saturate within a couple of ghosts, and ``sessions.create`` would 429-storm the
-        # rest into sessionless degrade. Terminating frees the slot the moment work finishes, so
-        # the budget stays clean and the live browser inspector keeps working.
+        # Terminate (not just release) when a ghost is done: ghostopia opens a fresh session per
+        # cycle and never reuses one, so terminating frees the account's concurrent-session slot
+        # immediately. Leaving sessions open would needlessly consume the account's concurrency
+        # budget and could make new sessions queue.
         await self._guarded(client.sessions.terminate(session_id))
 
     # --- top-level work verbs ---------------------------------------------------------
@@ -614,14 +675,8 @@ class GhostCrawlProvider:
 
         This is the fallback :meth:`extract_products` drops to when NO BYO model is connected.
         It runs a keyless ``client.scrape(url)`` and lifts the rendered content with the
-        deterministic keyless extractor + link discovery. It does NOT read the ghost's open live
-        session: GhostCrawl's ``/v1/scrape`` has no session-scoped fetch mode (a ``session_id``
-        param is silently ignored server-side), so there is no way to scrape "through" the
-        already-solved page — passing one was a dead no-op and has been removed. A real protected
-        store therefore CAPTCHAs this keyless fetch; the reliable real-retail path is
-        :meth:`extract_products` with a connected model, which renders + solves the page through
-        the managed fleet itself. (A genuine session-scoped scrape is a GhostCrawl backlog item —
-        see the plugin-audit report.)
+        deterministic keyless extractor + link discovery. For a page that carries machine-readable
+        product data, :meth:`extract_products` is the more reliable path.
         """
         client = self._require_client()
         self._mark_work("render")
@@ -642,9 +697,9 @@ class GhostCrawlProvider:
         This is the reliable real-retail path. A keyless scrape of a protected store's
         listing returns a summarized page with no product grid, and following its category links
         only finds MORE category pages — never priced leaves. GhostCrawl's ``/v1/extract`` instead
-        renders the listing through the managed fleet (solving the page's challenge) and returns a
-        LIST of ``{title, price, image, link}`` products — one call, every product on the page, with
-        prices. Non-per-site: the same products-array schema for every store.
+        renders the listing and returns a LIST of ``{title, price, image, link}`` products — one
+        call, every product on the page, with prices. Non-per-site: the same products-array schema
+        for every store.
 
         NO THIRD PARTY BY DEFAULT: GhostCrawl is the all-in-one. The default call sends NO
         ``model_provider``, so GhostCrawl runs its OWN native, deterministic structured-data
@@ -713,7 +768,7 @@ class GhostCrawlProvider:
             # No server-side structured extraction (keyless — the shipped default). Lift the real
             # rendered content into a ``{title, price, image, link}`` record with the deterministic,
             # per-site-FREE keyless extractor so the Data Graveyard shows a real priced card instead
-            # of one opaque blob. A card with no found fields keeps its raw content.
+            # of one opaque blob (R4/). A card with no found fields keeps its raw content.
             content = res.get("content") or res.get("markdown") or ""
             records = [deterministic_extract(res.get("url", url), content)]
         # GhostCrawl surfaces the page's own links on the scrape envelope (``discovered_urls``,
@@ -734,7 +789,7 @@ class GhostCrawlProvider:
         session engine can't emit a frame, or the workspace's live-view capability — the org
         ``cdp_passthrough_enabled`` / ``recording_enabled`` gate — is off) instead of the
         empty/errored ``cdp.frame`` poll being swallowed into an eternal "No live view yet"
-        placeholder (see provider ``_live_frames``). Available → ``reason`` is ``None``.
+        placeholder (RESEARCH R7 / provider ``_live_frames``). Available → ``reason`` is ``None``.
 
         This is honest reporting of a real, product-enforced capability gate, NOT a
         ghostopia-side cover for an upstream shortcoming: if the live view genuinely can't

@@ -2,18 +2,20 @@
 
 This is the stage-3 milestone seam: it runs the provider-agnostic
 :class:`~ghostopia_agent_runtime.DeterministicRunner` against the REAL
-:class:`~ghostopia_ghostcrawl_provider.GhostCrawlProvider` (the full-primitive provider,
-backed by the Python SDK) and forwards the presentation the
+:class:`~ghostopia_ghostcrawl_provider.GhostCrawlProvider` (the full-primitive provider from
+, backed by the Python SDK) and forwards the presentation the
 :class:`~ghostopia_ghost_runtime.ghost_driver.GhostDriver` derives from the runner's
 normalized envelopes to the authed WS. The SAME server-authoritative envelope / GhostDriver
 path the sim uses carries the REAL work — the ONLY thing that changes between stage 2
-and stage 3 is the source (``FakeBrowserProvider`` → ``GhostCrawlProvider``). The thin renderer is unchanged: it still applies ``ghost.spawned`` + ``ghost.command``.
+and stage 3 is the source (``FakeBrowserProvider`` → ``GhostCrawlProvider``), per RESEARCH
+Pattern 3. The thin renderer is unchanged: it still applies ``ghost.spawned`` + ``ghost.command``.
 
-Security:
-* the mission URL is SSRF-validated (``validate_mission_url``) BEFORE any provider/SDK call;
+Security (threat model):
+* the mission URL is SSRF-validated (``validate_mission_url``) BEFORE any provider/SDK call
+;
 * the GhostCrawl key lives only in :mod:`ghostopia_server.config` server-side — the inbound
   ``mission.submit`` carries only a target NAME + URL;
-* one :class:`GhostCrawlProvider` session per task, released in a ``finally``;
+* one:class:`GhostCrawlProvider` session per task, released in a ``finally``;
 * an SDK failure is normalized through ``map_sdk_error`` into a ``browser.error`` /
   ``task.retry`` envelope (never a raw exception fanned out).
 """
@@ -125,11 +127,11 @@ def build_catalog_sections_envelope(sections: Any) -> Envelope:
     """The ONE ``catalog.sections`` relay builder.
 
     Relays each department's NAMES + what-to-scrape target only — ``targetUrl`` / ``query`` /
-    ``category`` + a ``hasSchema`` presence flag + the explicit ``kind`` tag (``"department"``
+    ``category`` + a ``hasSchema`` presence flag + the explicit ``kind`` tag (: ``"department"``
     for a real result repository, else ``null``). The ``extract_schema`` BODY is server-side
     scrape config and NEVER crosses the wire (thin-frontend, no key/schema on the client). Both
     the ``catalog.request`` handler AND the runtime ``section.save``/``section.remove`` editor
-    rebroadcast through this one builder so the shape can never diverge. The client
+     rebroadcast through this one builder so the shape can never diverge. The client
     gates map result-clicks on ``kind === "department"`` — never inferred from ``targetUrl``
     presence: the server tag is the single source of truth.
     """
@@ -145,7 +147,7 @@ def build_catalog_sections_envelope(sections: Any) -> Envelope:
                     "capacity": s.capacity,
                     "accepts": list(s.accepts),
                     "kind": s.defn.kind,
-                    # the opt-in real-retail flag so the UI can offer the toggle.
+                    #: the opt-in real-retail flag so the UI can offer the toggle.
                     # An advanced department is OFF by default (spends the user's key).
                     "advanced": bool(getattr(s.defn, "advanced", False)),
                     "targetUrl": s.defn.target_url,
@@ -168,8 +170,8 @@ ProviderFactory = Callable[[], Any]
 #: Governor-safe FALLBACK concurrency cap — used ONLY when the ghostcrawl entitlement is
 #: unavailable (the keyless mode, an offline boot, a token-less deploy). It is NOT a tier
 #: number and NOT the env hack it replaces: the real cap is the SDK ``me().max_concurrency``
-#: (the account tier cap on cloud, or the operator-configured self-host cap), both
-#: surfaced on the same ``/v1/me`` field. Kept modest so a mis-derivation can never
+#: (the account tier cap on cloud, or the operator-configured self-host cap —), both
+#: surfaced on the same ``/v1/me`` field by plan 02. Kept modest so a mis-derivation can never
 #: hammer the governor.
 _DEFAULT_POOL_CAP = 8
 
@@ -186,7 +188,7 @@ async def resolve_pool_cap(
 
     The SINGLE source of truth is the SDK ``me().max_concurrency`` — the account tier cap
     (cloud) or the operator-configured self-host cap, both carried on the same
-    ``/v1/me`` field. There is NO local tier→number map here: the
+    ``/v1/me`` field by plan 02. There is NO local tier→number map here: the
     value is read from the product at runtime. When the entitlement is unavailable (no client
     / offline / a malformed value) the governor-safe ``fallback`` is used so the pool is never
     left unbounded.
@@ -315,7 +317,7 @@ async def run_real_task(
     ghost_id: str = "ghost-live",
     ghost_name: str = "Vega",
     ghost_color: int = 0x9B7BFF,
-    section: str = "horror-books",  # a real seeded department (extract-accepting)
+    section: str = "horror-books", #: a real seeded department (extract-accepting)
     home_grave: str = "grave-1",
     extract_schema: dict[str, Any] | None = None,
     resolver: Resolver | None = None,
@@ -372,7 +374,7 @@ async def run_real_task(
             payload={
                 "id": ghost_id,
                 "name": ghost_name,
-                # The spawn carries the ghost's REAL section (was hard-coded
+                #: the spawn carries the ghost's REAL section (was hard-coded
                 # "research"), so the world sprite lands in the same section as its roster
                 # row — no roster↔world divergence. The orchestrator passes
                 # the fan-out route's section; the legacy single-session path keeps research.
@@ -436,8 +438,8 @@ async def run_real_task(
         provider = provider_factory()
 
         # 5b. register the provider so the STAGE-4 FrameFanout can stream THIS ghost's real
-        #     recordings.visual frames while it works (only the SELECTED ghost is ever watched).
-        #     Unregistered in the finally so a released session can never leak.
+        #     recordings.visual frames while it works (only the SELECTED ghost is ever watched;
+        #     BRIEF §36). Unregistered in the finally so a released session can never leak.
         if session_registry is not None:
             session_registry.register(ghost_id, provider)
 
@@ -532,7 +534,7 @@ async def _surface_error(
             "retry_after": mapped.retry_after,
         },
     )
-    # 1. observable normalized error signal on the wire.
+    # 1. observable normalized error signal on the wire (acceptance).
     await broadcast(error_env)
     # 2. drive the ghost's presentation (bubble + error anim where the FSM allows) then home.
     await emit(error_env)
@@ -614,7 +616,7 @@ class RealTaskRuntime:
                 serialize_envelope(
                     type="error.rejected",
                     ts=time.time(),
-                    # The customer-facing reject reason is sanitized (an SSRF message is
+                    #: the customer-facing reject reason is sanitized (an SSRF message is
                     # safe, but the boundary guarantees no lexicon can ride this field).
                     payload={"reason": sanitize_text(str(err), fallback="That target isn't allowed.")},
                 )
@@ -641,7 +643,7 @@ def create_live_app(
     from ghostopia_sections import load_default_sections
 
     from . import db as _db
-    from .app import create_app
+    from .app import create_app, on_shutdown, on_startup
     from .ghost_pool import GhostPool
     from .management import ManagementError, handle_management_command
     from .orchestrator import Orchestrator
@@ -651,23 +653,44 @@ def create_live_app(
     app = create_app(secret=secret)
     gateway: WsGateway = app.state.ws_gateway
 
+    # Local aliases so the startup/shutdown handlers below register on the app's lifespan registry
+    # (modern replacement for the deprecated @app.on_event). Registration order is preserved:
+    # _derive_entitlement_cap → _start_warm_pool → _start_status_poll (startup, in order);
+    # shutdown runs LIFO so the DB conn still closes last.
+    def _reg_startup(fn):
+        return on_startup(app, fn)
+
+    def _reg_shutdown(fn):
+        return on_shutdown(app, fn)
+
     # STAGE 7: open the SQLite result store + wrap the gateway's broadcast so EVERY outbound
     # envelope is persisted (missions/tasks/results) + drives a live progress fan-out before it
     # reaches the client. Wrapping BEFORE the pool/fanout/orchestrator are built means each of
     # them captures the recording broadcast (records come from the real extract stream).
-    db_path = os.environ.get(
-        "GHOSTOPIA_DB_PATH", str(Path(__file__).resolve().parents[2] / "ghostopia.sqlite")
-    )
+    # Default the result store OUTSIDE the checkout (an XDG/home data dir) so a from-source
+    # run doesn't drop a sqlite file in the repo root; an explicit GHOSTOPIA_DB_PATH wins.
+    _default_db_dir = Path(
+        os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local" / "share"))
+    ) / "ghostopia"
+    db_path = os.environ.get("GHOSTOPIA_DB_PATH")
+    if not db_path:
+        try:
+            _default_db_dir.mkdir(parents=True, exist_ok=True)
+            db_path = str(_default_db_dir / "ghostopia.sqlite")
+        except OSError:
+            # Fall back to the legacy in-tree location if the data dir can't be created.
+            db_path = str(Path(__file__).resolve().parents[2] / "ghostopia.sqlite")
     conn = _db.open_db(db_path)
     recorder = ResultRecorder(conn, gateway.broadcast)
-    gateway.broadcast = recorder.broadcast  # type: ignore[method-assign]
+    # Deliberate instance-level rebind: every broadcast now tees through the recorder first.
+    gateway.broadcast = recorder.broadcast  # type: ignore[method-assign]  # intentional tee
     app.state.db = conn
     app.state.result_recorder = recorder
 
     runtime = RealTaskRuntime(gateway, provider_factory=provider_factory)
     runtime.install()
 
-    # load the shipped seed, then lay any runtime-authored departments (from a
+    # (R9/): load the shipped seed, then lay any runtime-authored departments (from a
     # SEPARATE user data file) on top — so a user's own targets survive a restart while the
     # shipped example departments stay pristine. The store is reused by the SectionEditor below so
     # every subsequent save/remove writes back to the SAME file.
@@ -719,7 +742,7 @@ def create_live_app(
 
     # Concurrency cap — the SINGLE SOURCE OF TRUTH is the ghostcrawl entitlement:
     # the SDK ``me().max_concurrency`` (the account tier cap on cloud, or the operator-
-    # configured self-host cap) surfaced on ``/v1/me``. There is NO env hack and NO
+    # configured self-host cap) surfaced on ``/v1/me`` by plan 02. There is NO env hack and NO
     # local tier→number map. An EXPLICIT ``pool_max_concurrent`` kwarg overrides — that is the
     # operator app's LABELED sanctioned-exception workforce cap (``workforce_pool_cap()``) and the test
     # seam; when it is set the derivation below is skipped and the raise is surfaced as an
@@ -761,7 +784,7 @@ def create_live_app(
         max_concurrent=provisional_cap,
         visible_workforce_cap=max(provisional_cap, workforce_visible_cap()),
     )
-    # Is the live cap a raised operator/test exception (18-ghost workforce) rather than the
+    #: is the live cap a raised operator/test exception (18-ghost workforce) rather than the
     # derived entitlement cap? The workforce surface reads this to LABEL itself honestly.
     app.state.pool_cap_sanctioned_exception = _cap_is_explicit
 
@@ -865,7 +888,7 @@ def create_live_app(
                 )
             )
             return
-        # Operator commands (send/recall/reassign) carry a `walk` directive — broadcast
+        # operator commands (send/recall/reassign) carry a `walk` directive — broadcast
         # a `ghost.command` walk so the ghost visibly re-paths to the authoritative target
         # (the world reflects the server's post-command state). The management
         # result mutated the pool record's section/state authoritatively before this fan-out.
@@ -907,7 +930,7 @@ def create_live_app(
                 },
             )
         )
-        # Relay the department's what-to-scrape identity through the ONE shared builder
+        #: relay the department's what-to-scrape identity through the ONE shared builder
         # (targetUrl/query/category + hasSchema flag; schema BODY stays server-side).
         await gateway.broadcast(build_catalog_sections_envelope(sections))
 
@@ -918,7 +941,7 @@ def create_live_app(
     # spawning GHOSTS_PER_DEPARTMENT ghosts running its OWN role against its OWN real target and
     # surfacing the priced/detail list it brings back. Routed through the SAME authoritative
     # pool/section path; NAMES + URLs only over the wire; every scrape is a REAL GhostCrawl
-    # session. The example.com "stage" (build_workforce/run_workforce) is gone forward-only.
+    # session. The example.com "stage" (build_workforce/run_workforce) is gone.
     from .workforce import (
         FLAGSHIP_DEPARTMENT_IDS,
         WORKFORCE_MISSION_ID,
@@ -926,7 +949,7 @@ def create_live_app(
     )
 
     # (R3, one-per-port): the workforce is a SINGLETON. ``_workforce_state["running"]`` is
-    # the persistent INTENT — "the workforce should be running" — which is reused to resume
+    # the persistent INTENT — "the workforce should be running" — which reuses to resume
     # on reconnect. The lock serializes start/stop so two SIMULTANEOUS ``workforce.start`` verbs
     # (a double-click, or an auto-Live reconnect racing a manual start) can never both spawn a
     # workforce: the first sets the flag under the lock, the second sees it set and is a
@@ -934,13 +957,13 @@ def create_live_app(
     _workforce_lock = asyncio.Lock()
     _workforce_state: dict[str, bool] = {"running": False}
     app.state.workforce_running = False
-    # The background baton relay (stage ghosts + WorkQueue) started by the last run —
+    #: the background baton relay (stage ghosts + WorkQueue) started by the last run —
     # stashed so ``_stop_workforce`` can cancel its baton/sustainer tasks (the stage ghosts
     # themselves are despawned by their ``stage-*`` id prefix below).
     app.state.workforce_relay = None
 
     def _has_live_workforce() -> bool:
-        # The workforce's own ghosts are ``dept-*`` (and ``stage-*``). The
+        #: the workforce's own ghosts are ``dept-*`` (and, from, ``stage-*``). The
         # presence of ANY tells resume whether the world SURVIVED (attach) or was torn down (restart).
         return any(
             gid.startswith("dept-") or gid.startswith("stage-")
@@ -952,12 +975,12 @@ def create_live_app(
             if _workforce_state["running"] and _has_live_workforce():
                 # ATTACH — a second start while the world is LIVE is a no-op, NEVER a second run.
                 # (A reconnecting client re-materializes the live world via replay-on-connect, not
-                # by re-spawning it here.) When the intent is set but the world was torn
+                # by re-spawning it here.): when the intent is set but the world was torn
                 # down (the idle-teardown emptied the pool after the grace while every client was
                 # gone), the guard falls through to RESTART below — attach-or-restart resume.
                 return
             _workforce_state["running"] = True
-            app.state.workforce_running = True  # persistent INTENT (resume reads this).
+            app.state.workforce_running = True # persistent INTENT (resume reads this).
             # sim ↔ workforce MUTUAL EXCLUSION: the ambient sim world and the real workforce world
             # cannot both run at once. Starting the workforce preempts (stops) the sim so the map
             # shows ONE world. The sim is wired only in the operator workforce app (workforce_app)
@@ -992,7 +1015,7 @@ def create_live_app(
                 },
             )
         )
-        # Entering the workforce drives the flagship "spooky workforce" —
+        #: entering the workforce drives the flagship "spooky workforce" —
         # the seeded Horror/Mystery Books + Spooky Masks/Costumes departments, each running its
         # OWN role against its OWN real target and surfacing the priced/detail list it finds.
         # Same authoritative pool/section path; the department ghosts loop so they stay visibly
@@ -1001,7 +1024,7 @@ def create_live_app(
         def _stash_relay(relay: Any) -> None:
             app.state.workforce_relay = relay
 
-        # feature any ADVANCED real-retail departments the operator toggled on. The
+        #: feature any ADVANCED real-retail departments the operator toggled on. The
         # set defaults empty (safe keyless mode only) and is mutated by the ``workforce.advanced``
         # verb below, which re-runs the workforce so the enabled dept begins running immediately.
         advanced_enabled = frozenset(getattr(app.state, "advanced_departments", set()))
@@ -1015,7 +1038,7 @@ def create_live_app(
                 advanced_enabled=advanced_enabled,
             )
         )
-        # The workforce is HONEST about its concurrency. When the pool cap was
+        #: the workforce is HONEST about its concurrency. When the pool cap was
         # raised explicitly for the operator app (``pool_cap_sanctioned_exception``), the run is a LABELED
         # sanctioned exception rather than a silent env raise; when the cap is the derived
         # entitlement, the workforce RESPECTS it (the pool semaphore queues any overflow). Either
@@ -1052,11 +1075,11 @@ def create_live_app(
         # its run + releases its session, and the ``ghost.despawned`` fan-out makes the client
         # play the dissolve flourish, so the whole workforce dematerializes back into the graves.
         async with _workforce_lock:
-            # Clear the persistent INTENT under the SAME lock start uses, so a stop can
+            #: clear the persistent INTENT under the SAME lock start uses, so a stop can
             # never interleave a start (and resume sees the world is intentionally down).
             _workforce_state["running"] = False
             app.state.workforce_running = False
-            # Cancel the background baton relay's queue/sustainer tasks BEFORE despawning
+            #: cancel the background baton relay's queue/sustainer tasks BEFORE despawning
             # its stage ghosts, so the sustainer cannot re-seed a wave mid-teardown.
             relay = getattr(app.state, "workforce_relay", None)
             if relay is not None:
@@ -1064,7 +1087,7 @@ def create_live_app(
                     await relay.stop()
                 app.state.workforce_relay = None
             stopped: list[str] = []
-            # DRAIN until stable — a relay queue.run() cancelled mid-flight can land a
+            #: DRAIN until stable — a relay queue.run cancelled mid-flight can land a
             # late ``stage-*`` spawn after a one-shot snapshot, so re-snapshot in a bounded loop
             # until no workforce/department/stage ghost remains (the whole workforce dematerializes).
             for _ in range(8):
@@ -1096,7 +1119,7 @@ def create_live_app(
         await _stop_workforce()
 
     async def _on_workforce_advanced(env: Envelope) -> None:
-        # toggle an opt-in ADVANCED real-retail department on/off. Enabling adds its
+        #: toggle an opt-in ADVANCED real-retail department on/off. Enabling adds its
         # id to the enabled set + re-runs the workforce so it starts running against real retail
         # immediately; disabling removes it (it stops on the next despawn/teardown). The verb
         # NEVER lets an exception escape the WS receive loop (a bad toggle must not tear the
@@ -1124,7 +1147,7 @@ def create_live_app(
                 )
             )
             # re-run so an enabled dept begins immediately (idempotent per id; a disabled dept
-            # is despawned on the next explicit stop / idle-teardown). Re-materialize
+            # is despawned on the next explicit stop / idle-teardown). WR-02: re-materialize
             # under the SAME lock start/stop use (so it can never interleave a concurrent
             # start/resume and defeat the singleton guard), and STOP the prior relay before a
             # new _run_workforce_body stashes a fresh one — otherwise the old relay's
@@ -1177,7 +1200,7 @@ def create_live_app(
         section_id = str(payload.get("section", ""))
         section = _sections_by_id.get(section_id)
         if section is None:
-            # The (user-supplied) section id is echoed back — sanitize so a crafted id
+            #: the (user-supplied) section id is echoed back — sanitize so a crafted id
             # carrying a banned term cannot leak onto the customer surface via error.rejected.
             await gateway.broadcast(
                 serialize_envelope(type="error.rejected", ts=time.time(),
@@ -1239,7 +1262,7 @@ def create_live_app(
     # invalid/hostile department is rejected with a reason; the live section set is untouched.
     from .section_editor import SectionEditor
 
-    # Pass the SAME authored store the boot merge used so every save/remove writes back
+    #: pass the SAME authored store the boot merge used so every save/remove writes back
     # to the user data file (authored departments persist across a restart).
     section_editor = SectionEditor(gateway.broadcast, orchestrator, store=authored_store)
     section_editor.install(gateway)
@@ -1251,7 +1274,7 @@ def create_live_app(
     # dispatch the orchestrator uses — assign/run enqueue onto a governor-safe WorkQueue +
     # fan out by section role; retarget/cancel drive on_end(reason)+release. This COMPOSES
     # with (does not replace) the ghost/section management above; the frontend sends NAMES
-    # only.
+    # only (/03/04).
     from .task_routes import register_task_routes
 
     register_task_routes(
@@ -1270,9 +1293,9 @@ def create_live_app(
     app.state.ghost_pool = pool
     app.state.default_sections = sections
 
-    @app.on_event("startup")
+    @_reg_startup
     async def _derive_entitlement_cap() -> None:
-        # Derive the REAL concurrency cap from the ghostcrawl entitlement now that we
+        #: derive the REAL concurrency cap from the ghostcrawl entitlement now that we
         # have an event loop, and apply it to the authoritative pool BEFORE any ghost spawns
         # (the orchestrator's WorkQueue follows the pool cap, so this is the one source of
         # truth). An explicit/sanctioned cap is left untouched.
@@ -1295,7 +1318,7 @@ def create_live_app(
         if crawl_limit is not None:
             pool.set_crawl_concurrency(max(crawl_limit, pool.max_concurrent))
 
-    @app.on_event("startup")
+    @_reg_startup
     async def _start_warm_pool() -> None:
         # Registered AFTER _derive_entitlement_cap so the warm pool warms against the FINAL
         # live-session semaphore (the entitlement cap), never the provisional boot cap.
@@ -1304,18 +1327,18 @@ def create_live_app(
             with contextlib.suppress(Exception):
                 await warm.start()
 
-    @app.on_event("startup")
+    @_reg_startup
     async def _start_status_poll() -> None:
         app.state.status_poll_task = start_status_poll(
             pool, gateway.broadcast, fanout=fanout, interval=1.0
         )
 
-    @app.on_event("shutdown")
+    @_reg_shutdown
     async def _stop_status_poll() -> None:
         task = getattr(app.state, "status_poll_task", None)
         if task is not None:
             await stop_status_poll(task)
-        # (R1): parity with ``pool.shutdown()`` — stop the ambient sim so its four
+        # (R1): parity with ``pool.shutdown`` — stop the ambient sim so its four
         # background loops never leak on process shutdown. The sim is mounted by the operator
         # workforce app (workforce_app) on ``app.state.sim_runtime`` AFTER this app is built, so
         # we read it lazily here (absent in the bare live app → a no-op). Best-effort.
@@ -1330,7 +1353,7 @@ def create_live_app(
         await pool.shutdown()
         conn.close()
 
-    # re-append the built-UI SPA catch-all so it sits LAST — after the task/mission
+    #: re-append the built-UI SPA catch-all so it sits LAST — after the task/mission
     # HTTP routes this factory registered above — and never shadows them (idempotent re-mount).
     from .app import mount_web_ui
 

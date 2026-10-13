@@ -11,6 +11,10 @@ import { defineConfig } from "vite";
 const here = dirname(fileURLToPath(import.meta.url));
 const ghostopiaRoot = resolve(here, "../..");
 
+// The Python server the dev UI proxies its API + live WS to. Override with GHOSTOPIA_DEV_API
+// (e.g. a remote/self-host server); defaults to a local `make run` server on :8000.
+const apiTarget = process.env.GHOSTOPIA_DEV_API || "http://localhost:8000";
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -26,6 +30,16 @@ export default defineConfig({
     fs: {
       // allow importing the shared assets/ + maps/ DATA above the app root
       allow: [ghostopiaRoot],
+    },
+    // Proxy the server-authoritative API + live WS to the Python server so the UI dev loop
+    // (HMR) needs no `vite build`. The frontend still holds no SDK/credential — it only calls
+    // these same-origin routes, which the server owns.
+    proxy: {
+      "/token": apiTarget,
+      "/tasks": apiTarget,
+      "/missions": apiTarget,
+      "/healthz": apiTarget,
+      "/ws": { target: apiTarget, ws: true },
     },
   },
   build: {

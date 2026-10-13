@@ -1,4 +1,4 @@
-"""Deterministic KEYLESS field extractor — a ghostopia CONSUMER heuristic.
+"""Deterministic KEYLESS field extractor (R4 /) — a ghostopia CONSUMER heuristic.
 
 A keyless GhostCrawl ``/v1/scrape`` returns rendered content (markdown/HTML/text) with NO
 server-side ``extracted`` — that structured layer needs the user's own BYO-LLM key. To ship
@@ -74,12 +74,47 @@ def _is_nav_chrome(url: str) -> bool:
 # --- price -----------------------------------------------------------------------------
 # Symbol-prefixed (``£51.77``, ``$12.99``, ``€9,99``, ``¥1980``) OR code-suffixed
 # (``1,299.00 USD``). Amounts allow thousands separators (``,`` or ``.``) and an optional
-# fractional part. First match wins; the raw matched token is returned verbatim.
+# fractional part. The raw matched token is returned verbatim.
 _PRICE_RE = re.compile(
     r"[£$€¥₹]\s?\d[\d.,]*\d|[£$€¥₹]\s?\d"
     r"|\d[\d.,]*\d\s?(?:USD|EUR|GBP|JPY|INR|CAD|AUD)",
     re.IGNORECASE,
 )
+# A bare numeric token inside a price string (for comparing two candidate prices by amount).
+_PRICE_NUM_RE = re.compile(r"\d[\d.,]*\d|\d")
+# A STRUCTURED price (schema.org JSON-LD / microdata ``offers.price``) — the authoritative
+# current price when the page carries machine-readable product data; preferred over a body token.
+_STRUCT_PRICE_RE = re.compile(r'"price"\s*:\s*"?(\d[\d.,]*\d|\d)"?')
+_STRUCT_CURRENCY_RE = re.compile(r'"priceCurrency"\s*:\s*"([A-Za-z]{3})"')
+# Context words that mark a NON-current price just BEFORE a token (the old / reference / shipping
+# / "from" price): such a token must never be taken as the product's current price.
+_NON_CURRENT_RE = re.compile(
+    r"\b(was|were|rrp|list|orig(?:inal)?|save|shipping|delivery|postage|from|starting|msrp|instead)\b",
+    re.IGNORECASE,
+)
+# Strikethrough wrappers (markdown ``~~…~~`` / HTML ``<del>``/``<s>``/``<strike>``/CSS
+# line-through) immediately before a token → a struck (old) price, skipped.
+_STRIKE_PREFIX_RE = re.compile(r"(~~|<del\b|<s>|<strike\b|line-through[^>]*>)\s*[£$€¥₹]?\s*$", re.IGNORECASE)
+# In-stock / condition markers (lifted when present so the ranker can prefer in-stock / new).
+_OUT_OF_STOCK_RE = re.compile(r"\b(out of stock|sold out|unavailable|discontinued|pre[- ]?order)\b", re.IGNORECASE)
+_IN_STOCK_RE = re.compile(r"\b(in stock|available|add to (?:cart|basket|bag))\b", re.IGNORECASE)
+_USED_RE = re.compile(r"\b(used|refurbished|renewed|pre[- ]?owned|open box)\b", re.IGNORECASE)
+
+
+def _price_token_amount(token: str) -> float | None:
+    m = _PRICE_NUM_RE.search(token)
+    if m is None:
+        return None
+    num = m.group(0)
+    has_dot, has_comma = "." in num, "," in num
+    if has_dot and has_comma:
+        num = num.replace(".", "").replace(",", ".") if num.rfind(",") > num.rfind(".") else num.replace(",", "")
+    elif has_comma:
+        num = num.replace(",", ".") if (num.count(",") == 1 and len(num.rsplit(",", 1)[1]) in (1, 2)) else num.replace(",", "")
+    try:
+        return float(num)
+    except ValueError:
+        return None
 
 # --- image -----------------------------------------------------------------------------
 _OG_IMAGE_RE = re.compile(
@@ -111,9 +146,33 @@ def _first_markdown_heading(text: str) -> str | None:
 
 
 def extract_price(text: str) -> str | None:
-    """The first currency-shaped token in ``text``, verbatim, or ``None``."""
-    match = _PRICE_RE.search(text)
-    return match.group(0).strip() if match else None
+    """The product's CURRENT price, verbatim, or ``None``.
+
+    Price source priority (R3): a STRUCTURED ``offers.price`` (schema.org JSON-LD / microdata)
+    wins — it is the authoritative current price. Otherwise the body is scanned for currency
+    tokens and the LOWEST NON-STRUCK current price is taken: tokens preceded by a strikethrough
+    wrapper (``~~`` / ``<del>`` / ``<s>`` / ``<strike>`` / line-through) or a non-current marker
+    ("was" / "RRP" / "from" / "shipping" / "save" / ...) are skipped, so a crossed-out original
+    price, a shipping fee, or a "from £5" teaser never masquerades as the price. Per-site-free —
+    structure only.
+    """
+    sm = _STRUCT_PRICE_RE.search(text)
+    if sm:
+        cur = _STRUCT_CURRENCY_RE.search(text)
+        amount = sm.group(1)
+        return f"{amount} {cur.group(1).upper()}" if cur else amount
+    best_token: str | None = None
+    best_amount: float | None = None
+    for match in _PRICE_RE.finditer(text):
+        pre = text[max(0, match.start() - 28):match.start()]
+        if _NON_CURRENT_RE.search(pre) or _STRIKE_PREFIX_RE.search(pre):
+            continue  # a struck / old / shipping / "from" price — never the current price
+        amount = _price_token_amount(match.group(0))
+        if amount is None:
+            continue
+        if best_amount is None or amount < best_amount:
+            best_amount, best_token = amount, match.group(0).strip()
+    return best_token
 
 
 def extract_image(text: str, base_url: str) -> str | None:
@@ -156,7 +215,7 @@ def crawl_policy_filter(urls: Any, base_url: str) -> list[str]:
         (site root / a ``/category/`` index / cart / login / pagination).
 
     GhostCrawl OWNS extracting the links a page carries; ghostopia OWNS which of them its
-    ghosts walk. NO per-site logic — same-host + link shape only.
+    ghosts walk. NO per-site logic — same-host + link shape only (consumer choice).
     """
     base = str(base_url or "").strip()
     base_key = base.rstrip("/")
@@ -202,6 +261,14 @@ def deterministic_extract(url: str, content: str | None) -> dict[str, Any]:
     image = extract_image(text, url)
     if image:
         record["image"] = image
+    # Stock + condition signals (lifted ONLY when the copy states them) so the downstream
+    # ranker can prefer an in-stock / new listing — structure only, never fabricated.
+    if _OUT_OF_STOCK_RE.search(text):
+        record["in_stock"] = False
+    elif _IN_STOCK_RE.search(text):
+        record["in_stock"] = True
+    if _USED_RE.search(text):
+        record["condition"] = "used"
     # keep the raw content so the blob fallback survives when no fields were found.
     record["content"] = text
     return record

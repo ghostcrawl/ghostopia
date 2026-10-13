@@ -1,4 +1,4 @@
-// ghostopia web — the system-diagnostics store.
+// ghostopia web — the system-diagnostics store (P18).
 //
 // A tiny vanilla Zustand store fed by the server's frame-free `diagnostics.system` envelope
 // (REAL pool state: concurrency-governor headroom + per-section occupancy). The

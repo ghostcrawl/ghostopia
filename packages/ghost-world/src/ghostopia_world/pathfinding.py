@@ -1,9 +1,9 @@
-"""Hand-rolled A* over the tile grid.
+"""Hand-rolled A* over the tile grid (Task 2).
 
 An ORIGINAL, dependency-free A* (4-neighbour, Manhattan heuristic, ``heapq`` open
 set, a ``MAX_NODES`` safety cap). Collision is INJECTED via an
 ``is_walkable(x, y, from_x, from_y)`` callback so callers supply static collision +
-per-cell occupancy + directional edge masks (deliberately NO
+per-cell occupancy + directional edge masks (RESEARCH-2 Design C — deliberately NO
 external pathfinding library). Unreachable goal -> ``[]`` (never raises); overflow of
 the node budget -> ``[]``.
 """

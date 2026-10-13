@@ -1,7 +1,7 @@
 [project]
 name = "ghostopia-browser-provider"
 version = "0.0.0"
-description = "ghostopia browser-provider package: the full-primitive, capability-scoped BrowserProvider Protocol + FakeBrowserProvider + a reusable contract suite. No ghostcrawl SDK import (the real GhostCrawlProvider lands in a separate package)."
+description = "ghostopia browser-provider package: the full-primitive, capability-scoped BrowserProvider Protocol + FakeBrowserProvider + a reusable contract suite. No ghostcrawl SDK import (the real GhostCrawlProvider lands in /20)."
 requires-python = ">=3.12"
 # Reuses the shared Point/Button value types and returns Pydantic models
 # (BrowserSessionHandle/ScrapeResult), so it depends on ghostopia-shared + pydantic.

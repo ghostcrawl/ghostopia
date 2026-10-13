@@ -6,7 +6,7 @@
 // subscribe to it; `liveClient` feeds it from server envelopes. This file imports NO
 // GhostCrawl SDK and NO key — it only holds what the server relays.
 //
-// Server-enforced: only the SELECTED ghost ever streams frames/status, so
+// Server-enforced (BRIEF §36): only the SELECTED ghost ever streams frames/status, so
 // `latestFrameRef`/`currentUrl` are populated for the open ghost only. Events/errors accrue
 // per ghost from the same envelope stream that drives the world.
 
@@ -32,7 +32,7 @@ export interface InspectorSession {
   title: string | null;
   latestFrameRef: string | null;
   /**
-   * The server's honest reason the live browser frame can't stream right now:
+   * The server's honest reason the live browser frame can't stream right now (R7):
    * the session hasn't opened yet, or the workspace's live-view capability is off. The Browser
    * tab shows this instead of an eternal "No live view yet…" placeholder; `null` once the live
    * view is up (a frame arrives). Optional/additive — absent on older relays.

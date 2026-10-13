@@ -1,8 +1,8 @@
 """The normalized WebSocket envelope — the single validated wire boundary.
 
 Every message between the Python server and the thin TS renderer is one ``Envelope``
-(EVENT_PROTOCOL §1). It carries a ``protocol_version`` the server version-gates:
-the field always parses (so the server can inspect and gate),
+(EVENT_PROTOCOL §1). It carries a ``protocol_version`` the server version-gates
+(RESEARCH-2 Design C): the field always parses (so the server can inspect and gate),
 and ``is_supported_version`` surfaces a mismatch. ``extra='forbid'`` rejects unknown
 top-level fields; ``type`` must be non-empty; unknown ``type`` values are rejected by
 the consumer against the catalog (never ``eval``'d).

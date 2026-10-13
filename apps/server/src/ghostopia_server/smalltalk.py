@@ -1,4 +1,4 @@
-"""Ghost small-talk — idle co-located ghosts exchange a couple of spooky lines.
+"""Ghost small-talk — idle co-located ghosts exchange a couple of spooky lines (P6).
 
 When work is light the graveyard should still feel ALIVE: two IDLE ghosts standing near each
 other occasionally pair up and trade a short, turn-based ``ghost.say`` exchange (original

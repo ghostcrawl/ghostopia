@@ -1,4 +1,4 @@
-"""Autonomous graveyard critters — pure WorldEntity FSM.
+"""Autonomous graveyard critters — pure WorldEntity FSM (P14, clean-room).
 
 ghostopia's ORIGINAL graveyard idiom (NOT the reference repos' office pets): a black
 **cat** roams the ground, a will-o'-**wisp** and a **bat** drift overhead. Each is a
@@ -51,7 +51,7 @@ class CritterKind(StrEnum):
 
 
 class CritterState(StrEnum):
-    """The critter FSM: idle → wander/follow → idle."""
+    """The critter FSM (RESEARCH idiom): idle → wander/follow → idle."""
 
     IDLE = "idle"
     WANDER = "wander"
@@ -288,8 +288,8 @@ def spawn_critters(
 ) -> list[Critter]:
     """Spawn a CAPPED set of critters at random reachable points inside ``bounds``.
 
-    ``counts`` requests per-kind counts; the total is hard-capped at ``max_total``
-    ("capped count"). Ground critters are placed on a walkable pixel (via ``is_walkable``);
+    ``counts`` requests per-kind counts; the total is hard-capped at ``max_total`` (
+    "capped count"). Ground critters are placed on a walkable pixel (via ``is_walkable``);
     flyers anywhere in bounds. Deterministic for a seeded ``rng``."""
     out: list[Critter] = []
     idx = 0

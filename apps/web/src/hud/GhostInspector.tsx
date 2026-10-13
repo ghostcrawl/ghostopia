@@ -1,8 +1,8 @@
-// ghostopia web — the Ghost inspector (STAGE 7 management surface).
+// ghostopia web — the Ghost inspector (STAGE 7 management surface, RESEARCH-2 Design D).
 //
 // For the SELECTED ghost: name / section / current task, plus the runtime controls — a
 // BEHAVIOR dropdown populated from the server-relayed `behaviors.list()` (`catalogStore`), a
-// SECTION dropdown, pause / resume, and retarget — each emitting the management
+// SECTION dropdown, pause / resume, and retarget — each emitting the plan-14 management
 // command over the authed WS (NAMES only, applied server-authoritatively). Adding a
 // behavior/section needs NO edit here; the dropdowns read the server list. This file imports
 // NO GhostCrawl SDK and NO key.
@@ -21,7 +21,7 @@ import { rosterStore } from "./rosterStore";
 
 /**
  * The Ghost inspector management card. Renders for the open ghost (the one whose live-frame
- * inspector is selected). `onManage` emits the management commands; `onSelect` is not
+ * inspector is selected). `onManage` emits the plan-14 management commands; `onSelect` is not
  * used here (selection lives in the roster/inspector) — this card is purely control.
  */
 export function GhostInspector({
@@ -33,7 +33,7 @@ export function GhostInspector({
   const ghosts = useStore(rosterStore, (s) => s.ghosts);
   const behaviors = useStore(catalogStore, (s) => s.behaviors);
   const sections = useStore(catalogStore, (s) => s.sections);
-  // The SESSION-scoped sanitized persona (server-built whitelist sentence)
+  //: the SESSION-scoped sanitized persona (server-built whitelist sentence)
   // lives on the world-store ghost. Show it as a customer-safe chip — gated through the TS
   // surface language boundary (omit-not-leak), never a raw UA / engine codename / vendor term.
   const persona = useStore(useWorldStore, (s) =>
@@ -87,7 +87,7 @@ export function GhostInspector({
           aria-label="section"
           value={g.section || ""}
           onChange={(e) => {
-            // Choosing a new section REASSIGNS the ghost — an authoritative move that
+            //: choosing a new section REASSIGNS the ghost — an authoritative move that
             // re-seats its roster AND walks it into the new plot (server re-paths via A*).
             const section = e.target.value;
             if (section) onManage({ command: "reassign", ghostId: g.ghostId, section });
@@ -100,7 +100,7 @@ export function GhostInspector({
         </select>
       </label>
 
-      {/* Operator commands: direct the ghost — send to a workstation in its section,
+      {/* operator commands: direct the ghost — send to a workstation in its section,
           recall it home, or pause/resume/retarget. Each is an authoritative server verb. */}
       <div className="ghost-inspector__actions">
         <button

@@ -1,8 +1,8 @@
 """The BehaviorRegistry — register-by-name plugin API with capability meta as DATA.
 
-Replace the hardcoded ``createDriverForAgent`` switch with a
+RESEARCH-2 Design C: replace the hardcoded ``createDriverForAgent`` switch with a
 ``register(name, factory, meta)`` registry. ``meta`` carries capability/classification as
-DATA (kind/needs/overlay/label + the ``param_schema``/``examples`` the
+DATA (kind/needs/overlay/label + the RESEARCH-3 §2.3 ``param_schema``/``examples`` the
 management UI and AI author against) — NOTHING here branches on a hardcoded behavior-kind
 ``if/elif`` switch, so adding a behavior never touches the renderer or core loop.
 

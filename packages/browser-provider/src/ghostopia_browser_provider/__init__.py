@@ -1,9 +1,9 @@
 """ghostopia-browser-provider — the full-primitive, capability-scoped browser seam.
 
-Defines the ONE ``BrowserProvider`` Protocol the whole world depends on, an in-memory
-``FakeBrowserProvider`` that fulfils it with zero GhostCrawl calls,
+Defines the ONE ``BrowserProvider`` Protocol the whole world depends on (RESEARCH-3
+§1.4), an in-memory ``FakeBrowserProvider`` that fulfils it with zero GhostCrawl calls,
 and a REUSABLE ``describe_provider_contract`` suite. The concrete ``GhostCrawlProvider``
-and the raw CDP-WS full-primitive impl fulfil the same Protocol behind
+ and the raw CDP-WS full-primitive impl fulfil the same Protocol behind
 this seam — no SDK import lives here.
 """
 

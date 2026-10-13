@@ -1,8 +1,8 @@
-// ghostopia web — the department-only map click gate + hover-cursor affordance.
+// ghostopia web — the department-only map click gate + hover-cursor affordance (S1).
 //
 // Only a DEPARTMENT plot is a result repository: clicking one opens its findings card
 // (toggle). Clicking a non-department section (the resting graveyard) or bare ground is
-// intentional silence — a no-op, no card, no flash, no toast. The department tag
+// intentional silence — a no-op, no card, no flash, no toast (S1). The department tag
 // is the server-authoritative `kind:"department"` on the catalog section; it is NEVER inferred
 // from `target_url` presence client-side. Imports NO SDK and NO key — just the
 // section id + the client catalog.
@@ -23,7 +23,7 @@ export function handleSectionClick(id: string | null): void {
   if (isDepartmentSection(id)) {
     sectionFocusStore.getState().toggle(id as string);
   }
-  // else: absolute silence — no card, no clear-then-error, no toast.
+  // else: absolute silence — no card, no clear-then-error, no toast (S1).
 }
 
 /** The stage cursor over a world section: `pointer` over a department plot (it is clickable

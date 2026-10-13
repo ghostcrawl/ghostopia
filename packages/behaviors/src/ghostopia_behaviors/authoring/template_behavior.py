@@ -1,14 +1,14 @@
-"""The documented ONE-FILE Behavior template.
+"""The documented ONE-FILE Behavior template (RESEARCH-3 §2.3).
 
 COPY THIS FILE, rename the class + ``name``, fill in the lifecycle, adjust the
 ``param_schema``/``examples``, and drop the copy under
 ``src/ghostopia_behaviors/builtin/`` — the auto-discovery loader registers it on the
-next import with ZERO edit to any renderer or core-loop file (proven
+next import with ZERO edit to any renderer or core-loop file (the property, proven
 by ``tests/test_dx_property.py``).
 
 A ``Behavior`` is the decision unit ONE ghost runs. It drives the visible ghost ONLY through
 the narrow ``ctx.ghost`` (:class:`GhostHandle`) and reaches GhostCrawl ONLY through the
-full-primitive ``ctx.browser`` (:class:`BrowserProvider`) — never the SDK, never a
+full-primitive ``ctx.browser`` (:class:`BrowserProvider`, /20) — never the SDK, never a
 secret. ``on_tick`` MUST be NON-BLOCKING: kick off at most one awaited op per tick and react
 to its completion in ``on_event`` (never block the tick on a long GhostCrawl call).
 

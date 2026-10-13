@@ -2,9 +2,9 @@
 tile-grid world model, hand-rolled A* pathfinder, and read-only WorldQuery.
 
 The world geometry is DATA (``maps/graveyard.json``, loaded by :func:`load_map`);
-region bounds double as the section partition. Behaviors read
+region bounds double as the section partition (plan 18). Behaviors (plan 17) read
 :class:`ghostopia_shared.WorldQuery` via :func:`create_world_query`; the TS renderer
-reads the same map JSON.
+(plan 06) reads the same map JSON.
 """
 
 from __future__ import annotations

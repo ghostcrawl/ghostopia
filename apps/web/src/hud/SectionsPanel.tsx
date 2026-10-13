@@ -1,7 +1,7 @@
-// ghostopia web — the Sections panel (STAGE 7 management surface).
+// ghostopia web — the Sections panel (STAGE 7 management surface, RESEARCH-2 Design D).
 //
 // Per-section roster / capacity / role / current target, plus a ROLE dropdown that tunes the
-// whole section at runtime by emitting an `assign_behavior` management command for
+// whole section at runtime by emitting a plan-14 `assign_behavior` management command for
 // every ghost currently on the section's roster — server-authoritative, NAMES only, no key.
 // The section list + role options are SERVER-RELAYED (`catalogStore`), so adding a
 // section/behavior needs NO UI edit. This file imports NO GhostCrawl SDK and NO key.
@@ -23,7 +23,7 @@ function capacityPct(count: number, capacity: number): string {
 }
 
 /**
- * The Sections panel. `onManage` emits the management commands. Changing a section's
+ * The Sections panel. `onManage` emits the plan-14 management commands. Changing a section's
  * role dropdown re-roles every ghost on that section's roster (a runtime section-tuning built
  * on the per-ghost `assign_behavior` command).
  */
@@ -33,9 +33,9 @@ export function SectionsPanel({
   onDespawn,
 }: {
   onManage: (cmd: ManageCommand) => void;
-  /** Add one ghost into a section (per-section '+' control). */
+  /**: add one ghost into a section (per-section '+' control). */
   onSpawn?: (section: string) => void;
-  /** Remove one ghost from a section (per-section '-' control). */
+  /**: remove one ghost from a section (per-section '-' control). */
   onDespawn?: (ghostId: string) => void;
 }): JSX.Element {
   const sections = useStore(catalogStore, (s) => s.sections);

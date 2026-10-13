@@ -7,7 +7,7 @@ catalog-id allowlist, at least one section plot present, and A* REACHABILITY of 
 workstation from the hub over the RECOMPUTED collision grid), and only on a fully-valid map
 does it swap the live world atomically + rebroadcast a ``world.snapshot`` so every client and
 running ghost picks it up. An invalid/hostile map is REJECTED with a reason and the live map
-is left UNTOUCHED — never half-applied.
+is left UNTOUCHED — never half-applied (threats /02/03).
 
 Security:
 * the verbs run BEHIND the authed WS (``WsGateway`` verifies the operator JWT pre-accept) +
@@ -27,7 +27,7 @@ import os
 import time
 from collections.abc import Awaitable, Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 from ghostopia_shared import (
     Bounds,
@@ -178,7 +178,7 @@ def validate_editable_map(
                     None,
                 )
 
-    # 2. at least one section PLOT (area) must be present. Scenery regions
+    # 2. at least one section PLOT (area) must be present. finding #3: scenery regions
     #    (the crypt) and the grave-scatter region (ghost-graves) are intentionally UNLABELED —
     #    named plots exist ONLY for the real GhostCrawl-work zones — so a plot is NO LONGER
     #    required for every region (that over-strict rule predated dropping the "home" concept).
@@ -217,11 +217,11 @@ def validate_editable_map(
 # --------------------------------------------------------------------------------------
 
 
-class _MapHolder:
+class _MapHolder(Protocol):
     """The narrow world-map surface the editor swaps (satisfied by GhostPool or a test double)."""
 
     @property
-    def world_map(self) -> WorldMap: ...  # pragma: no cover - Protocol-ish shape
+    def world_map(self) -> WorldMap: ...  # pragma: no cover - Protocol shape
 
     def set_world_map(self, world: WorldMap) -> None: ...  # pragma: no cover
 

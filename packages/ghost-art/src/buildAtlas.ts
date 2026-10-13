@@ -4,7 +4,7 @@
 // 1px outline), blits it into a single RGBA atlas, and emits a frame table
 // keyed `"<sprite>:<region>"` -> { x, y, w, h } computed from each region's cell
 // coordinates. It has NO renderer dependency — it returns raw pixel data + a
-// frame map; the renderer uploads this as a texture with
+// frame map; the renderer (plan 06) uploads this as a texture with
 // `imageSmoothingEnabled = false` / nearest scaling for crisp pixels.
 
 import { outline as outlinePass } from "./outline.js";

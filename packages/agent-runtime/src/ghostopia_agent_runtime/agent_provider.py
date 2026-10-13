@@ -6,10 +6,10 @@ normalized ``Envelope`` objects through the injected async ``emit``. The interfa
 deliberately provider-agnostic — NO LLM vendor appears in the Protocol:
 
 - the ``DeterministicRunner`` (this package) is the v0 scripted brain;
-- a first LLM ``AgentProvider`` (default Anthropic/Claude) is delivered
-  behind THIS SAME seam — the composition layer (via
+- a first LLM ``AgentProvider`` (default Anthropic/Claude per) is delivered in
+  behind THIS SAME seam — the composition layer (sim / orchestrator via
   ``select_agent_provider``) chooses which one, never a behavior;
-- the ``AgentBehavior`` ADAPTS any ``AgentProvider`` into the ONE ``Behavior``
+- plan 17's ``AgentBehavior`` ADAPTS any ``AgentProvider`` into the ONE ``Behavior``
   contract — ``run_task`` is exactly what ``AgentBehavior`` drives, so the emit shape here
   MUST stay stable.
 
@@ -34,6 +34,6 @@ Emit = Callable[[Envelope], Awaitable[None]]
 class AgentProvider(Protocol):
     """The one agent seam. An implementation drives a task through the browser provider
     and emits the normalized event stream — the world looks identical whichever brain
-    (deterministic now, LLM later) runs the task."""
+    (deterministic now, LLM in) runs the task."""
 
     async def run_task(self, task: Task, provider: BrowserProvider, emit: Emit) -> None: ...

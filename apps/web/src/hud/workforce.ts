@@ -1,4 +1,4 @@
-// ghostopia web — the client's view of "is the workforce running?".
+// ghostopia web — the client's view of "is the workforce running?" (195 /, WR-07).
 //
 // The workforce is "running" whenever any workforce ghost is present in the live world. The
 // AUTHORITATIVE set is server-owned (gc_event_source _has_live_workforce / _stop_workforce):

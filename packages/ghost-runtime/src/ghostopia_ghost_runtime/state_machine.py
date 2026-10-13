@@ -1,4 +1,4 @@
-"""The coarse ghost lifecycle state machine.
+"""The coarse ghost lifecycle state machine (Task 1).
 
 A deterministic, PURE reducer over the 16 :class:`~ghostopia_shared.GhostState`
 lifecycle states (``IDLE`` .. ``RETURNING_HOME``). ``reduce(state, event)`` maps a
@@ -7,8 +7,8 @@ transition set (:data:`transitions`). Rejected (illegal) transitions leave the s
 UNCHANGED — never an undefined/garbage state.
 
 This is the COARSE lifecycle ONLY. It holds NO task-decision logic: a Behavior DECIDES
-actions and EMITS events; the FSM merely REACTS to them (single direction of authority).
-The work phase (NAVIGATING..PROCESSING) is filled by whatever the
+actions and EMITS events; the FSM merely REACTS to them (single direction of authority,
+RESEARCH-2 Design A). The work phase (NAVIGATING..PROCESSING) is filled by whatever the
 active Behavior does; the FSM just follows the event stream through it.
 """
 

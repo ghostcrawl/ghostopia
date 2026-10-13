@@ -11,7 +11,7 @@ A human researching prices skips the ad links and clicks the organic results; th
 same candidate-selection judgement, applied before a department spends a session visiting a
 url. Choosing WHICH search results are worth visiting is squarely the consumer's call — the
 search API faithfully returns what the engine served — exactly like the SSRF gate the
-behaviors already apply to every candidate before opening a session.
+behaviors already apply to every candidate before opening a session (-clean).
 """
 
 from __future__ import annotations

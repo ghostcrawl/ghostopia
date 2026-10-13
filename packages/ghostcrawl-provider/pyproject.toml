@@ -1,7 +1,7 @@
 [project]
 name = "ghostopia-ghostcrawl-provider"
 version = "0.0.0"
-description = "The ONLY package that imports the ghostcrawl Python SDK: GhostCrawlProvider (the concrete BrowserProvider over the SDK) + the dual-target registry + the SDK error -> ghostopia event map. The full-primitive surface + CDP-WS relay extend this same provider."
+description = "The ONLY package that imports the ghostcrawl Python SDK: GhostCrawlProvider (the concrete BrowserProvider over the SDK) + the dual-target registry + the SDK error -> ghostopia event map. The full-primitive surface + CDP-WS relay extend this same provider in."
 requires-python = ">=3.12"
 # This is the sole SDK-importing package: it depends on the editable
 # in-repo ghostcrawl 2.3.6 SDK, implements the shared BrowserProvider Protocol
@@ -15,6 +15,7 @@ dependencies = [
   # (apps/server already depends on websockets; uv.lock pins 17.0.1). Operator-approved
   # package-legitimacy gate 2026-08-26 (canonical aaugustin/python-websockets, BSD-3).
   "websockets>=17,<18",
+  # numpy not required; pure public SDK (no vendored human-realism layer).
 ]
 
 [build-system]

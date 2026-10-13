@@ -16,8 +16,8 @@ import type { MissionFanout } from "../liveClient";
 
 /**
  * The entry sections a mission can be launched into are the real DEPARTMENTS, read live from the
- * server-relayed catalog (`catalogStore`) so the dropdown never drifts from the deployed sections.
- * A department is `kind:"department"` and accepts ghosts (`accepts` non-empty) — those are
+ * server-relayed catalog (`catalogStore`) so the dropdown never drifts from the deployed sections
+ *. A department is `kind:"department"` and accepts ghosts (`accepts` non-empty) — those are
  * the result repositories a mission fans out into. Before the catalog arrives we fall back to the
  * four launch departments so the form is usable on first paint.
  */
@@ -42,15 +42,18 @@ export interface MissionFormProps {
 }
 
 /**
- * The thin mission-submit form. Parses the textarea into a url list, defaults the entry
- * section to extraction, and exposes the deterministic|LLM agent-mode selector.
+ * The thin mission-submit form. Defaults to PRODUCT SEARCH (the primary mode for a cheapest-
+ * offer tool): a product name fans out across the workforce to find and compare offers. The raw
+ * url-list is the secondary/advanced mode. Exposes the deterministic|LLM agent-mode selector.
  */
 export function MissionForm({ onSubmit }: MissionFormProps): JSX.Element {
   const sections = useStore(catalogStore, (s) => s.sections);
   const options = useMemo(() => entryOptions(sections), [sections]);
 
   const [title, setTitle] = useState("");
-  const [mode, setMode] = useState<"urls" | "query">("urls");
+  // Product SEARCH is the primary mode for a cheapest-offer tool: lead with a product field.
+  // The raw url-list is the secondary/advanced option.
+  const [mode, setMode] = useState<"urls" | "query">("query");
   const [urlsText, setUrlsText] = useState("");
   const [queryText, setQueryText] = useState("");
   // A mission fans out INTO a department (a result repository). The entry section defaults to the
@@ -97,19 +100,21 @@ export function MissionForm({ onSubmit }: MissionFormProps): JSX.Element {
       <div className="mission-form__row mission-form__modes" role="group" aria-label="mission mode">
         <button
           type="button"
-          className={`mission-form__mode${mode === "urls" ? " mission-form__mode--on" : ""}`}
-          aria-pressed={mode === "urls"}
-          onClick={() => switchMode("urls")}
+          className={`mission-form__mode${mode === "query" ? " mission-form__mode--on" : ""}`}
+          aria-pressed={mode === "query"}
+          title="type a product name — the workforce finds and compares offers"
+          onClick={() => switchMode("query")}
         >
-          url list
+          product search
         </button>
         <button
           type="button"
-          className={`mission-form__mode${mode === "query" ? " mission-form__mode--on" : ""}`}
-          aria-pressed={mode === "query"}
-          onClick={() => switchMode("query")}
+          className={`mission-form__mode${mode === "urls" ? " mission-form__mode--on" : ""}`}
+          aria-pressed={mode === "urls"}
+          title="advanced: paste the exact pages to visit, one url per line"
+          onClick={() => switchMode("urls")}
         >
-          search (query)
+          url list (advanced)
         </button>
       </div>
       <input
@@ -131,10 +136,10 @@ export function MissionForm({ onSubmit }: MissionFormProps): JSX.Element {
       ) : (
         <input
           className="mission-form__input mission-form__input--query"
-          aria-label="mission query"
+          aria-label="product to find the cheapest offer for"
           value={queryText}
           onChange={(e) => setQueryText(e.target.value)}
-          placeholder="spooky masks · spooky costumes · a category to search"
+          placeholder="find the cheapest… e.g. 'Sony WH-1000XM5'"
         />
       )}
       <div className="mission-form__row">
@@ -152,6 +157,7 @@ export function MissionForm({ onSubmit }: MissionFormProps): JSX.Element {
               </option>
             ))}
           </select>
+          <small className="mission-form__hint">where findings are filed in the world</small>
         </label>
         <label className="mission-form__field">
           brain
@@ -164,11 +170,14 @@ export function MissionForm({ onSubmit }: MissionFormProps): JSX.Element {
             <option value="deterministic">deterministic</option>
             <option value="llm">LLM (Claude)</option>
           </select>
+          <small className="mission-form__hint">
+            deterministic = fast &amp; free · LLM = smarter, uses Claude
+          </small>
         </label>
       </div>
       <button type="submit" className="mission-form__submit" disabled={!canSubmit}>
         {mode === "query"
-          ? `summon the workforce (search)`
+          ? `find the cheapest offers`
           : `summon the workforce (${urls.length})`}
       </button>
     </form>

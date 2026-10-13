@@ -1,10 +1,10 @@
 """Server sim runtime — mounts the STAGE-2 simulated world behind the authed WS.
 
-Constructs a :class:`~ghostopia_core.SimEventSource` (real behaviors over the
+Constructs a :class:`~ghostopia_core.SimEventSource` (real plan-17 behaviors over the
 ``FakeBrowserProvider`` — NO GhostCrawl, NO SDK) + a
 :class:`~ghostopia_ghost_runtime.ghost_driver.GhostDriver`, calls
 :func:`~ghostopia_core.wire_world`, and binds the driver's visual-command sink to the
-:class:`~ghostopia_server.ws_gateway.WsGateway` fan-out. The whole thing sits behind
+plan-09 :class:`~ghostopia_server.ws_gateway.WsGateway` fan-out. The whole thing sits behind
 an authed operator control verb (``sim.start`` / ``sim.stop``): only a JWT-accepted client can
 request the stream, and every visual command leaves the server as a validated ``Envelope``.
 
@@ -34,7 +34,7 @@ from ghostopia_world import WorldMap, load_default_map
 from .critters_runtime import CritterRuntime
 from .prop_reactions import active_workstations, is_working_state, prop_state_envelope
 from .smalltalk import SmallTalkDirector, TalkCandidate
-from .ws_gateway import WsGateway
+from .ws_gateway import ControlGateway, WsGateway
 
 # The visual-command envelope type the thin renderer applies to its store (walk / face / anim
 # / say / overlay). Distinct from the ``ghost.spawned`` bootstrap envelope.
@@ -56,7 +56,7 @@ class SimRuntime:
 
     def __init__(
         self,
-        gateway: WsGateway,
+        gateway: ControlGateway,
         *,
         tick_ms: float = 220.0,
         tick_delay_s: float = 0.11,
@@ -81,13 +81,13 @@ class SimRuntime:
         self._queue: asyncio.Queue[Envelope] | None = None
         self._loop_task: asyncio.Task[None] | None = None
         self._pump_task: asyncio.Task[None] | None = None
-        # small-talk: idle co-located ghosts trade a couple of spooky lines so the
+        # small-talk (P6): idle co-located ghosts trade a couple of spooky lines so the
         # graveyard feels alive when work is light. Director + the CURRENT cycle's driver+ids.
         self._director = SmallTalkDirector(max_dist=3.0 * float(self._tile_size))
         self._driver: GhostDriver | None = None
         self._ghost_ids: list[str] = []
         self._smalltalk_task: asyncio.Task[None] | None = None
-        # graveyard critters + reactive props: autonomous cat/wisp/bat that
+        # graveyard critters (P14) + reactive props (P13): autonomous cat/wisp/bat that
         # wander/idle/follow, and crypt-terminals that power on when a ghost works nearby.
         self._critters: CritterRuntime | None = None
         self._critter_task: asyncio.Task[None] | None = None
@@ -247,7 +247,7 @@ class SimRuntime:
             await asyncio.sleep(self._cycle_pause_s)
 
     async def _smalltalk_loop(self) -> None:
-        """Periodically pair IDLE co-located ghosts for a short spooky exchange.
+        """Periodically pair IDLE co-located ghosts for a short spooky exchange (P6).
 
         Reads the current cycle's driver for each ghost's coarse state + position, builds the
         candidate set (a WORKING/attention ghost is excluded so small-talk never speaks over real
@@ -275,7 +275,7 @@ class SimRuntime:
     async def _critter_loop(self) -> None:
         """Step the graveyard critters + reactive props each tick from REAL ghost state.
 
-        Critters follow nearby ghosts using the driver's real pixel positions;
+        Critters (P14) follow nearby ghosts using the driver's real pixel positions;
         crypt-terminals (P13) power on when a WORKING ghost is physically at/near them. Both
         are broadcast so the thin renderer draws them — no floor tile is ever mutated."""
         dt_ms = 150.0
@@ -292,7 +292,7 @@ class SimRuntime:
                         working_xy.append((pos.x, pos.y))
             if self._critters is not None:
                 await self._critters.step(dt_ms, positions)
-            # reactive props: which crypt-terminals a working ghost is powering
+            # reactive props (P13): which crypt-terminals a working ghost is powering
             # right now (a real ghost→workstation proximity, not a timer). Broadcast full state.
             active = active_workstations(working_xy, self._workstations)
             await self._gateway.broadcast(prop_state_envelope(self._workstations, active))
@@ -309,7 +309,7 @@ class SimRuntime:
             ("ghost-scout", "Scout", "grave-1", "research", 0x7ad7ff),
             ("ghost-digger", "Digger", "grave-2", "extraction", 0xffb347),
         ]
-        # ambient idle ghosts: a few always wander the same section so the graveyard
+        # ambient idle ghosts (P15): a few always wander the same section so the graveyard
         # is never dead when no mission runs — and, being co-located + idle, they are eligible to
         # pair up for small-talk (see _smalltalk_loop).
         idle = [
@@ -390,12 +390,12 @@ class SimRuntime:
 def create_sim_app(*, secret: str | None = None) -> Any:
     """Build the ghostopia server app with the STAGE-2 simulation mounted behind ``sim.start``.
 
-    Wraps :func:`ghostopia_server.app.create_app` (the authed WS host) and installs a
+    Wraps :func:`ghostopia_server.app.create_app` (the plan-09 authed WS host) and installs a
     :class:`SimRuntime` on its gateway. Run it with e.g.::
 
         GHOSTOPIA_JWT_SECRET=… uv run uvicorn ghostopia_server.sim_runtime:create_sim_app --factory
     """
-    from .app import create_app
+    from .app import create_app, on_shutdown
 
     app = create_app(secret=secret)
     gateway: WsGateway = app.state.ws_gateway
@@ -403,11 +403,12 @@ def create_sim_app(*, secret: str | None = None) -> Any:
     runtime.install()
     app.state.sim_runtime = runtime
 
-    @app.on_event("shutdown")
     async def _stop_sim() -> None:
         # Parity with ``pool.shutdown()``: stop the sim on process shutdown so its four
         # background loops never leak (cancel+await + despawn its ghosts). Best-effort.
         with contextlib.suppress(Exception):
             await runtime.stop()
+
+    on_shutdown(app, _stop_sim)  # modern lifespan hook (replaces @app.on_event("shutdown"))
 
     return app

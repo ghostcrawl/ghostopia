@@ -1,6 +1,7 @@
 """``FakeBrowserProvider`` — an in-memory fulfilment of the full ``BrowserProvider``.
 
-Zero GhostCrawl calls, zero SDK import. It powers the simulated stages 1–2 (the renderer cannot tell simulated from real) and every contract/unit test.
+Zero GhostCrawl calls, zero SDK import. It powers the simulated stages 1–2 (RESEARCH
+Pattern 3 — the renderer cannot tell simulated from real) and every contract/unit test.
 It records an ordered ``input_log`` for mouse/keyboard (so a drag is provably
 down→moves→up) and yields synthetic live-view frame refs from an async generator that
 stops on the cancel signal.

@@ -1,4 +1,4 @@
-"""The ``EventSource`` seam — one interface, simulated OR real events.
+"""The ``EventSource`` seam — one interface, simulated OR real events (RESEARCH Pattern 3).
 
 The whole ghostopia world reacts to a single normalized event stream: ``ghost.*`` /
 ``browser.*`` / ``task.*`` / ``result.*`` :class:`~ghostopia_shared.Envelope` messages. An

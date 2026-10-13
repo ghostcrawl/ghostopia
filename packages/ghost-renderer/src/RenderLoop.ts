@@ -7,7 +7,7 @@
 // — `imageSmoothingEnabled = false` on every upload + `scaleMode: 'nearest'` globally.
 //
 // It draws a POLISHED NIGHT graveyard from `WorldMapData` (regions/graves/workstations)
-// + the atlas: a dark navy/indigo STATIC ground (the drifting-fog-over-ground
+// + the plan-19/24 atlas: a dark navy/indigo STATIC ground (the drifting-fog-over-ground
 // is gone, so a still camera shows a still floor), per-section role-tinted washes that
 // read as glows, deterministic tile variety + graveyardy decor, grounding drop-shadows,
 // a STATIC edge vignette + a moon/star night backdrop for depth, OVERHEAD-only ambient
@@ -101,7 +101,7 @@ export interface RenderLoopOptions {
   /**
    * Optional canvas click-to-select: on a click (pointerup with negligible drag) over a ghost
    * sprite, called with that ghost's id; a click that misses every ghost passes `null` (a
-   * deselect / no-op). Wired to the SAME `ghost.select` the roster row fires.
+   * deselect / no-op per BRIEF §36). Wired to the SAME `ghost.select` the roster row fires.
    */
   onSelectGhost?: (ghostId: string | null) => void;
   /**
@@ -118,7 +118,7 @@ export interface RenderLoopOptions {
    */
   onSelectSection?: (sectionId: string | null) => void;
   /**
-   * Optional department-plot predicate. Given the section id under the pointer (or
+   * Optional department-plot predicate (S1). Given the section id under the pointer (or
    * null on bare ground), returns whether it is a clickable DEPARTMENT plot — the render loop
    * swaps the stage cursor to `pointer` over a department and `grab` elsewhere (the hover
    * affordance). Without it the cursor stays the CSS default.
@@ -128,7 +128,7 @@ export interface RenderLoopOptions {
    * Optional Graveyard Builder hooks. When provided, the render loop draws the editor
    * overlay (grid + draft props + preview + selection) whenever `getView().active`, and routes
    * canvas taps/hover to `onTile`/`onHover` (a tile coord) instead of ghost-select. The camera
-   * pan/pinch/zoom stays live so the editor is mobile-usable.
+   * pan/pinch/zoom stays live so the editor is mobile-usable (reuse).
    */
   editor?: EditorHooks;
 }
@@ -146,7 +146,7 @@ export interface EditorHooks {
 /** Handle to a running render loop. */
 export interface RenderLoopHandle {
   app: Application;
-  /** Swap the live world in place (after a validated map.save/reset rebroadcast) without
+  /**: swap the live world in place (after a validated map.save/reset rebroadcast) without
    * re-initialising the PixiJS Application. Rebuilds only the static content; ghosts keep running. */
   reloadMap: (mapData: WorldMapData) => void;
   destroy: () => void;
@@ -408,7 +408,7 @@ interface OverheadAmbient {
 }
 
 /**
- * Populate the OVERHEAD ambient layer with slow-drifting mist puffs;
+ * Populate the OVERHEAD ambient layer with slow-drifting mist puffs (task 1);
  * bats/wisps are pushed in by {@link addFlyers} (task 2). Everything here lives ABOVE
  * the ghost layer and is alpha-light, so it clearly reads as *above the world* — it is
  * the ONLY moving world element and never touches the static floor.
@@ -679,8 +679,8 @@ function buildWorld(
   }
   staticContent.addChild(washes);
 
-  // ---- 3b. painted section PLOTS: a small section label + a dashed plot border
-  //      per area so the six sections read as spatial plots (the foundation for the
+  // ---- 3b. painted section PLOTS (P17): a small section label + a dashed plot border
+  // per area so the six sections read as spatial plots (the foundation for the
   //      editor's area tool). Tinted by the plot's section; drawn once (static). ----
   const plotLayer = new Container();
   plotLayer.label = "plotBorders";
@@ -751,7 +751,7 @@ function buildWorld(
   // map-authored destinations first
   for (const grave of mapData.graves) addProp("grave:home", grave.x, grave.y);
 
-  // reactive crypt-terminals: each map workstation is a prop the server can
+  // reactive crypt-terminals (P13): each map workstation is a prop the server can
   // power ON (a working ghost is at it) — tracked by workstation id so `prop.state` can swap
   // it to its active clip + raise its glow IN PLACE (no floor tile mutates).
   const propTerminals = new Map<string, PropTerminal>();
@@ -784,7 +784,7 @@ function buildWorld(
   //      landmarks, headstones, trees, the perimeter fence, and the new lanterns/benches/
   //      urns/statues/jack-o'-lanterns/wells/candles — is drawn PURELY from its catalog
   //      def + {tile, orientation, state}. No hard-coded per-prop placement remains; the
-  //      SAME server-owned layer feeds collision/A* (footprints) and the editor. ----
+  // SAME server-owned layer feeds collision/A* (footprints) and the editor. ----
   const animatedProps: PropSprite[] = [];
   const placedSprites: PropSprite[] = [];
   for (const placed of mapData.placedProps) {
@@ -906,7 +906,7 @@ export async function createRenderLoop(options: RenderLoopOptions): Promise<Rend
   const editorOverlay = new EditorOverlay();
   worldRoot.addChild(editorOverlay.container);
 
-  // mission/section link lines: a marching-ants dashed spectral line from each
+  // mission/section link lines (P12): a marching-ants dashed spectral line from each
   // section anchor to its member ghosts. Batched into ONE Graphics, redrawn per frame, in an
   // overhead layer above the ghosts (motion here never touches the static floor).
   const linkG = new Graphics();
@@ -982,7 +982,7 @@ export async function createRenderLoop(options: RenderLoopOptions): Promise<Rend
   // wisp/bat flyers on the overhead layer. Server-authoritative positions; petting flashes a heart.
   const critterSprites = new Map<string, CritterSprite>();
 
-  // ---- spawn/dissolve flourish: a fog-condense materialize on a new ghost + a
+  // ---- spawn/dissolve flourish (P10): a fog-condense materialize on a new ghost + a
   //      spectral scatter dissolve on removal. Reduced motion → a quick alpha fade (no motes). ----
   const flourishLayer = new Container();
   flourishLayer.label = "flourishLayer";
@@ -1151,7 +1151,7 @@ export async function createRenderLoop(options: RenderLoopOptions): Promise<Rend
     //
     // Reduced-motion contract, enforced via the `reduceMotion` flag threaded into
     // `gs.update` below: the ghost's CORE motion — its continuous idle-wander position (the
-    // `state === "wander"` position stream) and its walk-cycle clip — ALWAYS flows,
+    // plan 03/04 `state === "wander"` position stream) and its walk-cycle clip — ALWAYS flows,
     // because a frozen ghost would not read as alive. Only the DECORATIVE embellishment layered
     // on top is dropped under `prefers-reduced-motion`: the stationary float-bob + overlay bob
     // (GhostSprite), the spawn/dissolve motes (`spawnFlourish` early-returns), the overhead
@@ -1241,7 +1241,7 @@ export async function createRenderLoop(options: RenderLoopOptions): Promise<Rend
         flourishes.splice(i, 1);
       }
     }
-    // ---- reactive props: power ON each crypt-terminal a working ghost is at
+    // ---- reactive props (P13): power ON each crypt-terminal a working ghost is at
     //      (swap to its active clip + raise its glow), settle the rest — IN PLACE, no floor. ----
     const activeProps = state.activeProps;
     for (const [id, term] of propTerminals) {
@@ -1526,7 +1526,7 @@ export async function createRenderLoop(options: RenderLoopOptions): Promise<Rend
     activePointerCount = pointers.size;
     canvas.releasePointerCapture?.(e.pointerId);
     // a tap/click (not a pan, never part of a pinch) hit-tests the ghost sprites → select the
-    // top-most under the point. A miss passes null (deselect / no-op). Listeners
+    // top-most under the point. A miss passes null (deselect / no-op per BRIEF §36). Listeners
     // live on the canvas, so a tap that started over a DOM HUD overlay never reaches here.
     if (select && wasPrimaryTap && options.editor && options.editor.getView().active) {
       // Editor mode: a tap applies the active tool at the tile (left) or quick-erases (right).
@@ -1618,7 +1618,7 @@ export async function createRenderLoop(options: RenderLoopOptions): Promise<Rend
   canvas.addEventListener("dblclick", onDoubleClick);
   canvas.addEventListener("contextmenu", onContextMenu);
 
-  // Swap the live world in place after a validated map.save/reset — rebuild ONLY the
+  //: swap the live world in place after a validated map.save/reset — rebuild ONLY the
   // static content container (ground/props/plots), reusing the same Application + ghost/overhead
   // layers (re-initialising Pixi on the same canvas wedges headless WebGL). Dimensions are
   // assumed unchanged (the editor has no resize tool), so camera bounds/overhead stay valid.

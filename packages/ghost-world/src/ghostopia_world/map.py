@@ -1,9 +1,9 @@
-"""The data-driven tile-grid world model.
+"""The data-driven tile-grid world model (Task 1).
 
 ``load_map(data)`` builds a :class:`WorldMap` from a plain dict (JSON) — the world
 geometry is DATA (``maps/graveyard.json``), never hardcoded in this module. A
 ``WorldMap`` exposes a walkable grid, the six named regions (each a tile-rect
-``Bounds`` that doubles as the section partition), and grave/workstation
+``Bounds`` that doubles as the section partition — plan 18), and grave/workstation
 destination lookups. Collision lives in :mod:`ghostopia_world.collision`.
 """
 

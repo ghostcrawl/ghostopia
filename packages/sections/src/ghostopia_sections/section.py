@@ -1,4 +1,4 @@
-"""The Section model + runtime (ghostopia-original).
+"""The Section model + runtime (RESEARCH-2 Design B — ghostopia-original).
 
 A **Section** is a labelled sub-region of the graveyard: ``bounds`` (a tile rect on the
 :class:`~ghostopia_world.WorldMap`), a pool of workstation types, a live roster of
@@ -10,7 +10,7 @@ hardcoded per-ghost or per-site route.
 This module owns:
 
 * :class:`SectionDef` — the DATA model. It is the shared ``SectionDef`` (single contract
-  source) PLUS an optional ``gc_target``: the section's default
+  source) PLUS an optional ``gc_target`` (/RESEARCH-3 §4.2): the section's default
   dual-target when a :class:`~ghostopia_shared.TaskSpec` omits its own ``gc_target``.
 * :class:`Section` — the runtime wrapping a ``SectionDef`` + a live roster
   (``add_ghost``/``remove_ghost``) + a per-section task sub-queue + capacity accounting

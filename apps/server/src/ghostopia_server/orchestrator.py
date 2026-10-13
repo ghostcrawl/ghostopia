@@ -1,8 +1,8 @@
 """Server orchestrator — mission fan-out across sections/ghosts (STAGE 6 milestone).
 
-The front door to the bounded execution engine: an authed
+The front door to the bounded execution engine (RESEARCH-3 §4.2): an authed
 ``mission.submit`` is SSRF-validated, :func:`~ghostopia_orchestration.split_mission`-split
-into ``N`` kind-tagged tasks, and fanned out to sections BY ROLE (``route_task``),
+into ``N`` kind-tagged tasks, and fanned out to sections BY ROLE (plan-18 ``route_task``),
 each task assigned to a free roster ghost. Every task's real run flows back through the
 :class:`~ghostopia_orchestration.WorkQueue` (backoff on retryable / fail on non-retryable),
 emitting ``task.retry`` / ``browser.error`` / ``task.completed`` — the SDK error map drives
@@ -50,7 +50,7 @@ from .frame_fanout import SessionRegistry
 from .gc_event_source import ProviderFactory, run_real_task
 from .ghost_pool import GhostPool
 from .ssrf import SsrfBlockedError, validate_mission_url
-from .ws_gateway import WsGateway
+from .ws_gateway import ControlGateway
 
 __all__ = [
     "ONBOARDING_UNCONFIGURED_REASON",
@@ -60,7 +60,7 @@ __all__ = [
 
 
 def _spawn_id(parent_id: str, validated: str) -> str:
-    """Deterministic, collision-resistant child-task id for a discovered url.
+    """Deterministic, collision-resistant child-task id for a discovered url (WR-04).
 
     The salted builtin ``hash()`` is non-reproducible across process restarts/tests AND
     collides in a 1M space — and ``WorkQueue._attempts`` + the SQLite result rows are keyed on
@@ -139,7 +139,7 @@ def make_pool_stage_dispatch(
                     children.append(child)
             await broadcast(env)
 
-        # deterministic across restarts/tests: salted hash() would repaint the same
+        # deterministic across restarts/tests (WR-04): salted hash() would repaint the same
         # stage ghost a different color every process.
         color = palette[int(hashlib.sha1(gid.encode("utf-8")).hexdigest(), 16) % len(palette)]
         try:
@@ -188,7 +188,7 @@ class Orchestrator:
 
     def __init__(
         self,
-        gateway: WsGateway,
+        gateway: ControlGateway,
         *,
         sections: list[Section] | None = None,
         provider_factory: ProviderFactory | None = None,
@@ -213,6 +213,11 @@ class Orchestrator:
         self._max_concurrent = max_concurrent
         self._roster_per_section = roster_per_section
         self._tasks: set[asyncio.Task[None]] = set()
+
+    @property
+    def concurrency_controller(self) -> Any:
+        """The pool's long-lived AIMD concurrency controller (``None`` when poolless)."""
+        return self._pool.concurrency_controller if self._pool is not None else None
 
     def _effective_max_concurrent(self) -> int:
         """The dispatch concurrency cap for a mission's WorkQueue.
@@ -337,7 +342,7 @@ class Orchestrator:
                 blocked = True
                 await self._reject(f"blocked target {u!r}: {err}")
 
-        # ONE explicit policy — fail the WHOLE mission if ANY seed is blocked (fail
+        # WR-03: ONE explicit policy — fail the WHOLE mission if ANY seed is blocked (fail
         # -closed). Do NOT run a partial mission that mixes a rejected SSRF target with a
         # silently-running mission for the remaining seeds (a confusing "blocked" message
         # alongside a mission that runs anyway). An SSRF attempt in a batch fails the batch.
@@ -380,6 +385,10 @@ class Orchestrator:
             self._sections,
             self._make_dispatch(),
             max_concurrent=self._effective_max_concurrent(),
+            # Follow the pool's long-lived AIMD controller (ceiling = the tier cap) so the
+            # dispatch concurrency self-tunes on GhostCrawl backpressure instead of a static
+            # semaphore. Poolless legacy tests keep the fixed cap.
+            controller=self._pool.concurrency_controller if self._pool is not None else None,
         )
         queue.enqueue_all(tasks, from_section=section)
         # surface remaining quota so a mission can't silently exhaust it.
@@ -389,7 +398,7 @@ class Orchestrator:
     # -- dispatch: run one task on the selected brain, through run_real_task ----------
 
     def make_dispatch(self) -> Any:
-        """Public accessor for the per-task dispatch (composed over).
+        """Public accessor for the per-task dispatch (composes over it).
 
         The Task/mission management API (:mod:`ghostopia_server.task_routes`) builds its own
         bounded :class:`~ghostopia_orchestration.WorkQueue` over the SAME dispatch — each task
@@ -431,10 +440,10 @@ class Orchestrator:
                 rec.behavior_name = behavior_name
                 rec.state = "WORKING"
 
-            # Dispatch fallback: a task that carries no url of its own scrapes the
+            # dispatch fallback: a task that carries no url of its own scrapes the
             # department's own target_url. When the url is SOURCED FROM THE SECTION (the task
             # carried none) it MUST pass the SAME SSRF gate before any session opens — a
-            # section-supplied target is a fetch target too (never bypass).
+            # section-supplied target is a fetch target too (/02; never bypass).
             task_url = task.target.get("url") or task.params.get("url") or ""
             section_url = section.defn.target_url if section else None
             url = task_url or section_url or ""
@@ -443,7 +452,7 @@ class Orchestrator:
                     url = validate_mission_url(url, ())
                 except SsrfBlockedError:
                     # a blocked department target fails the task cleanly (terminal,
-                    # non-retryable) — no GhostCrawl session opens.
+                    # non-retryable) — no GhostCrawl session opens (/02).
                     return DispatchResult(
                         ok=False,
                         error=MappedError(
@@ -501,10 +510,10 @@ class Orchestrator:
                 runner=runner,
                 ghost_id=ghost_id,
                 ghost_name=_ghost_name(ghost_id),
-                # Carry the fan-out route's REAL section into the positioned
+                #: carry the fan-out route's REAL section into the positioned
                 # ghost.spawned so the world sprite matches the roster row (no divergence).
                 section=route.section or (section.id if section else "horror-books"),
-                # Fall back to the department's own extract_schema when the task
+                #: fall back to the department's own extract_schema when the task
                 # carries none (its target + its schema define what it brings back).
                 extract_schema=task.params.get("extract_schema")
                 or (section.defn.extract_schema if section else None),

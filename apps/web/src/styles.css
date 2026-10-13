@@ -139,7 +139,7 @@ body,
   color: #ff9ec4;
 }
 
-/* The empty-state onboarding CTA. Reuses .overlay geometry + pointer-events:none;
+/* 195-05 (S5): the empty-state onboarding CTA. Reuses .overlay geometry + pointer-events:none;
    only the button re-enables pointer-events so the canvas stays draggable behind the prompt. */
 .overlay__cta {
   display: grid;
@@ -163,6 +163,94 @@ body,
   pointer-events: auto;
   min-height: 32px;
   padding: 6px 14px;
+}
+
+/* First-use START panel — the clean landing experience: a product field + a prominent
+   "Find cheapest offers" button. Sits on .overlay (centred, pointer-events:none); only the
+   card re-enables pointer-events so the world stays draggable behind it. */
+.onboard {
+  pointer-events: auto;
+  display: grid;
+  gap: 10px;
+  justify-items: stretch;
+  text-align: center;
+  width: min(380px, calc(100vw - 32px));
+  padding: 20px 20px 16px;
+  background: rgba(18, 14, 34, 0.92);
+  border: 1px solid rgba(150, 130, 220, 0.45);
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+.onboard__head {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--rim);
+  text-transform: lowercase;
+}
+.onboard__body {
+  font-size: 12px;
+  opacity: 0.72;
+  line-height: 1.55;
+}
+.onboard__input {
+  font: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  color: #e9e6ff;
+  background: rgba(10, 8, 20, 0.75);
+  border: 1px solid rgba(150, 130, 220, 0.5);
+  border-radius: 8px;
+  text-align: center;
+}
+.onboard__btn {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  min-height: 42px;
+  padding: 10px 14px;
+  color: #120e22;
+  background: #b7a0ff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.onboard__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.onboard__alts {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+.onboard__link {
+  font: inherit;
+  font-size: 11px;
+  padding: 2px 2px;
+  color: #b9b2e0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.75;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.onboard__link:hover,
+.onboard__link:focus-visible {
+  opacity: 1;
+}
+
+/* De-jargon hints under the mission-form section/brain selectors. */
+.mission-form__hint {
+  font-size: 10px;
+  line-height: 1.4;
+  opacity: 0.55;
+  letter-spacing: normal;
 }
 
 .mode-toggle {
@@ -192,7 +280,7 @@ body,
   top: calc(56px + env(safe-area-inset-top, 0px));
 }
 
-/* The Graveyard Builder toggle sits bottom-CENTER: the old top-center
+/* The 191-31 Graveyard Builder toggle sits bottom-CENTER (192-09 D-15): the old top-center
    placement collided with the top-left HUD once the HUD grew wide enough (legend/hint on
    desktop, or the 46vw compact HUD on a phone) to reach the horizontal centre. The bottom
    centre is always clear of the left/right-docked panels (HUD top-left, dock + zoom + settings
@@ -208,11 +296,11 @@ body,
   z-index: 50;
 }
 
-/* When the Graveyard Builder is OPEN, its panel is a ≤244px-wide FULL-HEIGHT
+/* 192-12 finding #2: when the Graveyard Builder is OPEN, its panel is a ≤244px-wide FULL-HEIGHT
    column pinned top-left. The bottom-CENTRE toggle can clip that panel on a narrow desktop/
    tablet window (its left edge crosses 256px). Re-anchor the "Graveyard Builder" toggle (the
    label) just to the RIGHT of the open panel so the label never overlaps the builder menu at
-   any width ≥641. Closed → it keeps its bottom-centre home. Phones (≤640) use a
+   any width ≥641. Closed → it keeps its 192-09 bottom-centre home. Phones (≤640) use a
    bottom-sheet editor (see the mobile block) where the top-left toggle is already clear. */
 @media (min-width: 641px) {
   .mode-toggle--editor[aria-pressed="true"] {
@@ -322,7 +410,7 @@ body,
   background: rgba(60, 48, 100, 0.95);
 }
 
-/* --- STAGE 4/5 live inspector: section-grouped roster + status popup + inspector --- */
+/* --- STAGE 4/5 live inspector: section-grouped roster + status popup + inspector (191-12/13) --- */
 .roster {
   position: absolute;
   top: 16px;
@@ -449,7 +537,7 @@ body,
   transition: width 0.4s ease;
 }
 
-/* --- liveness: roster attention flag + ×-dismiss (the fuel-gauge bar was retired) --- */
+/* --- 191-27 liveness: roster attention flag + ×-dismiss (196: the fuel-gauge bar was retired) --- */
 .roster__list li {
   position: relative;
 }
@@ -506,7 +594,7 @@ body,
   border-color: #e0574a;
 }
 
-/* --- connection indicator badge --- */
+/* --- 191-27 connection indicator badge --- */
 /* Pinned top-CENTRE but dropped BELOW the top-right mode-toggle strip (Simulated +12 / Live +56,
    ~96px tall) so it clears the toggles AND the top-left masthead HUD, sitting in the open central
    band between the two docked columns. A high z-index + solid pill keep it readable over anything
@@ -551,7 +639,7 @@ body,
   .conn__dot { animation: none !important; }
 }
 
-/* --- HUD follow/labels toggles --- */
+/* --- 191-27 HUD follow/labels toggles --- */
 .hud__toggles {
   display: flex;
   gap: 6px;
@@ -560,14 +648,14 @@ body,
      canvas beneath it). That silently made the follow/labels buttons UNCLICKABLE — the
      click fell through to the PixiJS canvas. Re-enable pointer events on the interactive
      toggle row (and the buttons) so they receive clicks/taps above the world canvas,
-     while the rest of the HUD panel stays click-through. */
+     while the rest of the HUD panel stays click-through. Root cause of 192-12 finding #1. */
   pointer-events: auto;
 }
 
 .hud__toggle {
   font: inherit;
   font-size: 10px;
-  /* ≥40px accessible tap target at every viewport, consistent with
+  /* ≥40px accessible tap target at every viewport (192-12 finding #1), consistent with
      `.mode-toggle`; the label is small but the hit area is comfortable for touch + mouse. */
   min-height: 40px;
   display: inline-flex;
@@ -587,7 +675,7 @@ body,
   border-color: #b7a0ff;
 }
 
-/* The hover status popup used to sit `right: 220px` — which cleared the OLD
+/* 192-12 finding #5: the hover status popup used to sit `right: 220px` — which cleared the OLD
    floating roster (214px). The roster now docks inside the 300px-wide right `.hud-shell` (right:12
    → it occupies the right 12–312px band), so `right:220` placed the popup UNDER the dock and it
    could cover a roster row (the tablet ERROR-state overlap). Anchor it bottom-LEFT — always clear
@@ -702,7 +790,7 @@ body,
   position: relative;
 }
 
-/* The watchable affordance marking a LIVE-BROWSABLE (featured) ghost —
+/* R7 (197-10): the watchable affordance marking a LIVE-BROWSABLE (featured) ghost —
    visually distinguishes it from the stateless api-only workforce. */
 .inspector__watchable {
   position: absolute;
@@ -756,7 +844,7 @@ body,
   color: #b7a0ff;
 }
 
-/* Sanitized persona row — reuses the overview 11px body tone, no new hue/size. */
+/* D-08 sanitized persona row — reuses the overview 11px body tone, no new hue/size. */
 .inspector__persona {
   font-size: 11px;
   opacity: 0.9;
@@ -783,7 +871,7 @@ body,
   margin-right: 8px;
 }
 
-/* ── api-only activity feed — structured priced record rows ───── */
+/* ── 195-03 (S2): api-only activity feed — structured priced record rows ───── */
 .inspector__haul {
   margin: 0 0 6px;
 }
@@ -854,7 +942,7 @@ body,
   opacity: 0.6;
 }
 
-/* ── STAGE 7: global dashboard (behavior/section-aware) ─────────── */
+/* ── STAGE 7: global dashboard (BRIEF §24, behavior/section-aware) ─────────── */
 .dash {
   position: absolute;
   left: 12px;
@@ -1063,7 +1151,7 @@ body,
   font-size: 11px;
 }
 
-/* diagnostics panel — real per-ghost + system health read-out */
+/* diagnostics panel (191-29 P18) — real per-ghost + system health read-out */
 .diagnostics {
   position: absolute;
   right: 16px;
@@ -1164,7 +1252,7 @@ body,
   opacity: 0.8;
   margin: 2px 0 4px;
 }
-/* Sanitized persona chip on the management card — reuses the panel-tone badge + 11px
+/* D-08 sanitized persona chip on the management card — reuses the panel-tone badge + 11px
    body tone, no new hue/size. */
 .ghost-inspector__persona {
   font-size: 11px;
@@ -1236,7 +1324,7 @@ body,
   border-radius: 6px;
   background: rgba(90, 70, 160, 0.2);
 }
-/* The completed-mission row is a real click-through affordance (reveals its found
+/* D-19: the completed-mission row is a real click-through affordance (reveals its found
    results). Reuse the violet interactive accent + the mode-toggle focus-visible model. */
 .graveyard__mission[role="button"] {
   cursor: pointer;
@@ -1266,7 +1354,7 @@ body,
   padding-left: 6px;
 }
 
-/* Group-by toggle + per-department priced list. */
+/* D-04: group-by toggle + per-department priced list. */
 .graveyard__view-toggles {
   display: flex;
   gap: 4px;
@@ -1335,7 +1423,7 @@ body,
   font-weight: 600;
   flex-shrink: 0;
 }
-/* The winning (lowest-price) offer for a product is marked with a "best" badge. */
+/* 197-06: the winning (lowest-price) offer for a product is marked with a "best" badge. */
 .graveyard__priced-row--best {
   background: rgba(108, 240, 200, 0.1);
   box-shadow: inset 0 0 0 1px rgba(108, 240, 200, 0.35);
@@ -1403,13 +1491,13 @@ body,
   display: block;
 }
 
-/* ── Camera UX: +/- zoom controls + fading readout ──────────────────── */
+/* ── Camera UX: +/- zoom controls + fading readout (191-26) ──────────────────── */
 .zoomctl {
   position: absolute;
   right: calc(12px + env(safe-area-inset-right, 0px));
   /* Anchored to the bottom-right, stacked ABOVE the settings gear — NOT vertically
      centered. The old `top:50%` center placed the zoom buttons under the right-docked
-     `.hud-shell` control column (overlap). The dock reserves matching bottom room
+     `.hud-shell` control column (D-15 overlap). The dock reserves matching bottom room
      (see `.hud-shell` max-height) so the two never collide at any height. */
   top: auto;
   bottom: calc(60px + env(safe-area-inset-bottom, 0px));
@@ -1457,7 +1545,7 @@ body,
   opacity: 0.9;
 }
 
-/* ── SETTINGS: a small gear opening a sound toggle + volume. ── */
+/* ── SETTINGS (191-28): a small gear opening a sound toggle + volume. ── */
 .settings {
   position: absolute;
   right: 12px;
@@ -1539,7 +1627,7 @@ body,
   width: 100%;
 }
 
-/* ── ACCESSIBILITY: a clear, consistent keyboard focus ring on every
+/* ── ACCESSIBILITY (192-09 D-15): a clear, consistent keyboard focus ring on every
       interactive control — mirrors the shipped `.mode-toggle` / `.graveyard__mission[role=button]`
       model (violet accent, no new hue). `:focus-visible` paints ONLY for keyboard / AT focus,
       so mouse/touch users see no ring. This gives every touched control (inspector ghost-type
@@ -1573,12 +1661,12 @@ body,
   outline-offset: 1px;
 }
 
-/* ── MOBILE / touch: phone/small-tablet-width
+/* ── MOBILE / touch (191-26 P4b, reconciled 192-09 D-15): phone/small-tablet-width
       layout — collapse/dock/scroll, tap-sized targets, and never cover the whole world.
       Verified at 390×844. The breakpoint was RAISED 480→640 so this per-panel compact
       scheme shares ONE boundary with the `.hud-shell` dock scheme below (which was already
       640): a device in the old 480–640 gap no longer got the bottom-sheet dock while its
-      floating panels stayed at desktop absolute positions (the overlap the audit found).
+      floating panels stayed at desktop absolute positions (the overlap the D-15 audit found).
       No THIRD breakpoint value is introduced — the two existing schemes now agree at 640.
    MEDIUM-6: the scheme also fires on a SHORT viewport (max-height:480px) so phone-landscape
    (wide but short) gets the compact bottom-sheet layout instead of the crushed desktop one. ── */
@@ -1682,7 +1770,7 @@ body,
     pointer-events: auto;
   }
   .hud__toggle {
-    /* ≥40px tap target on a phone */
+    /* ≥40px tap target on a phone (192-12 finding #1 acceptance) */
     min-height: 40px;
     padding: 8px 10px;
     font-size: 11px;
@@ -1744,7 +1832,7 @@ body,
   }
 }
 
-/* ---- Graveyard Builder (in-app map/prop editor) ---- */
+/* ---- 191-31 Graveyard Builder (in-app map/prop editor) ---- */
 .editor {
   position: absolute;
   top: 12px;
@@ -1883,7 +1971,7 @@ body,
   opacity: 0.55;
 }
 
-/* The departments guide line precedes the list, so it hangs BELOW the head rather
+/* 195-05 (S5): the departments guide line precedes the list, so it hangs BELOW the head rather
    than above a form — flip the .editor__hint top margin to a bottom margin. */
 .departments__guide {
   margin-top: 0;
@@ -1891,7 +1979,7 @@ body,
   line-height: 1.5;
 }
 
-/* The opt-in advanced real-retail departments — a quiet block with an on/off
+/* 197-11 (D2): the opt-in advanced real-retail departments — a quiet block with an on/off
    toggle so the operator can clearly see which departments spend the real key (off by default). */
 .advanced-depts {
   margin-top: 10px;
@@ -1942,7 +2030,7 @@ body,
   background: rgba(139, 224, 74, 0.16);
 }
 
-/* Phone: the Graveyard Builder menu → a scrollable bottom sheet (like the
+/* 192-12 finding #2 (phone): the Graveyard Builder menu → a scrollable bottom sheet (like the
    mission/inspector sheets) so it never collides with the top-left "Graveyard Builder" toggle
    on a phone — the full-height top-left column overlapped that toggle at ≤640. This block MUST
    live AFTER the base `.editor` rules above (equal specificity → later source wins) so it is
@@ -1960,7 +2048,7 @@ body,
 }
 
 /* ============================================================================
-   HUD SHELL — one docked, non-overlapping, collapsible control column.
+   191-32 HUD SHELL — one docked, non-overlapping, collapsible control column.
    The Live-mode panels are re-parented into this shell (see App.tsx); their old
    absolute positioning is neutralized below so they flow in one scroll column and
    never stack on each other or cover the in-world section labels.
@@ -1973,7 +2061,7 @@ body,
   width: 300px;
   max-width: calc(100vw - 24px);
   /* Reserve ~180px of bottom-right room for the zoom controls + settings gear stack so the
-     dock's lower edge never reaches them (no-overlap). The dock scrolls internally when
+     dock's lower edge never reaches them (D-15 no-overlap). The dock scrolls internally when
      its content exceeds this height. Overridden entirely by the ≤640 bottom-sheet rules. */
   max-height: calc(100dvh - 108px - 180px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   display: flex;
@@ -2104,7 +2192,7 @@ body,
   z-index: auto;
 }
 
-/* per-section add/remove stepper (EASY): a clear +/- with a live count. */
+/* 191-32 per-section add/remove stepper (EASY): a clear +/- with a live count. */
 .sections__stepper {
   display: flex;
   align-items: center;
@@ -2148,7 +2236,7 @@ body,
 }
 
 /* ============================================================================
-   MOBILE — the control dock becomes a safe-area bottom-sheet so the top HUD
+   191-32 MOBILE — the control dock becomes a safe-area bottom-sheet so the top HUD
    and bottom controls are never clipped by the URL bar / notch (390x844 target).
    ============================================================================ */
 @media (max-width: 640px), (max-height: 480px) {
@@ -2173,7 +2261,7 @@ body,
     padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   }
 
-  /* Reconciliation: now that the per-panel compact scheme reaches 640px it
+  /* Reconciliation (192-09 D-15): now that the per-panel compact scheme reaches 640px it
      hides the FLOATING dashboard/sections/graveyard/diagnostics (Simulated mode) — but their
      copies re-parented INTO the dock (Live mode) must stay visible. This higher-specificity
      rule re-shows the docked copies so the same dock renders the same panels at 481–640px as
@@ -2203,7 +2291,7 @@ body,
   }
 
   /* the settings gear also lifts above the shared-height sheet, docked bottom-LEFT so it never
-     collides with the ZoomControls (bottom-right) nor is swallowed by the dock. */
+     collides with the ZoomControls (bottom-right) nor is swallowed by the dock (D-15). */
   .settings {
     right: auto;
     left: max(8px, env(safe-area-inset-left));
@@ -2286,7 +2374,7 @@ body,
   gap: 8px;
 }
 
-/* the shared "export findings" control — one component, two call sites. */
+/* the shared "export findings" control (195-04, S4) — one component, two call sites. */
 .export-btns {
   display: inline-flex;
   gap: 6px;

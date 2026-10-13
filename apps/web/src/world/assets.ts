@@ -1,8 +1,8 @@
 // ghostopia web — load the language-neutral world DATA + the art atlas.
 //
 // A THIN renderer boundary: this reads maps/graveyard.json (emitted by the
-// Python world) + the @ghostopia/ghost-art asset set (grids/manifest/
-// palettes/animations) and builds the PixiJS-consumable atlas + clip
+// Python world, plan 04) + the @ghostopia/ghost-art asset set (grids/manifest/
+// palettes/animations, plan 19/24) and builds the PixiJS-consumable atlas + clip
 // book. It NEVER imports the GhostCrawl SDK, a Python package, or any key — the
 // data arrives as JSON fetched from bundled asset URLs.
 
@@ -58,7 +58,7 @@ function hexToNum(hex: string): number {
 
 // Map the real-WORK graveyard regions to their section palette (for the overlay tint).
 //
-// The "home" concept is GONE and the crypt is unlabeled scenery, so
+// finding #3/#4: the "home" concept is GONE and the crypt is unlabeled scenery, so
 // neither the crypt NOR the ghost-graves region maps to a section palette any more (the crypt
 // tint is decoupled from the removed "home"). Named zones (and their tints) are ONLY the real
 // GhostCrawl-work regions; graves scatter as placeable spawn points with no designated home.

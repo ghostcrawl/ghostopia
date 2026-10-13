@@ -1,4 +1,4 @@
-"""``PipelineCrawl`` — the FEATURED SOLO staged behavior.
+"""``PipelineCrawl`` — the FEATURED SOLO staged behavior (Phase, R6).
 
 ONE ghost walks the ENTIRE best-price flow solo, so the live inspector shows a single ghost
 travel the graveyard's stage sections instead of teleporting into the terminal department:
@@ -38,6 +38,7 @@ from pydantic import BaseModel, Field
 
 from ghostopia_behaviors.behavior import BehaviorContext
 from ghostopia_behaviors.builtin._async_op import AsyncOp
+from ghostopia_behaviors.product_match import MatchReranker, parse_query, rank_offers
 from ghostopia_behaviors.builtin._session_retry import (
     MAX_SESSION_ATTEMPTS,
     retry_after_floor,
@@ -67,7 +68,7 @@ def _price_number(record: dict[str, Any]) -> float | None:
 
     Tolerant of a leading currency symbol / code and of BOTH grouping conventions — US
     ``£1,299.00`` → ``1299.0`` AND European ``€9,99`` → ``9.99`` / ``1.299,00`` → ``1299.0``
-    (comma is a decimal point in the European form, not always a thousands separator).
+    (WR-01: comma is a decimal point in the European form, not always a thousands separator).
     Returns ``None`` when there is no parseable number, so a record with no usable price never
     wins the min-selection. This is a display-side comparison for the ``result.verified{best}``
     envelope; the authoritative min-price persistence happens on write in the DB layer
@@ -187,6 +188,21 @@ class PipelineCrawlParams(BaseModel):
         default="extraction", description="Extraction stage section id."
     )
     verify_section: str = Field(default="verify", description="Verify stage section id.")
+    match_threshold: float | None = Field(
+        default=None,
+        description=(
+            "Same-product acceptance threshold (0..1) for the EXACT-product compare. None uses "
+            "the env GHOSTOPIA_MATCH_THRESHOLD / the built-in default. Higher = stricter (only "
+            "very-confident same-product listings compared); lower = looser."
+        ),
+    )
+    prefer_currency: str | None = Field(
+        default=None,
+        description=(
+            "The operator's currency (ISO code). The cheapest offer is picked from this currency "
+            "bucket first; a mixed-currency list is then ordered by an approximate static rate."
+        ),
+    )
 
 
 class _Step(Enum):
@@ -241,6 +257,10 @@ class PipelineCrawl:
         self._nav_op: AsyncOp | None = None
         self._extract_op: AsyncOp | None = None
         self._release_op: AsyncOp | None = None
+        # OPTIONAL AI seam (default OFF): an operator-connected brain adapted to the
+        # product_match.MatchReranker signature may be assigned here to confirm/re-order the
+        # same-product set at COMPARE. None = the pure deterministic pick (no API key needed).
+        self._match_reranker: MatchReranker | None = None
 
     @property
     def is_done(self) -> bool:
@@ -602,17 +622,24 @@ class PipelineCrawl:
             return
 
         if step is _Step.COMPARE:
-            # pick the MINIMUM-price record as "best" (display-side; DB owns persistence).
-            best: dict[str, Any] | None = None
-            best_num: float | None = None
-            for record in self._records:
-                num = _price_number(record)
-                if num is None:
-                    if best is None:
-                        best = record
-                    continue
-                if best_num is None or num < best_num:
-                    best, best_num = record, num
+            # Pick the cheapest offer for the EXACT product the operator searched (display-side;
+            # the DB owns persistence). This is the flagship cheapest-same-product selection: the
+            # candidates are run through the deterministic product matcher against the query, so a
+            # category page returns the cheapest listing of the SEARCHED product — never the
+            # cheapest UNRELATED item or an accessory — and a price-less record can never win.
+            # With no query (an unscoped listing department) the matcher degrades to match-all, so
+            # the behavior is the prior global-minimum pick. If nothing clears the threshold it
+            # falls back to the full pool so a run never returns nothing.
+            target = parse_query(self._params.query)
+            ranked = rank_offers(
+                target,
+                self._records,
+                threshold=self._params.match_threshold,
+                prefer_currency=self._params.prefer_currency,
+                rerank=self._match_reranker,
+            )
+            best = ranked.best.record if ranked.best is not None else None
+            compared = len(ranked.matched) if ranked.matched else len(self._records)
             await ctx.emit_event(
                 "result.verified",
                 {
@@ -620,7 +647,7 @@ class PipelineCrawl:
                     "mission_id": self._mission_id(ctx),
                     "section": self._department(ctx),
                     "best": best,
-                    "candidates": len(self._records),
+                    "candidates": compared,
                 },
             )
             ctx.ghost.play_success()

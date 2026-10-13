@@ -2,7 +2,7 @@
 //
 // A vanilla Zustand store holding each ghost's LIGHTWEIGHT status (state / active behavior /
 // current task / progress / record count / section) — fed by the server's frame-FREE
-// `ghost.status_changed` cadence (`status_poll.py`). This is the roster HUD's data
+// `ghost.status_changed` cadence (`status_poll.py`, BRIEF §36). This is the roster HUD's data
 // source; only the SELECTED ghost gets the expensive frame stream (that lives in
 // `inspectorStore`). This file imports NO GhostCrawl SDK and NO key.
 

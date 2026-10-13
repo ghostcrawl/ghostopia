@@ -52,7 +52,7 @@ ghost via the handle.
 ## The contract
 
 - `BehaviorContext` (`behavior.py`) carries `{ ghost, browser, world, emit, task, section,
-  rng, log }`. `browser` is the **full-primitive** `BrowserProvider` — a
+  rng, log }`. `browser` is the **full-primitive** `BrowserProvider` (/20) — a
   behavior can do anything a browser can, and nothing else (no `fs`/`net`/`child_process`/
   keys/raw SDK). `ctx.emit_event(type, payload)` builds + publishes a normalized `Envelope`.
 - `BehaviorRegistry` (`registry.py`) — `register(name, factory, meta)` / `create(name)`
@@ -71,4 +71,4 @@ ghost via the handle.
 
 `AgentBehavior` is why both brains express as Behaviors behind ONE contract: the world
 cannot tell which brain runs. The concrete provider is chosen by the composition layer
-via `select_agent_provider`, never inside a behavior.
+(/14) via `select_agent_provider`, never inside a behavior.

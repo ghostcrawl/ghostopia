@@ -1,4 +1,4 @@
-"""``author_task`` — the AI-authoring path (decode-only).
+"""``author_task`` — the AI-authoring path (RESEARCH-3 §3.1/§3.2, decode-only).
 
 A natural-language goal + the LIVE behavior catalog (names + param_schema + examples, a
 CLOSED set) → a structured model reply bound to the ``TaskSpec`` JSON schema → a validated
@@ -8,7 +8,7 @@ declarative ``TaskSpec`` composed of vetted behaviors. The reply is DATA:
     → behavior exists in the catalog
     → behavior.param_schema.model_validate(params)  (extra='forbid')
     → DRY-RUN: every target URL passes the injected SSRF gate; concurrency ≤ cap
-    → ok / spec   |   ok=False / errors     (never eval'd, never assigned here)
+    → ok / spec | ok=False / errors (never eval'd, never assigned here — assigns)
 
 An invalid / hallucinated / unknown-behavior / over-cap spec is REJECTED, never executed.
 """
@@ -93,7 +93,7 @@ async def author_task(
 
     Returns ``AuthorResult(ok=True, spec=...)`` on a clean dry-run, or
     ``AuthorResult(ok=False, errors=[...])`` on any rejection. The model output is never
-    eval'd and never assigned here.
+    eval'd and never assigned here (assigns).
     """
     prompt = _build_prompt(goal, catalog)
     raw = await deps.transport.structured(TaskSpec.model_json_schema(), prompt)

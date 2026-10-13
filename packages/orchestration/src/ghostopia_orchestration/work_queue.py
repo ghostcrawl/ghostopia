@@ -1,12 +1,12 @@
 """The bounded, backoff-aware ``WorkQueue`` — ghostopia's EXECUTION ENGINE (STAGE 6).
 
-GhostCrawl is proxy-exit-count-bound and
+RESEARCH §Orchestration + RESEARCH-3 §4.2: GhostCrawl is proxy-exit-count-bound and
 governor-gated, so a mission that fans into hundreds of tasks MUST NOT be dispatched at
 once. The :class:`WorkQueue` is the SINGLE choke point every task flows through:
 
 * **bounded** — at most ``max_concurrent`` dispatches are in flight at any instant
   (an :class:`asyncio.Semaphore`), and each task is routed to a section BY ROLE via the
-  :func:`~ghostopia_sections.route_task` so a section never exceeds its own
+  plan-18 :func:`~ghostopia_sections.route_task` so a section never exceeds its own
   ``capacity`` (a full section back-pressures instead of over-assigning);
 * **backoff-aware** — a retryable failure (``rate_limited`` / ``pool_exhausted`` /
   retryable ``5xx``) is re-enqueued only AFTER :func:`compute_backoff` seconds (honouring
@@ -32,12 +32,21 @@ import asyncio
 import time
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
 
 from ghostopia_ghostcrawl_provider import MappedError, map_sdk_error
 from ghostopia_sections import RouteResult, Section, route_task
 from ghostopia_shared.types import Task
 
 from ghostopia_orchestration.backoff import compute_backoff
+
+if TYPE_CHECKING:
+    from ghostopia_orchestration.adaptive import AIMDController
+
+#: Error codes that mean GhostCrawl asked us to back off (API saturation) — the AIMD
+#: multiplicative-decrease signal. Never session wall-time (that's the human roam budget).
+_PRESSURE_CODES = frozenset({"rate_limited", "pool_exhausted"})
+_PRESSURE_STATUS = frozenset({429, 503})
 
 __all__ = ["DispatchResult", "TaskOutcome", "WorkQueue"]
 
@@ -95,18 +104,27 @@ class WorkQueue:
         sleep: Callable[[float], Awaitable[None]] | None = None,
         backoff: Callable[[int, int | float | None], float] | None = None,
         now: Callable[[], float] | None = None,
+        controller: AIMDController | None = None,
     ) -> None:
         self._sections = list(sections)
         self._by_id = {s.id: s for s in self._sections}
         self._dispatch = dispatch
         self._max_concurrent = max_concurrent
         self._max_attempts = max_attempts
-        #: how long a task may sit in capacity back-pressure before it is failed. A
+        #: how long a task may sit in capacity back-pressure before it is failed (WR-05). A
         #: real-time budget (not a cycle count) is the only reliable discriminator between a
         #: task legitimately waiting for a busy slot to free and a permanently-stuck task —
         #: cycle count decouples from time under a mocked clock.
         self._max_requeue_seconds = max_requeue_seconds
         self._sema = asyncio.Semaphore(max_concurrent)
+        #: When an AIMD controller is wired, its mutable-limit limiter (self-tuned on
+        #: GhostCrawl's honest 503/retry_after backpressure, ceiling = the tier cap) is the
+        #: dispatch gate instead of the fixed semaphore; the queue feeds it every outcome.
+        #: Without one the queue keeps the fixed semaphore (back-compat — poolless tests).
+        self._controller = controller
+        self._gate: asyncio.Semaphore | Any = (
+            controller.limiter if controller is not None else self._sema
+        )
         self._sleep = sleep or asyncio.sleep
         self._backoff = backoff or compute_backoff
         #: the real-time clock the requeue budget measures against (injectable for tests so a
@@ -115,7 +133,7 @@ class WorkQueue:
         self._attempts: dict[str, int] = {}
         #: per-task count of capacity back-pressure re-routes (drives the exponential delay).
         self._requeues: dict[str, int] = {}
-        #: the wall-clock deadline after which a still-queued task is failed.
+        #: the wall-clock deadline after which a still-queued task is failed (WR-05).
         self._requeue_deadline: dict[str, float] = {}
         self._outcomes: list[TaskOutcome] = []
         self._tasks: set[asyncio.Task[None]] = set()
@@ -129,6 +147,23 @@ class WorkQueue:
     @property
     def max_concurrent(self) -> int:
         return self._max_concurrent
+
+    @property
+    def effective_concurrent(self) -> int:
+        """The LIVE dispatch cap — the AIMD-tuned limit when a controller is wired, else the
+        static ``max_concurrent``. Always ``<=`` the tier ceiling."""
+        return self._controller.target if self._controller is not None else self._max_concurrent
+
+    @staticmethod
+    def _is_pressure(err: MappedError | None) -> bool:
+        """True when the error is GhostCrawl backpressure (AIMD decrease signal)."""
+        if err is None:
+            return False
+        if err.code in _PRESSURE_CODES:
+            return True
+        if getattr(err, "status_code", None) in _PRESSURE_STATUS:
+            return True
+        return err.retry_after is not None
 
     @property
     def outcomes(self) -> list[TaskOutcome]:
@@ -182,7 +217,7 @@ class WorkQueue:
                 )
                 self._tasks.difference_update(done)
         except asyncio.CancelledError:
-            # ``asyncio.wait`` does NOT cancel its child futures when the awaiting task
+            #: ``asyncio.wait`` does NOT cancel its child futures when the awaiting task
             # is cancelled — so a cancelled ``run()`` would ORPHAN its in-flight ``_process``
             # tasks, which keep spawning ghosts (e.g. the workforce relay's ``stage-*`` ghosts)
             # AFTER a teardown believed the queue stopped. Cancel + await every in-flight task
@@ -204,7 +239,7 @@ class WorkQueue:
     ) -> None:
         if delay > 0:
             await self._sleep(delay)
-        async with self._sema:  # global concurrency cap
+        async with self._gate: # global concurrency cap (adaptive when wired)
             route = route_task(task, self._sections, from_section=from_section)
             if not route.routed:
                 self._record_failed(task, route=route, reason=route.reason)
@@ -218,7 +253,7 @@ class WorkQueue:
                 # NEVER over-assign past section capacity.
                 if section is not None and task in section.queue:
                     section.queue.remove(task)
-                # Bound the capacity re-route by REAL TIME. Without a bound a permanently
+                # WR-05: bound the capacity re-route by REAL TIME. Without a bound a permanently
                 # -saturated section (stuck roster ghosts / misconfigured capacity) re-enqueues
                 # the same task forever — ``self._tasks`` never empties, so ``run()`` (and a
                 # workforce relay's ``queue.run()``) hangs indefinitely on a hot re-enqueue loop.
@@ -269,6 +304,15 @@ class WorkQueue:
         result: DispatchResult,
         from_section: Section | None,
     ) -> None:
+        # Feed the AIMD controller (when wired): a backpressure error is the ONLY decrease
+        # signal; a clean success probes the limit up. A non-pressure task failure is neutral
+        # (a bad target, not API saturation) — do not let it distort the concurrency tune.
+        if self._controller is not None:
+            if result.ok:
+                self._controller.record_outcome(pressure=False)
+            elif self._is_pressure(result.error):
+                self._controller.record_outcome(pressure=True)
+
         prior = self._attempts.get(task.id, 0)
         if result.ok:
             self._outcomes.append(

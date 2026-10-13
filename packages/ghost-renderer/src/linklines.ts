@@ -1,4 +1,4 @@
-// ghostopia ghost-renderer — mission/section link lines.
+// ghostopia ghost-renderer — mission/section link lines (P12).
 //
 // An animated "marching-ants" spectral dashed line connecting a mission / section anchor to
 // each of its fan-out ghosts, so the orchestration hierarchy is VISIBLE. Drawn in an overhead

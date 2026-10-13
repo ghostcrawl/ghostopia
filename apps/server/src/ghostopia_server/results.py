@@ -6,7 +6,7 @@ persists the mission/task/result envelopes the orchestrator + runners emit
 (:mod:`ghostopia_server.db`) and, after each extracted record / task completion, broadcasts a
 derived ``result.mission_progress`` (progress rollup + a data preview) so the Data Graveyard +
 dashboard update live — records come from REAL ``extract_schema`` output, never a canned
-counter (REAL-NOT-MOCK).
+counter (REAL-NOT-MOCK, BRIEF §42).
 
 Envelope → effect:
 
@@ -147,7 +147,7 @@ class ResultRecorder:
                     "preview": preview,
                     "sections": db.section_throughput(self._conn),
                     "completed_missions": db.completed_missions(self._conn),
-                    # The winning min-price offer per product (best-price selection, R5)
+                    #: the winning min-price offer per product (best-price selection, R5)
                     # — surfaced for the export + Data Graveyard "best" badge. Global (all
                     # sections), cheapest-first; the client groups/marks by section + url.
                     "best_offers": db.best_offers(self._conn),

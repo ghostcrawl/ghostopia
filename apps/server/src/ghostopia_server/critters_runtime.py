@@ -1,4 +1,4 @@
-"""Server-side autonomous critter runtime.
+"""Server-side autonomous critter runtime (P14).
 
 Owns a capped set of :class:`~ghostopia_world.Critter` WorldEntities, steps their PURE
 ghost-world FSM each tick, and broadcasts their positions/state over the authed WS so the

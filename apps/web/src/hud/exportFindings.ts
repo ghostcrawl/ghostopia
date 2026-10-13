@@ -9,7 +9,7 @@
 
 import type { PreviewRow } from "./resultsStore";
 
-/** The fixed export column order. Also the CSV header. */
+/** The fixed export column order (S4 + RESEARCH W4). Also the CSV header. */
 export const FINDINGS_COLUMNS = ["title", "price", "rating", "availability", "link", "image"] as const;
 
 /** A record field lookup treating the record as a flat object; "" when absent. */

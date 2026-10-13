@@ -3,7 +3,7 @@
 ``describe_provider_contract(make_provider)`` exercises the FULL provider surface and is
 consumed by:
 - ``tests/test_provider_contract.py`` here (against ``FakeBrowserProvider``), and
-- the ``GhostCrawlProvider`` + the CDP-WS full-primitive impl,
+- (``GhostCrawlProvider``) + (the CDP-WS full-primitive impl),
 
 so every provider proves the same behavior with ONE set of assertions — no drift between
 the fake and the real handle. ``make_provider`` is a zero-arg factory returning a FRESH
@@ -100,7 +100,7 @@ async def describe_provider_contract(make_provider: Callable[[], BrowserProvider
             signal.set()  # cancel — the generator must stop
     assert len(frames) >= 2
 
-    # --- the CDP-WS transport seam is declared (impl arrives later) --------------
+    # --- the CDP-WS transport seam is declared (impl arrives in) --------------
     # ``transport`` may be None on the fake; the property must exist on the seam.
     assert hasattr(provider, "transport")
 
@@ -113,10 +113,10 @@ async def describe_load_bearing_contract(make_provider: Callable[[], BrowserProv
     """Run the LOAD-BEARING subset of the contract against a fresh provider.
 
     The load-bearing surface is the session/scrape/current_url/live_frames/release core
-    that ``GhostCrawlProvider`` wires over the real SDK. The remaining
+    that ``GhostCrawlProvider`` wires over the real SDK in. The remaining
     full-primitive members (mouse/keyboard/page.*/extract/search/screenshot + the
-    CDP-WS relay) are exercised by :func:`describe_provider_contract` once they land
-    — this subset is the same shared helper, minus the deferred members, so a
+    CDP-WS relay) are exercised by :func:`describe_provider_contract` once they land in
+     — this subset is the same shared helper, minus the deferred members, so a
     real provider proves the load-bearing behavior with the SAME assertions the Fake does.
     """
     provider = make_provider()
@@ -155,7 +155,7 @@ async def describe_load_bearing_contract(make_provider: Callable[[], BrowserProv
             signal.set()  # cancel — the generator must stop
     assert len(frames) >= 2
 
-    # --- the CDP-WS transport seam is declared (impl arrives later) --------------
+    # --- the CDP-WS transport seam is declared (impl arrives in) --------------
     assert hasattr(provider, "transport")
 
     # --- release invalidates the bound session ---------------------------------------

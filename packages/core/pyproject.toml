@@ -1,7 +1,7 @@
 [project]
 name = "ghostopia-core"
 version = "0.0.0"
-description = "ghostopia core package: the composition layer that wires an EventSource -> GhostDriver + mounted Behaviors -> visual commands -> a broadcast sink (the STAGE-2 world-comes-alive plumbing). Behind the EventSource seam a SimEventSource (stages 1-2) or real GhostCrawl events (stage 3+) drive the identical world."
+description = "ghostopia core package: the composition layer that wires an EventSource -> GhostDriver + mounted plan-17 Behaviors -> visual commands -> a broadcast sink (the STAGE-2 world-comes-alive plumbing). Behind the EventSource seam a SimEventSource (stages 1-2) or real GhostCrawl events (stage 3+) drive the identical world."
 requires-python = ">=3.12"
 # The core wires the runtime<->render<->behavior pipeline behind the EventSource
 # seam. It composes: the shared contract types (ghostopia-shared), the async bus

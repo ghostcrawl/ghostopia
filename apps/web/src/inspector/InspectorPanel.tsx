@@ -1,9 +1,9 @@
-// ghostopia web — the live browser inspector panel (STAGE 4 MILESTONE).
+// ghostopia web — the live browser inspector panel (STAGE 4 MILESTONE, BRIEF §40/§25).
 //
 // Opens when the operator clicks a working ghost. On open it sends `ghost.select {ghost_id}`
 // so the Python server starts `recordings.visual().watch()` for ONLY this ghost and relays
 // `browser.frame` envelopes; on close it sends a deselect so the server stops the stream
-// (one stream at a time). The Browser tab draws the REAL relayed frames; the
+// (BRIEF §36 — one stream at a time). The Browser tab draws the REAL relayed frames; the
 // other tabs bind to the ghost's real relayed session state. The client never calls
 // GhostCrawl and holds no key.
 
@@ -82,7 +82,7 @@ export function InspectorPanel({ onSelect }: InspectorPanelProps): JSX.Element |
             aria-pressed={t === activeTab}
             onClick={() => setTab(t)}
           >
-            {/* The Browser tab reads "Activity" for an API-only ghost (its body renders
+            {/*: the Browser tab reads "Activity" for an API-only ghost (its body renders
                 the activity/data view, not a live frame). The static "Activity" tab is dropped
                 for api-only ghosts (visibleTabs) so the label never appears twice. */}
             {t === "Browser" ? browserTabLabel(ghost.workKind) : t}

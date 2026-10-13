@@ -1,4 +1,4 @@
-// ghostopia web — the live metrics store (STAGE 7 dashboard).
+// ghostopia web — the live metrics store (STAGE 7 dashboard, BRIEF §24).
 //
 // Real-stream counters derived from the SAME server envelopes that drive the world: each
 // browser.navigate → a page crawled, browser.session_opened → a session, task.retry → a

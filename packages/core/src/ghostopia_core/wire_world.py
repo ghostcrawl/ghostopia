@@ -1,6 +1,6 @@
 """``wire_world`` — the STAGE-2 composition: EventSource -> GhostDriver + Behaviors -> WS.
 
-This is where the pieces built in isolation become a living world:
+This is where the pieces built in isolation (plans 04-07, 17) become a living world:
 
 * the :class:`~ghostopia_core.event_source.EventSource` (a
   :class:`~ghostopia_core.sim_event_source.SimEventSource` in stages 1-2) produces the
@@ -9,7 +9,7 @@ This is where the pieces built in isolation become a living world:
   which keeps each ghost's authoritative coarse state and emits PRESENTATION visual commands
   (walk with an A* path / work / success / contextual bubbles) into the injected
   ``broadcast`` sink (the server WS fan-out);
-* each ghost mounts ONE ``Behavior`` — resolved BY NAME through the
+* each ghost mounts ONE plan-17 ``Behavior`` — resolved BY NAME through the
   :data:`~ghostopia_behaviors.behaviors` registry (data-driven; the core loop NEVER branches
   on behavior kind) — with a capability-scoped :class:`BehaviorContext` whose ``ghost`` is the
   driver's own concrete ``GhostHandle`` (so the behavior's motion + the driver's presentation
@@ -18,7 +18,8 @@ This is where the pieces built in isolation become a living world:
   stream the driver consumes.
 
 Because everything hangs behind the ``EventSource`` seam, stage 3 swaps the simulated source
-for real GhostCrawl events with ZERO change to the driver, the behaviors, or the renderer.
+for real GhostCrawl events with ZERO change to the driver, the behaviors, or the renderer
+(RESEARCH Pattern 3).
 """
 
 from __future__ import annotations
@@ -43,7 +44,7 @@ BroadcastSink = Callable[[GhostCommand], None]
 
 class WiredWorld:
     """The composed world: a started/stopped :class:`EventSource` feeding a
-    :class:`GhostDriver` with behaviors mounted per ghost."""
+    :class:`GhostDriver` with plan-17 behaviors mounted per ghost."""
 
     def __init__(self, source: SimEventSource, driver: GhostDriver) -> None:
         self.source = source
@@ -92,7 +93,7 @@ def wire_world(
 
     world_query = create_world_query(world_map, random.Random(seed))
 
-    # 2 + 3. mount one behavior per declared ghost, data-driven by registry name.
+    # 2 + 3. mount one plan-17 behavior per declared ghost, data-driven by registry name.
     for spec in source.ghosts:
         handle = driver.handle_for(spec.ghost_id)  # SHARED with the driver's presentation.
         ctx = BehaviorContext(

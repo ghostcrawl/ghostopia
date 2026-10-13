@@ -1,15 +1,15 @@
 """Runtime MANAGEMENT surface — assign / pause / resume / retarget.
 
-The operator can, AT RUNTIME, re-shape the workforce without a
+RESEARCH-2 Design D: the operator can, AT RUNTIME, re-shape the workforce without a
 redeploy — pin a behavior on a ghost, move a ghost to another section, pause/resume it, or
 retarget it (cancel the in-flight run + re-home it). Each command is:
 
 * **Pydantic-validated** (``extra='forbid'``) — a hallucinated/unknown field is rejected;
 * **server-authoritative** — applied to the live :class:`~ghostopia_server.ghost_pool.GhostPool`
-  records + :class:`~ghostopia_sections.Section` rosters, never trusted from the wire;
+  records + plan-18 :class:`~ghostopia_sections.Section` rosters, never trusted from the wire;
 * **NAMES only** — a command carries a behavior/section NAME, never a key.
 
-The command→effect table:
+The command→effect table (Design D):
 
 | command          | server effect                                                          |
 |------------------|------------------------------------------------------------------------|
@@ -298,7 +298,7 @@ def _move_section(rec: Any, target: Section, by_id: dict[str, Section]) -> None:
 
 def _home_tile(world_map: WorldMap, near: Point | None = None) -> Point:
     """The grave tile a recalled ghost walks back to — the NEAREST grave to ``near`` (the
-    ghost's current tile) when supplied, else the first grave by id (graves are
+    ghost's current tile) when supplied, else the first grave by id (: graves are
     transient shared rest spots, never a hardcoded designated home)."""
     graves = sorted(world_map.graves.values(), key=lambda g: g.id)
     if not graves:

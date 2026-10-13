@@ -47,7 +47,8 @@ There is **no `import ghostcrawl`** anywhere in a behavior; secrets stay server-
 ## Path B — author a **Task** (declarative, no code)
 
 A **Task** is the *what*: DATA that NAMES a vetted behavior and parameterizes it. A non-coder
-or an AI authors a `*.task.json` — it is **validated, never imported or eval'd** (decode-only):
+or an AI authors a `*.task.json` — it is **validated, never imported or eval'd** (decode-only,
+):
 
 ```json
 {

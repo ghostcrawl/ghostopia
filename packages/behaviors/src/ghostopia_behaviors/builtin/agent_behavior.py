@@ -1,14 +1,14 @@
 """``AgentBehavior`` — the adapter that runs ANY ``AgentProvider`` behind ONE contract.
 
-Deterministic runner AND LLM — same contract: the deterministic runner
-and the LLM ``AgentProvider`` BOTH express as a Behavior through this
+RESEARCH-2 §"Deterministic runner AND LLM — same contract": the deterministic runner
+(plan 05) and the LLM ``AgentProvider`` (plan 16) BOTH express as a Behavior through this
 one adapter, so the world cannot tell which brain runs — identical ``ctx.browser``/
 ``ctx.ghost`` calls, identical normalized event stream.
 
 ``on_start`` launches the injected provider's ``run_task(task, ctx.browser, ctx.emit)`` as a
 SINGLE in-flight decision pipeline; ``on_tick`` is a non-blocking guard that reacts when the
 pipeline finishes (walk home + surface any error). The concrete provider is chosen by the
-composition layer via ``select_agent_provider`` and injected here — NEVER inside
+composition layer (/14) via ``select_agent_provider`` and injected here — NEVER inside
 a behavior. The default registry factory wires the deterministic brain; the LLM brain is
 injected by constructing ``AgentBehavior(llm_provider)`` directly.
 """

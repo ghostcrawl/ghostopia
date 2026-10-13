@@ -1,4 +1,4 @@
-// ghostopia web — the live-inspector tab bodies (STAGE 4).
+// ghostopia web — the live-inspector tab bodies (STAGE 4, BRIEF §25).
 //
 // Overview / Browser / Activity / Data / Errors — each bound to the REAL session state the
 // Python server relays over the authed WS into `inspectorStore`. The Browser tab renders the
@@ -14,7 +14,7 @@ import type { Ghost, GhostWorkKind } from "@ghostopia/ghost-renderer";
 import { isSurfaceSafe, safeSurfaceText } from "../surfaceSafe";
 import type { InspectorSession } from "./inspectorStore";
 
-/** The five inspector tabs. */
+/** The five inspector tabs (BRIEF §25). */
 export const TABS = ["Overview", "Browser", "Activity", "Data", "Errors"] as const;
 export type TabName = (typeof TABS)[number];
 
@@ -52,7 +52,7 @@ export function visibleTabs(workKind: GhostWorkKind | null | undefined): readonl
  */
 export function frameSrc(ref: string | null): string | null {
   if (!ref) return null;
-  return ref; // already normalized server-side (`_normalize_frame_ref`)
+  return ref; // already normalized server-side (Task 1 `_normalize_frame_ref`)
 }
 
 export function OverviewTab({
@@ -62,7 +62,7 @@ export function OverviewTab({
   ghost: Ghost;
   session: InspectorSession;
 }): JSX.Element {
-  // The sanitized, SESSION-scoped persona sentence (server-built from the device/OS/
+  //: the sanitized, SESSION-scoped persona sentence (server-built from the device/OS/
   // browser-class/locale whitelist). The server already sanitizes it; the TS surface
   // gate is the client's last line — a non-empty AND surface-safe persona renders as one more
   // "Session" row in the existing overview grid, otherwise the row is OMITTED entirely (never
@@ -126,7 +126,7 @@ function RecordThumb({ src }: { src: string }): JSX.Element {
 }
 
 /**
- * State A: the live activity/data feed for an api-only (scrape/extract)
+ * State A (/ UI-SPEC S2): the live activity/data feed for an api-only (scrape/extract)
  * ghost. There is NO browser frame — instead of the misleading black `.inspector__frame` box we
  * surface the REAL records the ghost is filing right now as structured priced rows (32px
  * thumbnail + title + right-aligned price, mirroring the DepartmentResults priced row) with a
@@ -198,7 +198,7 @@ export function BrowserTab({
   ghost: Ghost;
   session: InspectorSession;
 }): JSX.Element {
-  // Branch on the ghost's work-kind. An API-only ghost never opens a live browser
+  //: branch on the ghost's work-kind. An API-only ghost never opens a live browser
   // stream server-side (FrameFanout), so rendering the black frame box would falsely
   // imply a browser view — show the activity/data view instead.
   if (ghost.workKind === "api-only") {
@@ -209,7 +209,7 @@ export function BrowserTab({
     );
   }
   // Browser-navigation ghost: this ghost is LIVE-BROWSABLE — mark it with a watchable affordance
-  // that visually distinguishes it from the stateless (api-only) workforce.
+  // (R7) that visually distinguishes it from the stateless (api-only) workforce.
   const src = frameSrc(session.latestFrameRef);
   // The server's honest reason the live view can't stream yet (session opening, or the live-view
   // capability is off) — surface-gated so a leaked/vendor reason is dropped to the on-theme

@@ -1,9 +1,9 @@
-"""The injectable server-side Anthropic Messages transport.
+"""The injectable server-side Anthropic Messages transport (RESEARCH-3 §3.2).
 
 The LLM ``AgentProvider`` calls Anthropic DIRECTLY, server-side, via ``httpx`` — NO SDK
 dependency and, critically, NO key in the frontend. The key is read
 ONLY from ``os.environ["ANTHROPIC_API_KEY"]`` (the same server-side confinement as the
-GhostCrawl key) and is never logged.
+GhostCrawl key, /BRIEF §35) and is never logged.
 
 ``AnthropicTransport`` is a Protocol with two methods:
 

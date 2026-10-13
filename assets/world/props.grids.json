@@ -1,5 +1,5 @@
 {
-  "_note": "ghostopia ORIGINAL placeable graveyard PROPS. Hand-authored palette-key grids, night-legible (rim/glow), nothing traced from any reference repo: a 3-cell lantern (off/on flicker), a 2-cell lamp-post (off/on), a stone bench, a funerary urn, an angel statue, a 2-cell jack-o'-lantern (off/on carved face), a dead shrub, an iron gate, a stone well, and a 2-cell candle cluster (flicker). Each is catalogued in assets/props.catalog.json with a footprint + orientation + (where apt) on/off state; the footprint contributes to server collision + A*. ' ' = transparent; single-char KEYS.",
+  "_note": "ghostopia ORIGINAL placeable graveyard PROPS (clean-room P19). Hand-authored palette-key grids, night-legible (rim/glow), nothing traced from any reference repo: a 3-cell lantern (off/on flicker), a 2-cell lamp-post (off/on), a stone bench, a funerary urn, an angel statue, a 2-cell jack-o'-lantern (off/on carved face), a dead shrub, an iron gate, a stone well, and a 2-cell candle cluster (flicker). Each is catalogued in assets/props.catalog.json with a footprint + orientation + (where apt) on/off state; the footprint contributes to server collision + A*. ' ' = transparent; single-char KEYS.",
   "grids": {
     "lantern": {
       "transparent": " ",

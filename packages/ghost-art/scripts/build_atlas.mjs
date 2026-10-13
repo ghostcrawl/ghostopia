@@ -58,7 +58,7 @@ const palettes = loadPalettes(readJson(resolve(assets, "palettes.json")));
 // the clip layer — throws loudly if any clip frame references a missing region
 const animations = loadAnimations(readJson(resolve(assets, "animations.json")), manifest);
 console.log(`animations: ${Object.keys(animations).length} clips (all frames resolve)`);
-// the placeable-prop catalog — throws if any prop's grid/region/clip ref is missing
+// the placeable-prop catalog (191-30) — throws if any prop's grid/region/clip ref is missing
 const propCatalog = loadPropCatalog(
   readJson(resolve(assets, "props.catalog.json")),
   manifest,
@@ -284,7 +284,7 @@ for (const region of ["candle0", "candle1"]) {
   blit(preview, outline(cropRegion("candle", region)), wx, worldY + 20, RS);
   wx += 8 * RS + 8;
 }
-// tileset + landmark + NIGHT DECOR cohesion swatch (night ground + graveyard decor)
+// tileset + landmark + NIGHT DECOR cohesion swatch (191-26: night ground + graveyard decor)
 wx += 12;
 for (const [sprite, region] of [
   ["tile_grass", "base"], ["tile_path", "base"], ["grave", "home"],
@@ -295,14 +295,14 @@ for (const [sprite, region] of [
   blit(preview, outline(cropRegion(sprite, region)), wx, worldY, TS);
   wx += manifest.sprites[sprite].cellWidth * TS + 6;
 }
-// overhead flyers (bat flap + will-o'-wisp flicker) + the ground CAT critter
+// overhead flyers (bat flap + will-o'-wisp flicker) + the ground CAT critter (191-29)
 wx += 8;
 for (const [sprite, region] of [["bat", "flap0"], ["bat", "flap1"], ["wisp", "glow0"], ["wisp", "glow1"]]) {
   blit(preview, outline(cropRegion(sprite, region)), wx, worldY + 20, RS);
   wx += manifest.sprites[sprite].cellWidth * RS + 6;
 }
 
-// ==== ROW 5 — recolor sanity swatch (preserve the proof): the S idle
+// ==== ROW 5 — recolor sanity swatch (preserve the 191-19 proof): the S idle
 //      ghost across every section palette x status tints ====
 const recY = worldY + 24 * TS + 22;
 band(preview, 12, recY - 10, 300, 2, HDR);
@@ -321,7 +321,7 @@ for (let sIdx = 0; sIdx < sections.length; sIdx++) {
   }
 }
 
-// ==== ROW 6 — the ground CAT critter: a 4-frame walk cycle + a sit pose ====
+// ==== ROW 6 — the ground CAT critter (191-29): a 4-frame walk cycle + a sit pose ====
 const catY = recY + statuses.length * cellH + 6;
 band(preview, 12, catY - 10, 200, 2, HDR);
 let catX = 24;
@@ -330,7 +330,7 @@ for (const region of ["walk0", "walk1", "walk2", "walk3", "sit"]) {
   catX += manifest.sprites.cat.cellWidth * RS + 8;
 }
 
-// ==== ROW 7 — the PLACEABLE-PROP CATALOG: every catalogued prop drawn
+// ==== ROW 7 — the PLACEABLE-PROP CATALOG (191-30): every catalogued prop drawn
 //      purely from its def + resolved {orientation[,state]} region (no hard-coded prop art) ====
 const propY = catY + 8 * RS + 24;
 band(preview, 12, propY - 10, 340, 2, HDR);

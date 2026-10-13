@@ -1,18 +1,19 @@
 """``GhostPool`` — N concurrent ghosts, each with its OWN session + behavior + section.
 
-STAGE 5: the real workforce. Where STAGE 3 (``gc_event_source.run_real_task``)
+STAGE 5 (BRIEF §40): the real workforce. Where STAGE 3 (``gc_event_source.run_real_task``)
 drove ONE ghost through ONE real GhostCrawl session, ``GhostPool`` scales to 5–10 (v0;
 architecture ready to grow to ~50) INDEPENDENT ghosts. Each ghost:
 
-* owns its OWN :class:`GhostCrawlProvider` session (no session sharing);
-* runs its OWN ``Behavior`` instance (created BY NAME from the registry) as its
-  OWN ``asyncio`` task, ticked CONCURRENTLY and non-blocking (the
+* owns its OWN:class:`GhostCrawlProvider` session (no session sharing —);
+* runs its OWN plan-17 ``Behavior`` instance (created BY NAME from the registry) as its
+  OWN ``asyncio`` task, ticked CONCURRENTLY and non-blocking (RESEARCH-2 A3 — the
   non-blocking ``on_tick`` scales to ~50);
-* belongs to exactly ONE :class:`~ghostopia_sections.Section` roster; the pool
+* belongs to exactly ONE plan-18 :class:`~ghostopia_sections.Section` roster; the pool
   tracks section membership so the orchestrator can fan work out per section.
 
 Concurrency is hard-capped at ``max_concurrent`` via an :class:`asyncio.Semaphore` so the
-pool never storms the proxy/governor concurrency budget. Each ghost runs behind the :class:`InProcessExecutor`, so ``on_end`` fires
+pool never storms the proxy/governor concurrency budget (full backoff in
+plan 14). Each ghost runs behind the:class:`InProcessExecutor`, so ``on_end`` fires
 EXACTLY once and the session is released on EVERY terminal path (completed/failed/
 cancelled/timed-out). Every emitted envelope is tagged with the ghost_id and broadcast over
 the authed WS; the SELECTED ghost alone gets the rich frame stream (that lives in
@@ -24,6 +25,8 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import logging
+import os
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -39,6 +42,7 @@ from ghostopia_behaviors import behaviors as behavior_registry
 from ghostopia_behaviors.behavior import Behavior
 from ghostopia_ghost_runtime.ghost_handle import create_ghost_handle
 from ghostopia_ghost_runtime.surface_vocab import sanitize_code
+from ghostopia_orchestration import AIMDController
 from ghostopia_sections import Section
 from ghostopia_shared import (
     Envelope,
@@ -53,6 +57,13 @@ from ghostopia_world import WorldMap, create_world_query, load_default_map
 
 from .frame_fanout import SessionRegistry
 from .gc_event_source import _command_to_envelope, _grave_tile
+
+_log = logging.getLogger("ghostopia.pool")
+
+#: Default seconds an in-flight ghost run may finish in before a shutdown cancels it — the
+#: zero-interruption drain budget for a rolling deploy. Env ``GHOSTOPIA_DRAIN_BUDGET_S``; 0
+#: restores the old cancel-immediately behavior.
+_DRAIN_BUDGET_S = 120.0
 
 #: An async fan-out sink (``WsGateway.broadcast`` in production; a collector in tests).
 Broadcast = Callable[[Envelope], Awaitable[None]]
@@ -193,14 +204,14 @@ _ATTENTION_CLEAR_TYPES = frozenset(
 def attention_for_event(event_type: str, payload: dict[str, Any]) -> GhostAttention | None:
     """Derive an operator-attention SET signal from one emitted envelope, or ``None``.
 
-    Attention is raised ONLY for conditions a human must clear:
+    Attention is raised ONLY for conditions a human must clear (/02):
     a captcha, a NON-retryable ``browser.error``, ``task.failed``, a pool-exhausted /
     auth-needed mapped error. A retryable/transient error (``task.retry``) does NOT raise
     it — the runtime self-heals. The reason is the server-sourced error code (never authored
     copy). Returns ``None`` when the event does not itself indicate a blocking condition; the
     caller separately clears attention on a resolving event (:data:`_ATTENTION_CLEAR_TYPES`).
     """
-    # The attention REASON is a customer-facing field (rendered as the roster "!"
+    #: the attention REASON is a customer-facing field (rendered as the roster "!"
     # tooltip). It is sanitized through the curated vocabulary BEFORE it leaves this function
     # so a raw/vendor-named error code (e.g. "cloudflare_challenge") can never surface — the
     # BLOCKING decision below still reads the RAW code (internal), only the reason is curated.
@@ -335,7 +346,7 @@ class GhostPool:
         self._provider_factory = provider_factory
         self._registry = registry
         self._session_registry = session_registry
-        # (R6): the LIVE-SESSION cap (``me().max_concurrency``, growth = 2) and the
+        # (R6): the LIVE-SESSION cap (``me.max_concurrency``, growth = 2) and the
         # VISIBLE-WORKFORCE cap are DECOUPLED. ``_max_concurrent`` is the live-session cap
         # (what ``max_concurrent`` reports; the mission WorkQueue + surfacing follow it, and
         # the ``_live_sema`` gates every session-open). The ``_visible_sema`` (larger) bounds
@@ -344,6 +355,15 @@ class GhostPool:
         self._max_concurrent = max_concurrent
         self._visible_max = visible_workforce_cap if visible_workforce_cap else max_concurrent
         self._live_sema = asyncio.Semaphore(max_concurrent)
+        # AIMD dynamic-concurrency controller: the ONE long-lived tuner every mission's
+        # WorkQueue follows. Ceiling = the tier live-session cap (a paid entitlement, never
+        # exceeded); it self-tunes the effective dispatch concurrency BELOW that ceiling on
+        # GhostCrawl's honest 503/retry_after backpressure, and honours a manual target
+        # (env GHOSTOPIA_ORCH_TARGET / the authed control route). Ceiling tracks
+        # set_max_concurrent.
+        self.concurrency_controller = AIMDController(ceiling=max_concurrent)
+        #: set on shutdown so no new ghost is admitted while in-flight runs drain.
+        self._draining = False
         self._visible_sema = asyncio.Semaphore(self._visible_max)
         # CRAWL-concurrency cap (the tier's ``max_concurrency``) — how many data calls
         # (scrape/extract/search) run at once across the whole workforce, DECOUPLED from the
@@ -357,7 +377,7 @@ class GhostPool:
         self._executor = InProcessExecutor(tick_interval_ms=tick_interval_ms)
         # When a real SSRF gate is injected, every behavior-navigated URL is validated AT
         # the handle. None → the raw provider (tests / a caller that
-        # gates upstream); production composition injects the real gate.
+        # gates upstream); production composition (plan 14) injects the real gate.
         self._is_url_allowed = is_url_allowed
         self._seed = seed
         self._loop_pause_s = loop_pause_s
@@ -376,7 +396,7 @@ class GhostPool:
         # already warm (wired post-construction — the pool needs the SDK client + this sema).
         self._warm_pool: Any = None
         self._world_query = create_world_query(self._map)
-        # The section runtimes the orchestrator fans work into. Shared runtimes so
+        # The section runtimes the orchestrator (plan 14) fans work into. Shared runtimes so
         # roster/queue/capacity accumulate across ghosts; keyed by id for lookup.
         self._sections: dict[str, Section] = {s.id: s for s in (sections or [])}
 
@@ -410,6 +430,8 @@ class GhostPool:
             raise ValueError("max_concurrent must be positive")
         self._max_concurrent = value
         self._live_sema = asyncio.Semaphore(value)
+        # Keep the AIMD ceiling in lockstep with the entitlement (re-clamps the live limit).
+        self.concurrency_controller.set_ceiling(value)
 
     #: alias — the entitlement handler reads more naturally as "set the live-session cap".
     set_live_session_cap = set_max_concurrent
@@ -479,7 +501,7 @@ class GhostPool:
 
     @property
     def sections(self) -> list[Section]:
-        """The shared :class:`Section` runtimes work fans into (rosters)."""
+        """The shared :class:`Section` runtimes work fans into (plan 18 rosters)."""
         return list(self._sections.values())
 
     @property
@@ -567,6 +589,8 @@ class GhostPool:
         instance) with a short roam pause between runs until aborted — the keyless
         workforce keeps 18 ghosts visibly alive + working instead of flash-completing once.
         """
+        if self._draining:
+            raise RuntimeError("workforce is draining for shutdown; not admitting new ghosts")
         if ghost_id in self._records:
             raise ValueError(f"ghost {ghost_id!r} already in the pool")
         provider = self._provider_factory()
@@ -585,7 +609,7 @@ class GhostPool:
             emit_broadcast=on_emit,
         )
         self._records[ghost_id] = rec
-        section.add_ghost(ghost_id)  # roster membership
+        section.add_ghost(ghost_id)  # roster membership (plan 18)
         rec.run_task = asyncio.ensure_future(self._run(rec, color))
         return rec
 
@@ -680,7 +704,7 @@ class GhostPool:
             await self._announce_spawn(rec, grave, color)
             first = True
             while True:
-                async with self._visible_sema:  # hard cap on concurrently WALKING ghosts
+                async with self._visible_sema: # hard cap on concurrently WALKING ghosts
                     if rec.abort_event.is_set():
                         break
                     if not first:
@@ -768,7 +792,7 @@ class GhostPool:
                 self._session_registry.unregister(rec.ghost_id)
             rec.state = "COMPLETED"
             rec.progress = 1.0
-            # de-materialize on cancel: a ghost whose run was CANCELLED via ``ghost.manage
+            # (de-materialize on cancel): a ghost whose run was CANCELLED via ``ghost.manage
             # cancel`` — aborted but NOT removed via ``despawn`` (which fades the removed sprite
             # through the client dissolve) — would otherwise freeze in the world at full alpha,
             # because the arrival clock is cancelled below before it can turn the return-home walk
@@ -860,7 +884,7 @@ class GhostPool:
         async def emit(env: Envelope) -> None:
             tagged = env if env.ghost_id else env.model_copy(update={"ghost_id": rec.ghost_id})
             self._observe(rec, tagged)
-            # A relay stage ghost routes its emitted envelopes through the dispatch
+            #: a relay stage ghost routes its emitted envelopes through the dispatch
             # bridge's capture (which tees ``task.spawned`` into the WorkQueue) instead of the
             # bare broadcast, so the baton hops to the next stage's walking ghost.
             sink = rec.emit_broadcast or self._broadcast
@@ -921,7 +945,7 @@ class GhostPool:
         """The positioned ``ghost.spawned`` payload for ``rec`` (id/name/section/pos/behavior).
 
         The ghost's REAL ``section_id`` rides the payload so the world sprite lands in the
-        same section as its roster row (no roster↔world divergence)."""
+        same section as its roster row (— no roster↔world divergence)."""
         tile_size = self._map.tile_size
         # No ``home_grave`` — graves are transient shared rest spots chosen nearest-free at
         # return time, never a persisted per-ghost designated home.
@@ -1056,11 +1080,35 @@ class GhostPool:
         if tasks:
             await asyncio.gather(*tasks, return_exceptions=True)
 
-    async def shutdown(self) -> None:
-        """Cancel every in-flight ghost run (server shutdown); on_end + release still fire."""
-        for rec in self._records.values():
-            if rec.run_task is not None and not rec.run_task.done():
-                rec.run_task.cancel()
+    async def shutdown(self, *, drain_budget_s: float | None = None) -> None:
+        """Gracefully DRAIN in-flight ghost runs, then cancel stragglers (zero-interruption).
+
+        Stops admitting new ghosts, lets in-flight ghosts finish their visit within
+        ``drain_budget_s`` (env ``GHOSTOPIA_DRAIN_BUDGET_S``, default 120s), then cancels
+        ONLY those still running so a rolling deploy never abruptly cuts a live visit
+        (on_end + release still fire on every path). ``drain_budget_s=0`` restores the old
+        cancel-immediately behavior.
+        """
+        self._draining = True
+        if drain_budget_s is None:
+            try:
+                drain_budget_s = float(os.environ.get("GHOSTOPIA_DRAIN_BUDGET_S", _DRAIN_BUDGET_S))
+            except ValueError:
+                drain_budget_s = _DRAIN_BUDGET_S
+        tasks = [
+            r.run_task for r in self._records.values()
+            if r.run_task is not None and not r.run_task.done()
+        ]
+        if tasks and drain_budget_s > 0:
+            _log.info("workforce draining: %d in-flight, budget %.0fs", len(tasks), drain_budget_s)
+            _done, pending = await asyncio.wait(tasks, timeout=drain_budget_s)
+            if pending:
+                _log.info("drain budget elapsed: cancelling %d straggler(s)", len(pending))
+        else:
+            pending = set(t for t in tasks)
+        for t in pending:
+            if not t.done():
+                t.cancel()
         await self.join()
 
 

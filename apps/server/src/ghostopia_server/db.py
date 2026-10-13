@@ -26,6 +26,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from ghostopia_behaviors.product_match import normalize_amount, product_identity_key
+
 __all__ = [
     "best_offers",
     "completed_missions",
@@ -78,15 +80,18 @@ CREATE TABLE IF NOT EXISTS results (
     created_at  REAL NOT NULL
 );
 
--- The NORMALIZED best-offer store. Each result with a parseable price is normalized on
+--: the NORMALIZED best-offer store. Each result with a parseable price is normalized on
 -- write (title/price_raw/price_num/currency/link/image/source_url/section) and UPSERTed keyed by
 -- a product key (normalized title, else url) keeping the MINIMUM parsed price — so N candidate
--- scrapes of one product collapse to exactly one winning row (best-price selection).
+-- scrapes of one product collapse to exactly one winning row (best-price selection, RESEARCH R5).
 CREATE TABLE IF NOT EXISTS offers (
     product_key TEXT PRIMARY KEY,
     title       TEXT NOT NULL DEFAULT '',
     price_raw   TEXT NOT NULL DEFAULT '',
     price_num   REAL,
+    -- the price converted to an approximate common unit (USD) so cheapest-first ordering and the
+    -- min-price conflict resolution are CURRENCY-SAFE (€9 can never "beat" £10 on bare numbers).
+    price_norm  REAL,
     currency    TEXT,
     link        TEXT,
     image       TEXT,
@@ -116,7 +121,7 @@ _NUM_RE = re.compile(r"\d[\d.,]*\d|\d")
 def _to_float(num: str) -> float:
     """Normalize a grouped numeric token (``,``/``.`` as decimal OR thousands separators) → float.
 
-    Heuristic (locale-free):
+    Heuristic (locale-free, WR-01):
     * both separators present → the LAST one is the decimal point (``1.299,00`` → ``1299.00``,
       ``1,299.00`` → ``1299.00``);
     * only ``,`` present → decimal when exactly one comma with 1-2 trailing digits (European
@@ -174,13 +179,15 @@ def parse_price(raw: Any) -> tuple[float | None, str | None]:
 
 
 def _product_key(record: dict[str, Any], url: str | None) -> str:
-    """The stable identity a best-offer row is keyed on: the normalized title (lower + collapsed
-    whitespace) so the SAME product across retailers collapses to one row, falling back to the
-    page url when there is no title."""
+    """The stable identity a best-offer row is keyed on — the FUZZY / model-number identity
+    (``product_match.product_identity_key``), NOT exact title-string equality.
+
+    So "Sony WH-1000XM5" and "Sony WH-1000XM5 Wireless" collapse to ONE row (same model code),
+    and the same titled product across retailers / with trailing marketing words collapses too,
+    while two genuinely different products stay distinct. Falls back to the page url when the
+    title carries no usable identity tokens."""
     title = record.get("title")
-    if isinstance(title, str) and title.strip():
-        return "t:" + re.sub(r"\s+", " ", title.strip().lower())
-    return "u:" + (url or "")
+    return product_identity_key(title if isinstance(title, str) else None, fallback=url)
 
 
 def _str_field(v: Any) -> str:
@@ -199,39 +206,60 @@ def _upsert_best_offer(
 
     A no-op unless ``record`` is a dict carrying a parseable ``price`` (``parse_price``). ``link``
     falls back to the page ``url`` (the one field always available) so the export/graveyard link
-    column is never blank. The ``ON CONFLICT ... WHERE excluded.price_num < offers.price_num``
-    clause keeps the CHEAPEST candidate — N scrapes of one product converge to one winning row.
-    Does NOT commit (the caller commits once)."""
+    column is never blank.
+
+    CURRENCY-SAFE min selection: the kept row is the one with the lowest price converted to an
+    approximate common unit (USD, ``product_match.normalize_amount``), so a cheaper number in a
+    weaker currency (``€9``) can never displace a genuinely cheaper offer in another (``£10``).
+    N scrapes of one product converge to one winning row. Read-then-write (a single SQL
+    comparison cannot normalize); does NOT commit (the caller commits once)."""
     if not isinstance(record, dict):
         return
     price_num, currency = parse_price(record.get("price"))
     if price_num is None:
         return
     key = _product_key(record, url)
+    price_norm = normalize_amount(price_num, currency)
     link = _str_field(record.get("link")) or (url or "")
+    row = (
+        key,
+        _str_field(record.get("title")),
+        _str_field(record.get("price")),
+        price_num,
+        price_norm,
+        currency,
+        link,
+        _str_field(record.get("image")),
+        url or "",
+        section,
+        _stamp(now),
+    )
+    existing = conn.execute(
+        "SELECT price_norm FROM offers WHERE product_key = ?", (key,)
+    ).fetchone()
+    if existing is None:
+        conn.execute(
+            """
+            INSERT INTO offers
+                (product_key, title, price_raw, price_num, price_norm, currency, link, image,
+                 source_url, section, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            row,
+        )
+        return
+    old_norm = existing["price_norm"]
+    # keep the cheaper EXISTING row unless the new one is strictly cheaper (currency-safe).
+    if old_norm is not None and price_norm is not None and price_norm >= old_norm:
+        return
     conn.execute(
         """
-        INSERT INTO offers
-            (product_key, title, price_raw, price_num, currency, link, image, source_url, section, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(product_key) DO UPDATE SET
-            title=excluded.title, price_raw=excluded.price_raw, price_num=excluded.price_num,
-            currency=excluded.currency, link=excluded.link, image=excluded.image,
-            source_url=excluded.source_url, section=excluded.section, updated_at=excluded.updated_at
-        WHERE excluded.price_num < offers.price_num
+        UPDATE offers SET
+            title=?, price_raw=?, price_num=?, price_norm=?, currency=?, link=?, image=?,
+            source_url=?, section=?, updated_at=?
+        WHERE product_key=?
         """,
-        (
-            key,
-            _str_field(record.get("title")),
-            _str_field(record.get("price")),
-            price_num,
-            currency,
-            link,
-            _str_field(record.get("image")),
-            url or "",
-            section,
-            _stamp(now),
-        ),
+        (*row[1:], key),
     )
 
 
@@ -243,13 +271,17 @@ def best_offers(
     Each row is the best-price record kept for a product key: ``{product_key, title, price_raw,
     price_num, currency, link, image, source_url, section}``. Surfaced on the
     ``result.mission_progress`` envelope for the export + Data Graveyard "best" badge (R5)."""
+    # Cheapest-first ordering is CURRENCY-SAFE: it ranks on the USD-normalized amount (falling
+    # back to the bare number for a legacy row), so a mixed-currency list is ordered by real value
+    # rather than by bare number (which would float a weak-currency row to the top).
     if section is None:
         rows = conn.execute(
-            "SELECT * FROM offers ORDER BY price_num ASC, product_key ASC"
+            "SELECT * FROM offers ORDER BY COALESCE(price_norm, price_num) ASC, product_key ASC"
         ).fetchall()
     else:
         rows = conn.execute(
-            "SELECT * FROM offers WHERE section = ? ORDER BY price_num ASC, product_key ASC",
+            "SELECT * FROM offers WHERE section = ? "
+            "ORDER BY COALESCE(price_norm, price_num) ASC, product_key ASC",
             (section,),
         ).fetchall()
     return [
@@ -301,6 +333,20 @@ def _migrate(conn: sqlite3.Connection) -> None:
     # Index created here (not in _SCHEMA) so it is never referenced before the column exists on a
     # legacy DB — idempotent for a fresh DB (the column is already present).
     conn.execute("CREATE INDEX IF NOT EXISTS idx_results_section ON results(section)")
+
+    # offers.price_norm (currency-safe USD-normalized price) — added on a DB created before the
+    # column existed. Back-fill legacy rows from their currency so cheapest-first ordering + the
+    # min-price conflict resolution are immediately currency-safe (no re-scrape needed).
+    offer_cols = {row["name"] for row in conn.execute("PRAGMA table_info(offers)").fetchall()}
+    if offer_cols and "price_norm" not in offer_cols:
+        conn.execute("ALTER TABLE offers ADD COLUMN price_norm REAL")
+        for r in conn.execute(
+            "SELECT product_key, price_num, currency FROM offers"
+        ).fetchall():
+            conn.execute(
+                "UPDATE offers SET price_norm = ? WHERE product_key = ?",
+                (normalize_amount(r["price_num"], r["currency"]), r["product_key"]),
+            )
 
 
 def insert_mission(
@@ -427,7 +473,7 @@ def insert_result(
     )
     if task_id is not None:
         conn.execute("UPDATE tasks SET records = records + 1 WHERE id = ?", (task_id,))
-    # Also normalize this record into the best-offer store (min-price per product). The
+    #: also normalize this record into the best-offer store (min-price per product). The
     # section is this result's ORIGIN department (resolved above); a record without a parseable
     # price is skipped inside the upsert.
     _upsert_best_offer(conn, record, url, section, now=now)

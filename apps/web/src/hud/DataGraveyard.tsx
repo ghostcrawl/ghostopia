@@ -47,7 +47,7 @@ export function previewForMission(preview: PreviewRow[], missionId: string): Pre
 }
 
 /**
- * The preview rows belonging to one department (each department surfaces its OWN
+ * The preview rows belonging to one department (: each department surfaces its OWN
  * found records). Filters by `section` — exact, no fallback: a department-grouped surface
  * must show only the records that department's ghosts actually brought back.
  */
@@ -88,9 +88,9 @@ export function DataGraveyard(): JSX.Element {
   const bestUrls = new Set(
     bestOffers.map((o) => o.sourceUrl ?? o.link ?? "").filter((u) => u !== ""),
   );
-  // Which completed mission is expanded to reveal its found results (click-through).
+  //: which completed mission is expanded to reveal its found results (click-through).
   const [openId, setOpenId] = useState<string | null>(null);
-  // Group finds by completed mission (default) or by department (section). Additive.
+  //: group finds by completed mission (default) or by department (section). Additive.
   const [view, setView] = useState<"mission" | "department">("mission");
 
   const toggle = (id: string): void => setOpenId((cur) => (cur === id ? null : id));
@@ -190,7 +190,7 @@ export function DataGraveyard(): JSX.Element {
           const rows = open ? previewForMission(preview, m.id) : [];
           return (
             <div className="graveyard__mission-group" key={m.id}>
-              {/* A real keyboard-accessible affordance (mirrors the mode-toggle
+              {/*: a real keyboard-accessible affordance (mirrors the mode-toggle
                   aria-pressed pattern) — click / Enter / Space reveals THIS mission's rows. */}
               <div
                 className={`graveyard__mission${open ? " graveyard__mission--open" : ""}`}

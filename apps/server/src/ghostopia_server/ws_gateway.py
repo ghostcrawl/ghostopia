@@ -1,11 +1,11 @@
 """Authenticated WebSocket gateway — the secure inbound/outbound boundary.
 
 This is the ONE place the thin TS renderer talks to the Python server. On the WS upgrade
-the gateway verifies the operator's HS256 token BEFORE accepting the connection:
-an unauthenticated or invalid-token upgrade is closed pre-accept, never
+the gateway verifies the operator's HS256 token BEFORE accepting the connection (threat
+): an unauthenticated or invalid-token upgrade is closed pre-accept, never
 promoted to a live socket. Once accepted, every inbound frame is parsed into the shared
 ``Envelope``, version-gated, and validated against the strict ``schemas`` allow-list
-— an unknown ``type`` or a malformed payload is rejected and NEVER
+ — an unknown ``type`` or a malformed payload is rejected and NEVER
 fanned out or ``eval``'d. Outbound ``broadcast`` re-validates against the ``Envelope``
 model before sending, so only well-formed envelopes ever leave the server.
 
@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, Protocol
 
 import jwt
 from fastapi import FastAPI, WebSocket
@@ -49,6 +49,15 @@ ControlHandler = Callable[["Envelope"], Awaitable[None]]
 # client renders ghosts that spawned before it connected — instead of a roster-full-but-empty
 # canvas. It sends ONLY to the new socket (never a fan-out) so existing clients don't re-spawn.
 OnConnect = Callable[[Callable[["Envelope"], Awaitable[None]]], Awaitable[None]]
+
+
+class ControlGateway(Protocol):
+    """The narrow gateway seam a composition layer (orchestrator / sim) actually uses:
+    mount an authed control verb + fan an envelope out. :class:`WsGateway` fulfils it; tests
+    substitute a recording double without subclassing the real hub."""
+
+    def register_control(self, msg_type: str, handler: ControlHandler) -> None: ...
+    async def broadcast(self, envelope: Envelope) -> None: ...
 
 
 class WsGateway:
@@ -129,7 +138,7 @@ class WsGateway:
                 await self._on_first_connect()
             except Exception:  # noqa: BLE001 — first-connect cleanup is best-effort, never fatal
                 pass
-        # Replay the current world to THIS client only (a late-joiner/refresh sees the
+        #: replay the current world to THIS client only (a late-joiner/refresh sees the
         # ghosts that spawned before it connected). Best-effort — a hook fault never drops the
         # connection; the recurring status poll still keeps the roster fresh.
         if self._on_connect is not None:
@@ -185,7 +194,7 @@ class WsGateway:
             return
 
         # Validated + allow-listed. A registered control verb (e.g. sim.start) runs its
-        # server-side action; everything else follows the ping/ack proof path.
+        # server-side action; everything else follows the plan-09 ping/ack proof path.
         control = self._control_handlers.get(envelope.type)
         if control is not None:
             await control(envelope)

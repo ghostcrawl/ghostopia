@@ -4,8 +4,8 @@
 // PixiJS ticker can read it every frame with zero React re-renders). React chrome
 // (the HUD) subscribes to the SAME store via `useStore(useWorldStore, sel)`.
 //
-// The ghost shape MIRRORS the Pydantic contract (contract.ts). In later
-// waves the authed WS feeds server envelopes into this same store; the
+// The ghost shape MIRRORS the plan-03 Pydantic contract (contract.ts). In later
+// waves the authed WS (plan 11) feeds server envelopes into this same store; the
 // renderer never knows whether a ghost was seeded client-side (Stage 1) or
 // pushed by the server. Imports NO GhostCrawl SDK / Python package.
 
@@ -37,7 +37,7 @@ export interface WorldState {
   critters: Record<string, Critter>;
   /** critterId -> the wall-clock ms it was petted (a heart/spark flash the ticker fades). */
   critterPets: Record<string, number>;
-  /** prop (workstation) id -> whether it is currently ACTIVE (a working ghost is at it). */
+  /** prop (workstation) id -> whether it is currently ACTIVE (a working ghost is at it, P13). */
   activeProps: Record<string, boolean>;
   camera: Camera;
   /** optional world-space clamp bounds (set once the map size is known). */
@@ -68,14 +68,14 @@ export interface WorldState {
   petCritter: (id: string) => void;
   /** Remove a critter's pet flash (the ticker calls this once it has fully faded). */
   clearCritterPet: (id: string) => void;
-  /** Apply a server `prop.state` batch — set each prop's active flag. */
+  /** Apply a server `prop.state` batch — set each prop's active flag (P13). */
   setPropStates: (props: Array<{ id: string; active: boolean }>) => void;
   /** Apply a `ghost.status_changed`-shaped update (merges by ghost_id). */
   applyStatusChanged: (update: GhostStatusChanged) => void;
   /** Move a ghost to a world/tile position (server-authoritative placement). */
   setGhostPosition: (id: string, position: Point) => void;
   /**
-   * BATCHED per-frame placement (Pitfall 2): apply ALL moved ghosts'
+   * BATCHED per-frame placement (/ Pitfall 2): apply ALL moved ghosts'
    * positions in ONE store `set` (a single fresh `ghosts` object) instead of N calls.
    * The rAF walk-interpolation loop accumulates every moved ghost for the frame and
    * flushes here once — bounding GC churn + HUD re-render pressure at 25–50 ghosts.
@@ -258,7 +258,7 @@ export const useWorldStore = createStore<WorldState>((set, get) => ({
       if (update.section !== undefined) next.section = update.section;
       if (update.position !== undefined) next.position = update.position;
       if (update.task_id !== undefined) next.task_id = update.task_id;
-      // thread the explicit server facing so a stationary working
+      //: thread the explicit server facing so a stationary working
       // ghost orients to its workstation (honored in GhostSprite while !moving).
       if (update.facing !== undefined) next.facing = update.facing;
       return { ghosts: { ...s.ghosts, [update.ghost_id]: next } };

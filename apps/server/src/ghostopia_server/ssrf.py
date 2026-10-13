@@ -1,6 +1,6 @@
-"""SSRF gate — thin re-export of the shared policy.
+"""SSRF gate — thin re-export of the shared policy (hoisted).
 
-The SSRF policy body now lives in ``ghostopia_shared.ssrf`` so the ONE gate mandate
+The SSRF policy body now lives in ``ghostopia_shared.ssrf`` so the ONE gate mandates
 on "every target + every search-result visit" is importable by BOTH the server (mission/task
 dispatch) AND the ``search_and_detail`` behavior (which visits result urls inline). This
 module keeps the server's historical import surface byte-for-byte unchanged — every existing

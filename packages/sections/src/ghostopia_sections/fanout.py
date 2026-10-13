@@ -1,11 +1,11 @@
-"""Mission/task → section fan-out.
+"""Mission/task → section fan-out (RESEARCH-2 Design B "Mission → section fan-out").
 
 Task routing is **by section ROLE, not by ghost**: a task routes to an explicit
 ``TaskSpec.target.section`` when set (validated it exists + ``accepts`` the kind), else
 to the FIRST section whose ``accepts`` includes ``task.kind`` — honoring a spawning
 section's ``routes_to`` preference order. A section at ``capacity`` queues the task in
 its sub-queue rather than over-assigning; a freed slot drains the next queued task. The
-resolved section's default ``gc_target`` applies when the task omits
+resolved section's default ``gc_target`` (/RESEARCH-3 §4.2) applies when the task omits
 its own. An unroutable kind returns an explicit ``routed=False`` result (never a raise).
 
 These are PURE functions over the :class:`~ghostopia_sections.section.Section` runtimes —
@@ -142,7 +142,7 @@ def fan_out_mission(
     Enters the mission at its entry section(s) by routing each initial task through
     :func:`route_task` over the SHARED section runtimes (so capacity/queueing accumulate
     across the batch). Returns the per-task :class:`RouteResult` list. The orchestrator
-    + task-manager reuse :func:`route_task` as the per-event callback
+     + task-manager reuse:func:`route_task` as the per-event callback
     for each subsequent ``task.spawned`` / ``task.assign``.
     """
     return [route_task(task, sections, from_section=from_section) for task in tasks]

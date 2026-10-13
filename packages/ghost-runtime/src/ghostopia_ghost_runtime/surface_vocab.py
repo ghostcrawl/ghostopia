@@ -20,17 +20,17 @@ from ghostopia_shared.surface_safe import is_surface_safe
 
 # Generic safe fall-backs — used for an UNKNOWN kind/code, or ANY text that carries a banned
 # term. They convey the SITUATION generically (working / held) without any vendor/mechanics
-# vocabulary, so the operator still knows a ghost is busy or stuck.
+# vocabulary, so the operator still knows a ghost is busy or stuck (T-191-33-03).
 GENERIC_WORKING = "Working…"
 GENERIC_HELD = "Held at the gate…"
 
-#: The inspector activity-view line for an API-only ghost: a scrape/extract ghost has
+#: The inspector activity-view line for an API-only ghost (D-07): a scrape/extract ghost has
 #: no live browser frame, so the inspector shows this on-brand activity message instead of an
 #: empty/misleading frame. Curated surface-safe (no vendor/mechanics vocabulary).
 ACTIVITY_VIEW_MESSAGE = "Gathering data — no live view for this kind of work…"
 
-#: The ONLY session-persona fields ghostopia may surface. Mirrors the provider
-#: whitelist + the SDK accessor; any other key is ignored so a raw user-agent / engine
+#: The ONLY session-persona fields ghostopia may surface (D-08). Mirrors the provider
+#: whitelist + plan-02's SDK accessor; any other key is ignored so a raw user-agent / engine
 #: codename / fingerprint internal can never reach the customer surface.
 PERSONA_WHITELIST_FIELDS = ("device_class", "os_class", "browser_class", "locale")
 
@@ -127,7 +127,7 @@ def sanitize_text(text: object, *, fallback: str = GENERIC_WORKING) -> str:
 
 
 def build_persona(fields: object) -> str | None:
-    """Build a customer-safe persona sentence from the whitelist fields ONLY.
+    """Build a customer-safe persona sentence from the whitelist fields ONLY (D-08).
 
     ``"Browsing as a <browser-class> <device> on <os> · <locale>"``. Reads ONLY the
     :data:`PERSONA_WHITELIST_FIELDS` keys — an extra ``user_agent``/``engine`` key is

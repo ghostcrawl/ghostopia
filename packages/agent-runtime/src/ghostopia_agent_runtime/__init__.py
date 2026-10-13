@@ -5,7 +5,7 @@ Two fulfilments ship behind it — ``DeterministicRunner`` (scripted) and
 ``AnthropicAgentProvider`` (the LLM brain, default Anthropic/Claude) — selectable per
 mission via ``select_agent_provider``. ``author_task`` is the AI-authoring path: the
 model emits a validated declarative ``TaskSpec`` composed of vetted behaviors (decode-only,
-never code). ``AgentBehavior`` wraps EITHER brain unchanged.
+never code). Plan 17's ``AgentBehavior`` wraps EITHER brain unchanged.
 """
 
 from __future__ import annotations

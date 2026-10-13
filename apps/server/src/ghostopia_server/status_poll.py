@@ -1,12 +1,12 @@
 """Lightweight per-ghost status poll — the frame-FREE cadence for the roster HUD.
 
-Every ghost's roster row must stay fresh, but only ONE
+BRIEF §36 / RESEARCH §Perf/Polling: every ghost's roster row must stay fresh, but only ONE
 ghost — the SELECTED one — ever gets the expensive ``recordings.visual`` frame stream (that
 lives in :mod:`frame_fanout`). This poll closes the gap: on a modest ``asyncio`` cadence it
 broadcasts each NON-selected ghost's lightweight status (state / current task / behavior name
 / progress / record count) as a ``ghost.status_changed`` envelope. It NEVER opens a frame
 stream for a roster ghost — that would fan out N concurrent recordings and hammer the
-proxy/governor concurrency budget (a known anti-pattern).
+proxy/governor concurrency budget (the anti-pattern RESEARCH calls out).
 
 The SELECTED ghost is skipped here on purpose: it already receives rich ``browser.frame`` +
 ``browser.status`` from :meth:`FrameFanout.select_ghost_frames`, so re-broadcasting its coarse
@@ -18,14 +18,14 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import time
-from collections.abc import Awaitable, Callable
-from typing import Any
+from collections.abc import Awaitable, Callable, Sequence
+from typing import Any, Protocol
 
 from ghostopia_ghost_runtime.surface_vocab import sanitize_code
 from ghostopia_shared import Envelope
 from ghostopia_shared.envelope import serialize_envelope
 
-from .ghost_pool import GhostPool
+from .ghost_pool import GhostPool, GhostStatus
 
 #: An async fan-out sink (``WsGateway.broadcast`` in production; a collector in tests).
 Broadcast = Callable[[Envelope], Awaitable[None]]
@@ -60,8 +60,18 @@ def start_status_poll(
     return asyncio.ensure_future(_loop())
 
 
+class StatusSource(Protocol):
+    """What :func:`poll_once` requires of a pool: a frame-free per-ghost status snapshot.
+
+    The diagnostics block additionally reads ``active_count`` / ``max_concurrent`` /
+    ``ghosts_by_section`` / ``sections`` ONLY when present (``hasattr``-gated), so a minimal
+    pool double need only provide ``snapshot``. :class:`GhostPool` fulfils the full surface."""
+
+    def snapshot(self) -> Sequence[GhostStatus]: ...
+
+
 async def poll_once(
-    pool: GhostPool,
+    pool: StatusSource,
     broadcast: Broadcast,
     *,
     fanout: Any | None = None,
@@ -100,7 +110,7 @@ async def poll_once(
             )
         )
 
-    # Diagnostics: a frame-free SYSTEM health snapshot from REAL pool state — the
+    # diagnostics (P18): a frame-free SYSTEM health snapshot from REAL pool state — the
     # concurrency governor (the pool's hard semaphore cap) headroom + per-section occupancy —
     # so the DiagnosticsPanel renders only real values (unknown metrics are simply omitted).
     # Only a full GhostPool exposes these; a minimal pool double omits the snapshot entirely.
@@ -108,7 +118,7 @@ async def poll_once(
         active = pool.active_count
         pool_max = pool.max_concurrent
         by_section = pool.ghosts_by_section() if hasattr(pool, "ghosts_by_section") else {}
-        # Back-pressure visibility. The concurrency cap is the tier/self-host
+        #: back-pressure visibility. The concurrency cap is the tier/self-host
         # entitlement; when demand exceeds it, tasks DEFER in each section's queue
         # (WorkQueue back-pressure) instead of erroring. Surface the queue depth + saturation
         # alongside the cap so the operator SEES honest queuing — with the curated, surface-safe
@@ -116,7 +126,7 @@ async def poll_once(
         sections = getattr(pool, "sections", []) or []
         queue_depth = sum(len(getattr(s, "queue", []) or []) for s in sections)
         saturated = active >= pool_max
-        payload: dict[str, Any] = {
+        diag: dict[str, Any] = {
             "pool_active": active,
             "pool_max": pool_max,
             "headroom": max(0, pool_max - active),
@@ -127,12 +137,12 @@ async def poll_once(
         }
         if saturated or queue_depth > 0:
             # curated copy for the DiagnosticsPanel back-pressure banner (reused verbatim).
-            payload["notice"] = sanitize_code("pool_exhausted")
+            diag["notice"] = sanitize_code("pool_exhausted")
         await broadcast(
             serialize_envelope(
                 type=_DIAGNOSTICS_TYPE,
                 ts=time.time(),
-                payload=payload,
+                payload=diag,
             )
         )
 

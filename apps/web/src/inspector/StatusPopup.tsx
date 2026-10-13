@@ -1,9 +1,9 @@
-// ghostopia web — the hover status popup (STAGE 4 partial).
+// ghostopia web — the hover status popup (STAGE 4 partial, BRIEF §40).
 //
 // Hovering a working ghost shows its CURRENT real activity: state + current URL, read from the
 // ghost's relayed session state (`inspectorStore` — populated by the server's `browser.status`
 // for the selected ghost, plus the coarse state the world store already carries). Non-selected
-// ghosts show lightweight status only (no frame stream). This file imports NO
+// ghosts show lightweight status only (no frame stream — BRIEF §36). This file imports NO
 // GhostCrawl SDK and NO key.
 
 import type { JSX } from "react";

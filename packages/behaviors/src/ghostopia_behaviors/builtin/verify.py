@@ -1,4 +1,4 @@
-"""``Verify`` — a QA behavior.
+"""``Verify`` — a QA behavior (RESEARCH-2 §Concrete examples).
 
 Re-scrapes a sample url through the full-primitive ``ctx.browser`` and compares the result
 against an expected field map, emitting ``result.verified {ok}`` and playing
@@ -119,7 +119,7 @@ class Verify:
             return
 
         if self._step is _Step.OPEN:
-            # open the session as a non-blocking op polled across ticks.
+            # WR-06: open the session as a non-blocking op polled across ticks.
             if self._open_op is None:
                 self._open_op = AsyncOp(
                     ctx.browser.create_session(
@@ -136,7 +136,7 @@ class Verify:
             return
 
         if self._step is _Step.VERIFY:
-            # re-scrape as a non-blocking op polled across ticks.
+            # WR-06: re-scrape as a non-blocking op polled across ticks.
             if self._scrape_op is None:
                 self._scrape_op = AsyncOp(
                     ctx.browser.scrape(
@@ -169,7 +169,7 @@ class Verify:
             return
 
         if self._step is _Step.RELEASING:
-            # release the session as a non-blocking op polled across ticks.
+            # WR-06: release the session as a non-blocking op polled across ticks.
             if self._release_op is None:
                 self._release_op = AsyncOp(ctx.browser.release())
                 return

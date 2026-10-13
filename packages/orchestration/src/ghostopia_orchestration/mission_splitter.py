@@ -1,9 +1,9 @@
-"""Mission → N task records tagged by kind (STAGE 6).
+"""Mission → N task records tagged by kind (STAGE 6 — RESEARCH-2 Design B step 1).
 
 One mission ("find 500 SaaS companies, extract pricing") splits into many
 :class:`~ghostopia_shared.types.Task` records, each TAGGED BY ``kind`` (``scout`` /
 ``extract`` / ``verify`` / …). The ``kind`` is what the section fan-out routes on
-(``accepts``/``routes_to``) — never a per-ghost or per-site route.
+(plan 18 ``accepts``/``routes_to``) — never a per-ghost or per-site route.
 
 The split is data-only: it produces persisted-ready ``Task`` records and assigns none of
 them (the :class:`~ghostopia_orchestration.work_queue.WorkQueue` + section fan-out own

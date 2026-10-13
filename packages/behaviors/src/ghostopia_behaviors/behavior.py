@@ -1,10 +1,10 @@
-"""The documented ONE-FILE Behavior contract.
+"""The documented ONE-FILE Behavior contract (RESEARCH-2 Design A, RESEARCH-3 §2.3).
 
 A ``Behavior`` is the decision unit a ghost runs: an original, modular, hot-registrable
 module with a documented ``on_start`` / ``on_tick`` / ``on_event`` / ``on_end`` lifecycle
 over a :class:`BehaviorContext`. It drives the visible ghost ONLY through the narrow
 ``GhostHandle`` and reaches GhostCrawl ONLY through the full-primitive ``ctx.browser``
-(``BrowserProvider``) — never the SDK, never a secret.
+(``BrowserProvider`` — /20) — never the SDK, never a secret.
 
 ``on_tick`` MUST be NON-BLOCKING: a behavior kicks off at most one awaited op per tick and
 reacts to its completion on ``on_event`` (anti-pattern: blocking the tick on a long
@@ -41,7 +41,7 @@ from ghostopia_shared.envelope import PROTOCOL_VERSION
 __all__ = ["Behavior", "BehaviorContext", "EndReason", "Emit", "PROTOCOL_VERSION"]
 
 # The async normalized-Envelope sink. Wired to ``EventBus.publish`` by the composition
-# layer; tests wire it to a list collector. Identical to ``agent_runtime.Emit``
+# layer (/14); tests wire it to a list collector. Identical to ``agent_runtime.Emit``
 # so ``AgentBehavior`` forwards ``ctx.emit`` to ``AgentProvider.run_task`` unchanged.
 Emit = Callable[[Envelope], Awaitable[None]]
 
@@ -56,7 +56,7 @@ def _noop_log(_msg: str) -> None:  # default log sink
 
 @dataclass
 class BehaviorContext:
-    """Everything a Behavior receives — the capability-scoped seam.
+    """Everything a Behavior receives — the capability-scoped seam (RESEARCH-3 §5.2).
 
     A behavior gets ONLY these; never ``fs``/``net``/``child_process``/keys/raw SDK. It is
     a runtime carrier (Protocols + callables), NOT a wire model.
@@ -110,7 +110,7 @@ class BehaviorContext:
 @runtime_checkable
 class Behavior(Protocol):
     """The pluggable decision unit. ONE active Behavior per ghost fills the WORK state of
-    the lifecycle; the ghost stays dumb (motion/anim only).
+    the lifecycle (plan 07); the ghost stays dumb (motion/anim only).
 
     Lifecycle (all async):
       * ``on_start(ctx)``         — set up (queue urls, walk to workstation, …).

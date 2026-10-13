@@ -1,14 +1,14 @@
-"""``AnthropicAgentProvider`` — the LLM brain, behind the ``AgentProvider`` seam.
+"""``AnthropicAgentProvider`` — the LLM brain, behind the plan-05 ``AgentProvider`` seam.
 
 A MINIMAL Anthropic-backed ``AgentProvider``: a bounded decide→act loop that asks the
 injected transport for the next action, DECODES it against a FIXED ``AgentAction`` Pydantic
 union, drives the injected ``BrowserProvider``, and emits the SAME normalized ``Envelope``
 sequence the ``DeterministicRunner`` emits — so the world looks identical whichever brain
-runs the mission, and the ``AgentBehavior`` wraps EITHER unchanged.
+runs the mission, and plan 17's ``AgentBehavior`` wraps EITHER unchanged.
 
-Safety:
+Safety (/ -04):
 
-- model output is DECODED against ``AgentAction`` (navigate | extract | scroll | done) →
+- model output is DECODED against ``AgentAction`` (navigate | extract | scroll | agent | done) →
   an allowlisted ``BrowserProvider`` call only — NEVER ``eval``'d, never an out-of-band op;
 - the loop is bounded by ``max_steps``; an unparseable / oversized reply falls to a safe
   terminal (release the session + ``task.completed``) rather than running away.
@@ -55,12 +55,25 @@ class ScrollAction(_ActionBase):
     dy: float = 0.0
 
 
+class AgentDriveAction(_ActionBase):
+    """Native affordance drive via the SDK agent endpoint (observe + act by role/name).
+
+    Unlike ``navigate`` (URL only), this lets the brain act on the CURRENT page by INTENT —
+    e.g. "click the Login button", "type foo into the search box". Decodes to the optional
+    ``BrowserProvider.agent`` call; the loop degrades to a no-op step when the provider or the
+    per-account agent endpoint does not offer it (never crashes the brain)."""
+
+    action: Literal["agent"]
+    instruction: str
+    url: str | None = None
+
+
 class DoneAction(_ActionBase):
     action: Literal["done"]
 
 
 AgentAction = Annotated[
-    NavigateAction | ExtractAction | ScrollAction | DoneAction,
+    NavigateAction | ExtractAction | ScrollAction | AgentDriveAction | DoneAction,
     Field(discriminator="action"),
 ]
 _ACTION_ADAPTER: TypeAdapter[Any] = TypeAdapter(AgentAction)
@@ -75,7 +88,7 @@ def agent_action_schema() -> dict[str, Any]:
 class AnthropicAgentProvider:
     """The LLM ``AgentProvider`` (default Anthropic/Claude). ``kind = 'llm'``.
 
-    Structurally fulfils the ``AgentProvider`` Protocol — ``run_task`` has the
+    Structurally fulfils the plan-05 ``AgentProvider`` Protocol — ``run_task`` has the
     identical signature and emits the identical normalized sequence as ``DeterministicRunner``.
     """
 
@@ -185,6 +198,45 @@ class AnthropicAgentProvider:
                     EventType.BROWSER_ACTION,
                     {"action": "scroll", "dx": action.dx, "dy": action.dy},
                 )
+
+            elif isinstance(action, AgentDriveAction):
+                # Native affordance drive (observe + act by role/name). Optional on the provider and
+                # per-account gated on the server — degrade to a benign no-op step, never crash.
+                agent_fn = getattr(provider, "agent", None)
+                if agent_fn is None:
+                    await _emit(
+                        EventType.BROWSER_ACTION,
+                        {"action": "agent", "status": "unavailable"},
+                    )
+                else:
+                    try:
+                        res = await agent_fn(instruction=action.instruction, url=action.url)
+                    except Exception:  # any agent failure → benign no-op step, loop continues
+                        await _emit(
+                            EventType.BROWSER_ACTION,
+                            {"action": "agent", "status": "error"},
+                        )
+                        res = None
+                    if isinstance(res, dict) and res.get("error") == "not_found":
+                        # capability not enabled for this account (404) — advertise + move on
+                        await _emit(
+                            EventType.BROWSER_ACTION,
+                            {"action": "agent", "status": "not_enabled"},
+                        )
+                    elif res is not None:
+                        await _emit(EventType.BROWSER_ACTION, {"action": "agent", "status": "ok"})
+                        records = res.get("records") if isinstance(res, dict) else None
+                        if isinstance(records, list):
+                            for record in records:
+                                await _emit(
+                                    EventType.RESULT_RECORD_EXTRACTED,
+                                    {
+                                        "task_id": task.id,
+                                        "mission_id": task.mission_id,
+                                        "url": current_url,
+                                        "record": record,
+                                    },
+                                )
 
             else:  # DoneAction
                 break

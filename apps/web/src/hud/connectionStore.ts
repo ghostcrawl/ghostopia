@@ -1,4 +1,4 @@
-// ghostopia web — the WS connection-state store.
+// ghostopia web — the WS connection-state store (P18).
 //
 // A tiny vanilla Zustand store the WS transports (`wsClient` live path, `SimClient` sim path)
 // push their socket lifecycle into, so a `ConnectionIndicator` badge can show Connecting /

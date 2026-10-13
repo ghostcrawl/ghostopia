@@ -1,4 +1,4 @@
-"""Props react to ghost state — generalize the terminal-flicker.
+"""Props react to ghost state (P13) — generalize the terminal-flicker.
 
 A crypt-terminal (and its nearby candles/lanterns) should power ON when a ghost is actually
 WORKING at it, and settle when the ghost leaves. This is driven by the REAL ghost→workstation
@@ -20,12 +20,15 @@ from __future__ import annotations
 import math
 import time
 from collections.abc import Iterable
+from typing import TypedDict
 
 from ghostopia_shared import Envelope
 from ghostopia_shared.envelope import serialize_envelope
 
 __all__ = [
     "PROP_ACTIVE_RADIUS_PX",
+    "PropState",
+    "PropStatePayload",
     "Workstation",
     "active_workstations",
     "is_working_state",
@@ -58,6 +61,21 @@ _WORKING_STATES = frozenset(
 Workstation = tuple[str, float, float]
 
 
+class PropState(TypedDict):
+    """One workstation prop on the ``prop.state`` wire: its id, pixel position, active flag."""
+
+    id: str
+    x: float
+    y: float
+    active: bool
+
+
+class PropStatePayload(TypedDict):
+    """The ``prop.state`` payload: every workstation prop."""
+
+    props: list[PropState]
+
+
 def is_working_state(state: str) -> bool:
     """True when a ghost in ``state`` is actively working (would power a nearby terminal)."""
     return state in _WORKING_STATES
@@ -85,7 +103,7 @@ def active_workstations(
 
 def prop_state_payload(
     workstations: Iterable[Workstation], active_ids: set[str]
-) -> dict[str, object]:
+) -> PropStatePayload:
     """The ``prop.state`` payload: every workstation prop + whether it is currently active."""
     return {
         "props": [

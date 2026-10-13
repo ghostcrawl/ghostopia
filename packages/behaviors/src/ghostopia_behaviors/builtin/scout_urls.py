@@ -1,4 +1,4 @@
-"""``ScoutUrls`` — a research/seed behavior.
+"""``ScoutUrls`` — a research/seed behavior (RESEARCH-2 §Section routing).
 
 Searches/seeds candidate urls through the full-primitive ``ctx.browser`` and emits
 ``task.spawned {kind:"extract", url}`` per discovered url. The Orchestrator routes
@@ -88,7 +88,7 @@ class ScoutUrls:
             return
         urls: list[str] = list(self._params.seeds)
         if self._params.query:
-            # Kick the search off ONCE as a non-blocking op and poll across ticks so a
+            # WR-06: kick the search off ONCE as a non-blocking op and poll across ticks so a
             # slow search never stalls the tick loop / trips the tick deadline. The op is a
             # sibling task, so an overrunning tick's cancel never cancels it mid-flight.
             if self._search_op is None:

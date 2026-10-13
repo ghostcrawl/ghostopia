@@ -1,4 +1,4 @@
-"""The read-only WorldQuery behaviors consume.
+"""The read-only WorldQuery behaviors consume (Task 1).
 
 ``create_world_query(world_map)`` returns an object satisfying the shared
 :class:`ghostopia_shared.WorldQuery` Protocol: free workstations, section bounds, a
@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import random
 from collections import deque
+from collections.abc import Callable
 
 from ghostopia_shared import Bounds, Point, WorldQuery
 
@@ -20,7 +21,7 @@ _NEIGHBOURS: tuple[tuple[int, int], ...] = ((1, 0), (-1, 0), (0, 1), (0, -1))
 
 
 class _WorldQuery:
-    """Concrete read-only query over a :class:`WorldMap`."""
+    """Concrete read-only query over a :class:`WorldMap` (RESEARCH-2 Design C)."""
 
     def __init__(self, world_map: WorldMap, rng: random.Random | None = None) -> None:
         self._map = world_map
@@ -93,7 +94,9 @@ class _WorldQuery:
         x, y = r.choice(sorted(candidates))
         return Point(x=x, y=y)
 
-    def _flood(self, sx: int, sy: int, walk) -> list[tuple[int, int]]:  # type: ignore[no-untyped-def]
+    def _flood(
+        self, sx: int, sy: int, walk: Callable[..., bool]
+    ) -> list[tuple[int, int]]:
         """BFS the set of tiles reachable from ``(sx, sy)`` under the directional
         walkable callback (static collision + edge masks — same rules as A*)."""
         if not walk(sx, sy):

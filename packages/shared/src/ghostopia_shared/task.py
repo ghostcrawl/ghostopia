@@ -1,4 +1,4 @@
-"""The harness Task/mission contract.
+"""The harness Task/mission contract (RESEARCH-3 §2.2/§4.1).
 
 A **Task** is declarative DATA (the WHAT) that names a **Behavior** (the HOW) and
 parameterizes it — the seam that lets non-coders AND an AI be productive without
@@ -74,8 +74,8 @@ class MissionSpec(_Strict):
 
 
 # --------------------------------------------------------------------------------------
-# Management-verb message variants — WS/HTTP command surface.
-# Server-authoritative; the concrete handlers live in the task-manager.
+# Management-verb message variants (RESEARCH-3 §4.1) — WS/HTTP command surface.
+# Server-authoritative; the concrete handlers live in.
 # --------------------------------------------------------------------------------------
 
 

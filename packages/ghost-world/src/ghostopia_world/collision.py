@@ -1,9 +1,9 @@
-"""Collision primitives for the tile world.
+"""Collision primitives for the tile world (Task 1).
 
 The walkable grid is a ``height x width`` matrix of 0/1 (0 = blocked). A
 *directional edge mask* additionally blocks entry into a specific tile through a
 specific side — modelling one-way ledges / crypt thresholds without a second full
-grid. All geometry is supplied by the caller (loaded from
+grid (RESEARCH-2 Design D). All geometry is supplied by the caller (loaded from
 map DATA); nothing here hardcodes a map.
 """
 

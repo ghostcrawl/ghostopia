@@ -1,4 +1,4 @@
-// ghostopia web — the customer-surface language boundary (TS mirror).
+// ghostopia web — the customer-surface language boundary (191-33, TS mirror).
 //
 // The thin frontend must NEVER render a raw, low-level status string — an anti-bot vendor name
 // or a networking/anti-detection term — even if a (buggy or future) server path let a raw
@@ -12,7 +12,7 @@
 
 // The banned lexicon. Compound tokens tolerate a space / hyphen / underscore separator.
 const BANNED_SURFACE_RE =
-  /\b(?:datadome|kasada|perimeterx|imperva|akamai|cloudflare|waf|anti[\s_-]?bot|proxy|residential|data[\s_-]?center|datacenter|fingerprint|stealth|spoof(?:ing|ed)?|bypass|clearance|cf[\s_-]?clearance|captcha[\s_-]?bypass|human|real[\s_-]?human)\b/i;
+  /\b(?:datadome|kasada|perimeterx|imperva|akamai|cloudflare|waf|anti[\s_-]?bot|proxy|residential|data[\s_-]?center|datacenter|fingerprint|stealth|spoof(?:ing|ed)?|bypass|clearance|cf[\s_-]?clearance|captcha[\s_-]?bypass|evasion|undetectable|human|real[\s_-]?human|nochrome|nofox|nokit|nodom|analogsoul|souls?|juggler)\b/i;
 
 /** True when `text` contains NONE of the banned lexicon (empty / non-string is safe). */
 export function isSurfaceSafe(text: unknown): boolean {

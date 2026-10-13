@@ -1,4 +1,4 @@
-"""The full-primitive, capability-scoped ``BrowserProvider`` seam.
+"""The full-primitive, capability-scoped ``BrowserProvider`` seam (RESEARCH-3 §1.4).
 
 This is the SINGLE handle the whole ghostopia world depends on. It is bound to ONE
 ghost's session and exposes the COMPLETE GhostCrawl action surface so a Behavior can do
@@ -14,7 +14,7 @@ top-level work verbs ``extract`` / ``scrape`` / ``search`` / ``screenshot`` / ``
 The raw held mouse-drag (the whiteboard recipe) rides a signed CDP-WebSocket relay; that
 relay is declared here as the typed ``CdpTransport`` Protocol — DECLARATION ONLY. Its
 implementation (Python ``websockets``, raw ``Input.dispatchMouseEvent``, ~120s token
-re-mint) lands later, behind this same seam, with no Protocol change.
+re-mint) lands in, behind this same seam, with no Protocol change.
 """
 
 from __future__ import annotations
@@ -52,18 +52,18 @@ class ScrapeResult(BaseModel):
 
 
 # --------------------------------------------------------------------------------------
-# CDP-WebSocket transport seam (DECLARATION ONLY — impl later)
+# CDP-WebSocket transport seam (DECLARATION ONLY — impl in)
 # --------------------------------------------------------------------------------------
 
 
 @runtime_checkable
 class CdpTransport(Protocol):
     """The typed seam for the signed CDP-WebSocket relay the raw mouse/keyboard helpers
-    ride. ``send`` dispatches a raw CDP method
+    ride (RESEARCH-3 §1.2). ``send`` dispatches a raw CDP method
     (``Input.dispatchMouseEvent``/``dispatchKeyEvent``, …); ``remint`` refreshes the
     ~120s-lived signed relay token before it expires; ``close`` tears the socket down.
 
-    DECLARATION ONLY here — the concrete ``websockets`` driver lands later. Declaring
+    DECLARATION ONLY here — the concrete ``websockets`` driver lands in. Declaring
     it now means the mouse/keyboard ergonomic helpers are written against a stable seam
     and the real transport drops in with no Protocol change.
     """
@@ -130,13 +130,13 @@ class PageApi(Protocol):
 
 @runtime_checkable
 class BrowserProvider(Protocol):
-    """The ONE full-primitive, capability-scoped browser handle.
+    """The ONE full-primitive, capability-scoped browser handle (RESEARCH-3 §1.4).
 
     Bound to ONE ghost's session. Exposes the FULL surface names
     (session/nav/mouse/keyboard/page/extract/scrape/search/screenshot/live_frames) and
     NOTHING else — no os/sys/subprocess/socket/httpx/SDK member. ``FakeBrowserProvider``
     fulfils it in-memory (stages 1–2 + tests); ``GhostCrawlProvider`` fulfils it
-    over the Python SDK; the raw-input impl lands later. All share this Protocol.
+    over the Python SDK; the raw-input impl lands in. All share this Protocol.
     """
 
     # --- namespaced primitive surfaces ------------------------------------------------
@@ -169,6 +169,6 @@ class BrowserProvider(Protocol):
         self, handle: BrowserSessionHandle, signal: Any
     ) -> AsyncIterator[str]: ...
 
-    # --- the raw-input transport seam (declaration only; None until later) -----------
+    # --- the raw-input transport seam (declaration only; None until) -----------
     @property
     def transport(self) -> CdpTransport | None: ...

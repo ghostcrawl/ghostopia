@@ -1,9 +1,9 @@
-"""builtin/ — the AUTO-DISCOVERY loader.
+"""builtin/ — the AUTO-DISCOVERY loader (RESEARCH-3 §2.3).
 
 Importing this package imports EVERY behavior module in this directory, so each builtin
 self-registers on import with ZERO renderer/core-loop edit. Author a behavior in ONE file,
 drop it under ``builtin/`` → :func:`discover_builtins` picks it up on the next import (the
-"adding a behavior never touches the renderer or core loop" property).
+ "adding a behavior never touches the renderer or core loop" property).
 
 Convention: any module in this package whose name does NOT start with ``_`` is a behavior
 module and is imported (a ``*_behavior`` naming suffix is honored too — it always matches).

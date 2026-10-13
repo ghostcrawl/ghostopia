@@ -1,7 +1,7 @@
 // ghostopia ghost-renderer — the ONE cute-spooky ghost, directional + animated,
 // ANY colour.
 //
-// Drives the art runtime contract (docs/ART_RUNTIME_CONTRACT.md):
+// Drives the plan-24 art runtime contract (docs/ART_RUNTIME_CONTRACT.md):
 //   1. TURN from the movement vector via `facingFromVector` (8-way, honouring
 //      the mirror flag with a horizontal flip).
 //   2. PICK the clip for the ghost's state (idle.<facing> / move.<facing> /
@@ -72,7 +72,7 @@ const WORK_STATES = new Set<GhostState>([
 ]);
 
 /**
- * Per-kind work clips: a ghost's specific browser work phase → an
+ * Per-kind work clips (P8): a ghost's specific browser work phase → an
  * `work.<kind>` clip so an observer can tell WHAT it is doing at the workstation.
  * States without a distinct phase (opening / at-station / processing / waiting)
  * fall back to the generic `work` clip.
@@ -127,7 +127,7 @@ export function resolveFacing(
 }
 
 /**
- * Whether the Zzz "resting" overlay should show. Reserved for a
+ * Whether the Zzz "resting" overlay should show (UI-SPEC §1). Reserved for a
  * TRUE grave-rest state (`IDLE`) ONLY — never a between-walk pause (which stays
  * `WALKING`/`RETURNING_HOME` while the server chains the next waypoint) nor a working
  * state. Extracted as a pure predicate so the "reserved for true rest" contract is
@@ -383,7 +383,7 @@ export class GhostSprite {
       this.alert.visible = false;
     }
 
-    // Zzz over a TRUE grave-rest ghost only — never a
+    // Zzz over a TRUE grave-rest ghost only (/ UI-SPEC §1) — never a
     // between-walk pause (which stays WALKING while the server chains waypoints).
     const idle = restingZzzVisible(ghost.state);
     if (idle) {

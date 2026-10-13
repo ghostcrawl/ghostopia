@@ -11,13 +11,56 @@ to it exclusively over the authed WS.
 
 from __future__ import annotations
 
+import logging
 import os
+from collections.abc import Awaitable, Callable
+from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 
-from .auth import get_jwt_secret, mint_token
+
+# Modern lifespan replaces the deprecated @app.on_event hooks. Because handlers are contributed by
+# several wrapping factories AFTER the FastAPI() is built (create_live_app / create_sim_app /
+# create_workforce_app), we cannot pass a fixed lifespan to each layer's constructor. Instead the
+# base app carries two ordered callback registries and ONE lifespan that runs them: startup in
+# registration order (preserves entitlement-cap → warm-pool ordering), shutdown in reverse (LIFO,
+# matching Starlette's old shutdown semantics, so the DB conn still closes last). Each layer just
+# appends via on_startup()/on_shutdown() exactly where it used to write @app.on_event(...).
+_StartupCB = Callable[[], Awaitable[None]]
+
+
+def on_startup(app: FastAPI, fn: _StartupCB) -> _StartupCB:
+    """Register an async startup callback (runs before `yield`, in registration order)."""
+    if not hasattr(app.state, "_startup_cbs"):
+        app.state._startup_cbs = []
+    app.state._startup_cbs.append(fn)
+    return fn
+
+
+def on_shutdown(app: FastAPI, fn: _StartupCB) -> _StartupCB:
+    """Register an async shutdown callback (runs after `yield`, in reverse registration order)."""
+    if not hasattr(app.state, "_shutdown_cbs"):
+        app.state._shutdown_cbs = []
+    app.state._shutdown_cbs.append(fn)
+    return fn
+
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    for cb in list(app.state._startup_cbs):
+        await cb()
+    try:
+        yield
+    finally:
+        for cb in reversed(list(app.state._shutdown_cbs)):
+            try:
+                await cb()
+            except Exception:  # noqa: BLE001 — one handler's failure must not skip the rest
+                logging.getLogger("ghostopia.server").exception("shutdown handler failed")
+
+from .auth import check_bootstrap, get_jwt_secret, mint_token
 from .ws_gateway import start_ws_gateway
 
 
@@ -55,6 +98,12 @@ def mount_web_ui(app: FastAPI) -> None:
     """
     dist = _web_dist_dir()
     if dist is None:
+        # Don't silently serve API-only — a fresh clone that skipped the UI build gets a
+        # headless server with no explanation otherwise. Say so clearly, once.
+        logging.getLogger("ghostopia.server").warning(
+            "web UI not built (no apps/web/dist) — serving API only. "
+            "Build the UI with `make run` (needs Node/npm), or set GHOSTOPIA_WEB_DIST."
+        )
         return
     # Drop a prior web mount so a re-call re-appends the catch-all LAST (after later routes).
     app.router.routes = [r for r in app.router.routes if getattr(r, "name", None) != "web"]
@@ -70,14 +119,16 @@ def create_app(*, secret: str | None = None) -> FastAPI:
     """
     resolved_secret = secret if secret is not None else get_jwt_secret()
 
-    app = FastAPI(title="ghostopia-server", version="0.0.0")
+    app = FastAPI(title="ghostopia-server", version="0.0.0", lifespan=_lifespan)
+    app.state._startup_cbs = []
+    app.state._shutdown_cbs = []
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
         return {"status": "ok"}
 
     @app.get("/token")
-    async def token() -> dict[str, str]:
+    async def token(request: Request) -> dict[str, str]:
         """Mint a short-lived operator token so the UI authenticates against THIS backend.
 
         ghostopia is single-operator, local-first: the signing secret lives server-side,
@@ -85,7 +136,25 @@ def create_app(*, secret: str | None = None) -> FastAPI:
         token predates a restart) GETs this route for a freshly-minted token, then opens ``/ws``
         with it. This is the real self-hosted-backend auth path — it replaces the ``the earlier token``
         endpoint the frontend referenced but that was never served.
+
+        MINT GATE: a LOOPBACK caller (the operator's own browser, or a
+        request arriving through an SSH/tunnel that terminates on localhost) mints freely. A direct
+        NON-loopback (LAN/WAN) caller must present a valid ``X-Operator-Bootstrap`` header matching
+        ``GHOSTOPIA_BOOTSTRAP_TOKEN`` — otherwise anyone who can reach a host-bound (0.0.0.0) server
+        could mint an operator token and drive the operator's GhostCrawl key. Default-bind loopback
+        (see ``workforce_app``); opt into LAN reach only with a bootstrap token set.
         """
+        client_host = request.client.host if request.client else None
+        is_loopback = client_host in ("127.0.0.1", "::1")
+        if not is_loopback and not check_bootstrap(request.headers.get("x-operator-bootstrap")):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "token mint refused for a non-local request — present a valid operator "
+                    "bootstrap token (set GHOSTOPIA_BOOTSTRAP_TOKEN and send X-Operator-Bootstrap), "
+                    "or reach this server over loopback / a tunnel."
+                ),
+            )
         return {"token": mint_token(subject="operator", secret=resolved_secret)}
 
     start_ws_gateway(app, secret=resolved_secret)

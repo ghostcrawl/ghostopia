@@ -1,6 +1,6 @@
 """v0 :class:`InProcessExecutor` — the in-process, capability-scoped asyncio executor.
 
-This is the honest local-first Layer 2: operator-authored behaviors run
+This is the honest local-first Layer 2 (RESEARCH-3 §5.3): operator-authored behaviors run
 as asyncio tasks in this process, against the capability-scoped ctx. It enforces two limits
 so no behavior can wedge the loop:
 

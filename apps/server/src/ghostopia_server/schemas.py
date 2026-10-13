@@ -59,10 +59,10 @@ class SimStop(BaseModel):
 
 
 class MissionSubmit(BaseModel):
-    """A real-mission submission — STAGE-3 single-session OR STAGE-6 fan-out.
+    """A real-mission submission — STAGE-3 single-session OR STAGE-6 fan-out (/14).
 
     Carries ONLY NAMES + urls — never a key/secret (credentials resolve server-side from
-    ``config``). Two shapes are accepted:
+    ``config``; threats /). Two shapes are accepted:
 
     * **legacy single** — ``target_name`` + ``url`` → one real GhostCrawl session (stage 3);
     * **fan-out** — ``urls`` (multi-target) + ``entry_section`` + ``agent_mode`` → the mission
@@ -86,7 +86,7 @@ class MissionSubmit(BaseModel):
 
 class GhostManage(BaseModel):
     """A runtime MANAGEMENT command: assign-behavior / assign-section /
-    pause / resume / cancel / retarget a ghost — server-authoritative.
+    pause / resume / cancel / retarget a ghost — server-authoritative (RESEARCH-2 Design D).
 
     Carries NAMES only (``behavior`` / ``section`` registry/section ids) — never a key. The
     concrete Pydantic-per-command validation + authoritative effect live in
@@ -108,14 +108,14 @@ class CatalogRequest(BaseModel):
 
     The client sends this on connect; the server answers with ``catalog.behaviors`` (from
     ``behaviors.list()``) + ``catalog.sections`` so the Sections panel + Ghost inspector
-    dropdowns are populated from the server — adding a behavior/section needs NO UI edit.
-    Payload empty (``extra='forbid'``)."""
+    dropdowns are populated from the server — adding a behavior/section needs NO UI edit
+. Payload empty (``extra='forbid'``)."""
 
     model_config = {"extra": "forbid"}
 
 
 class CritterPet(BaseModel):
-    """A click-to-pet on an autonomous graveyard critter.
+    """A click-to-pet on an autonomous graveyard critter (P14).
 
     Carries only the critter id the operator tapped; the server acks a ``critter.petted``
     (a heart/spark flash) ONLY for a known critter. ``extra='forbid'``."""
@@ -129,7 +129,7 @@ class GhostSelect(BaseModel):
     """A STAGE-4 live-inspector selection: stream ONE ghost's real frames.
 
     Carries only the ghost id to focus (``ghost_id: null`` / absent = deselect / panel close).
-    The server opens ``recordings.visual().watch()`` for ONLY the selected ghost
+    The server opens ``recordings.visual().watch()`` for ONLY the selected ghost (BRIEF §36)
     and relays ``browser.frame`` envelopes; the client holds no key. ``extra='forbid'``."""
 
     model_config = {"extra": "forbid"}
@@ -182,7 +182,7 @@ class SectionRemove(BaseModel):
 
 
 class WorkforceStart(BaseModel):
-    """``workforce.start`` — run the Live-mode workforce template (3 ghosts × 6 sections
+    """ ``workforce.start`` — run the Live-mode workforce template (3 ghosts × 6 sections
     on example.com). Empty payload (``extra='forbid'``); the template is server-defined."""
 
     model_config = {"extra": "forbid"}
@@ -196,7 +196,7 @@ class WorkforceStop(BaseModel):
 
 
 class WorkforceAdvanced(BaseModel):
-    """``workforce.advanced`` — toggle an opt-in ADVANCED real-retail department
+    """ ``workforce.advanced`` — toggle an opt-in ADVANCED real-retail department
     on/off at runtime. Carries the department ``id`` + ``enabled`` flag; the server honors only
     a KNOWN advanced department id (an arbitrary id is ignored so the safe keyless default can
     never be bypassed). ``extra='forbid'``."""
@@ -208,7 +208,7 @@ class WorkforceAdvanced(BaseModel):
 
 
 class GhostSpawn(BaseModel):
-    """``ghost.spawn`` — add ONE ambient ghost into a named section (the per-section '+'
+    """ ``ghost.spawn`` — add ONE ambient ghost into a named section (the per-section '+'
     control). Carries only the section NAME; the server picks the behavior + id. ``extra='forbid'``."""
 
     model_config = {"extra": "forbid"}
@@ -217,7 +217,7 @@ class GhostSpawn(BaseModel):
 
 
 class GhostDespawn(BaseModel):
-    """``ghost.despawn`` — remove ONE ghost authoritatively (the per-section '-' control).
+    """ ``ghost.despawn`` — remove ONE ghost authoritatively (the per-section '-' control).
     Carries only the ghost id. ``extra='forbid'``."""
 
     model_config = {"extra": "forbid"}

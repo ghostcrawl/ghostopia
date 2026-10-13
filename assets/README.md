@@ -2,10 +2,10 @@
 
 These assets are the STAGE-0 art foundation for ghostopia's graveyard world. They are
 **language-neutral data** (JSON pixel-grids + a manifest + palettes) consumed by the
-frontend TS runtime `@ghostopia/ghost-art`. The renderer reads the same manifest
+frontend TS runtime `@ghostopia/ghost-art`. The renderer (plan 06) reads the same manifest
 as data — so **adding art is a data drop, never a renderer code change**.
 
-## Originality
+## Originality (— hard requirement)
 
 **Every grid here is authored by hand from scratch.** No sprite, tileset, map, character,
 palette, or `.aito`/asset file from any reference repository was traced, copied, or reused.

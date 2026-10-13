@@ -1,4 +1,4 @@
-"""The GhostDriver — events -> server-authoritative presentation.
+"""The GhostDriver — events -> server-authoritative presentation (Task 2).
 
 The brain-stem that makes ghosts "feel alive". It consumes normalized event envelopes
 (``type``/``ghost_id``/``payload`` — a :class:`ghostopia_shared.GhostEvent` or an
@@ -16,7 +16,7 @@ each ghost's authoritative COARSE lifecycle state in sync, and translates the re
 
 The driver is SOURCE-AGNOSTIC: simulated (stage 1-2, FakeBrowserProvider) and real GhostCrawl
 (stage 3+) events produce identical presentation. It DECIDES no tasks — it dispatches the WORK
-state to the mounted Behavior through a hook (the composition layer supplies the
+state to the mounted Behavior through a hook (composition layer in plan 08/13 supplies the
 instance); the Behavior EMITS, the driver REACTS.
 """
 
@@ -46,7 +46,7 @@ class _EventLike(Protocol):
 
 
 # A specific WORK state -> the per-kind `work.<kind>` clip the renderer plays so an observer
-# can tell WHAT the ghost is doing at the workstation. The GhostDriver selects the
+# can tell WHAT the ghost is doing at the workstation (P8). The GhostDriver selects the
 # clip from the real browser.action.kind / work phase; the handle emits `anim=work.<kind>`.
 _WORK_STATE_KIND: dict[GhostState, str] = {
     GhostState.NAVIGATING: "navigating",
@@ -79,7 +79,7 @@ def _scraped_count(p: dict[str, Any]) -> int:
     return len(fields) if isinstance(fields, list) else 0
 
 
-# Event field -> a specific status bubble ("contextual status extraction"). The
+# Event field -> a specific status bubble (RESEARCH-2 "contextual status extraction"). The
 # renderer never invents this text; the server extracts it from the real event payload.
 #
 # BOUNDARY SANITIZER: every bubble derived from a live event's kind/code/status/say
@@ -178,7 +178,7 @@ class GhostDriver:
             # Auto-return presentation: a completed ghost heads to the NEAREST FREE grave.
             self._walk_to(handle, "home", self._grave_point(handle))
         elif new == GhostState.IDLE and prev != GhostState.IDLE:
-            # Settle facing a sensible resting direction on idle arrival.
+            # Settle facing a sensible resting direction on idle arrival (server half).
             handle.face_rest()
             handle.say("Back home", "status")
 

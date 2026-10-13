@@ -1,4 +1,4 @@
-"""Layer 2: the pluggable ``Executor`` seam.
+"""Layer 2: the pluggable ``Executor`` seam (RESEARCH-3 §5.3–5.4).
 
 An ``Executor`` runs ONE behavior against a capability-scoped :class:`BehaviorContext` under
 resource/time limits, driving ``on_start`` → ``on_tick``/``on_event`` → ``on_end`` and
@@ -13,11 +13,11 @@ ctx across the boundary) drops in behind THIS Protocol with **zero behavior-cont
 the :class:`~ghostopia_behaviors.behavior.Behavior` contract and
 :func:`~ghostopia_behavior_executor.capability_scope.build_capability_scoped_context` are
 untouched. That is only possible if behaviors are PURE with respect to the injected ctx
-— a behavior with a module-level side effect or a ctx-external reach
+(RESEARCH-3 Pitfall 4) — a behavior with a module-level side effect or a ctx-external reach
 is isolate-hostile and violates the contract.
 
 ⚠ Python ``eval``/``exec`` are NOT a security boundary and are not used anywhere here for
-isolation. Authored/LLM output is DATA (validated, decode-only); the executor
+isolation. Authored/LLM output is DATA (validated, decode-only — /21); the executor
 grants a behavior NO way to run arbitrary host code.
 """
 

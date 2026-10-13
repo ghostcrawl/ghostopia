@@ -1,6 +1,6 @@
 // ghostopia ghost-renderer — typed loader for maps/graveyard.json.
 //
-// The world model is PYTHON-server-authoritative (emits the map as
+// The world model is PYTHON-server-authoritative (plan 04 emits the map as
 // language-neutral DATA at maps/graveyard.json). This loader turns that JSON
 // into a typed `WorldMapData` the renderer draws — a DATA import, NOT a Python
 // package import. It validates the shape and normalizes `tile_size` -> tileSize.
@@ -25,7 +25,7 @@ export interface MapDestination {
 }
 
 /**
- * A painted spatial PLOT: a named area rect that maps to a section id. The
+ * A painted spatial PLOT (P17): a named area rect that maps to a section id. The
  * renderer tints/labels each plot as its section; the in-app editor's area tool will
  * edit this layer. Bounds are TILE coords (a plot IS a region, spatialized to a section).
  */
@@ -39,10 +39,10 @@ export interface Area {
 }
 
 /**
- * A placed prop on the map: a catalog prop at a tile, with a
+ * A placed prop on the map (clean-room P19): a catalog prop at a tile, with a
  * facing + optional state. The SERVER owns this layer (its footprint is folded into the
  * walkable grid so A* routes around it); the renderer draws each prop purely from its
- * catalog def + this {tile, orientation, state}. This IS the data model the in-app editor edits.
+ * catalog def + this {tile, orientation, state}. This IS the data model the editor edits.
  */
 export interface PlacedProp {
   catalogId: string;
@@ -60,9 +60,9 @@ export interface WorldMapData {
   height: number;
   /** pixel size of one tile. */
   tileSize: number;
-  /** region id -> tile bounds (also the section partition). */
+  /** region id -> tile bounds (also the section partition, plan 18). */
   regions: Record<string, Bounds>;
-  /** painted section PLOTS — named area rects each mapping to a section. */
+  /** painted section PLOTS — named area rects each mapping to a section (P17). */
   areas: Area[];
   /** server-owned placed-props layer — the decor the renderer draws from the catalog. */
   placedProps: PlacedProp[];
@@ -139,7 +139,7 @@ export function loadMapData(json: unknown): WorldMapData {
     }
   }
 
-  // painted section plots. Optional: a map without an `areas` layer falls back
+  // painted section plots (P17). Optional: a map without an `areas` layer falls back
   // to one plot per region (each region IS a section partition), so older maps still render.
   const areas: Area[] = [];
   if (Array.isArray(json.areas)) {

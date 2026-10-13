@@ -1,6 +1,6 @@
 // ghostopia web — the HUD shell: a single, non-overlapping, collapsible dock.
 //
-// Previously the Live-mode panels (mission / dashboard / sections / selected-ghost /
+// Before the Live-mode panels (mission / dashboard / sections / selected-ghost /
 // diagnostics / data / roster) were each absolutely positioned and overlapped one another
 // and the in-world section labels. HudShell docks them ALL into one scrollable column of
 // collapsible groups (native <details>/<summary> — accessible + testable), so nothing

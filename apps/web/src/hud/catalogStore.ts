@@ -22,7 +22,7 @@ export interface CatalogSection {
   capacity: number;
   accepts: string[];
   // The explicit server section-kind tag: "department" marks a real result repository.
-  // The map click-gate trusts THIS tag (never inferred from `targetUrl` presence).
+  // The map click-gate trusts THIS tag (never inferred from `targetUrl` presence —).
   kind?: string | null;
   // The department's what-to-scrape identity (NAMES/target only). `hasSchema` is a
   // presence flag — the extract_schema body stays server-side (thin-frontend, no key).
@@ -30,7 +30,7 @@ export interface CatalogSection {
   query?: string | null;
   category?: string | null;
   hasSchema?: boolean;
-  // An opt-in ADVANCED real-retail department — off by default (it searches real
+  //: an opt-in ADVANCED real-retail department — off by default (it searches real
   // stores with the operator's own key). The AdvancedDepartments panel offers the toggle.
   advanced?: boolean;
 }

@@ -1,4 +1,4 @@
-"""ghostopia-task-manager — the Task/mission management COMMAND surface.
+"""ghostopia-task-manager — the Task/mission management COMMAND surface (RESEARCH-3 §4).
 
 A **Task** is declarative, parameterized DATA (a validated
 :class:`~ghostopia_shared.task.TaskSpec` naming a vetted behavior) distinct from a
@@ -7,7 +7,7 @@ A **Task** is declarative, parameterized DATA (a validated
 * :class:`~ghostopia_task_manager.task_manager.TaskManager` — the nine server-authoritative
   verbs (create/assign/run/update/pause/resume/retarget/cancel/monitor) that VALIDATE every
   spec/patch and compose over the bounded :class:`~ghostopia_orchestration.WorkQueue` +
-  section role fan-out, never bypassing the governor-safe queue;
+  section role fan-out (/18), never bypassing the governor-safe queue;
 * :mod:`~ghostopia_task_manager.task_store` — the injectable :class:`TaskStore` Protocol
   (in-memory default + a stdlib-``sqlite3`` adapter seam), so the server binds durable
   persistence while the package never imports a db.

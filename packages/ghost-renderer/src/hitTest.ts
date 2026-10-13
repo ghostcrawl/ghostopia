@@ -1,7 +1,8 @@
 // ghostopia ghost-renderer — pure pointer hit-testing math (canvas ghost click-to-select).
 //
 // The render loop hit-tests a click against the ghost sprites so clicking a ghost on the
-// PixiJS canvas selects it — the SAME `ghost.select` the roster row fires. These helpers are PURE (no PixiJS) so the math is unit
+// PixiJS canvas selects it — the SAME `ghost.select` the roster row fires (BRIEF §36 single
+// active frame stream preserved). These helpers are PURE (no PixiJS) so the math is unit
 // tested directly: point-in-box, top-most-on-overlap, and the drag-vs-click threshold.
 
 /** An axis-aligned world-space box (a ghost sprite's footprint). */

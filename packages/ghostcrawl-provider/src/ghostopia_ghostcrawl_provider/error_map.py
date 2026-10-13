@@ -7,7 +7,7 @@ subclasses; also result-channel ``ScrapeError``) carrying ``code`` / ``retryable
 :class:`MappedError` the orchestrator turns into a ``browser.error`` / ``task.retry``
 event (``EVENT_PROTOCOL.md``) with a ghost visual and a backoff hint.
 
-The mapping is 1:1 with the GhostCrawl error codes:
+The mapping is 1:1 with the RESEARCH error table (``GHOSTCRAWL_INTEGRATION.md`` §4):
 a retryable failure becomes a ``task.retry`` (WAITING/RETRYING honouring
 ``retry_after``); a non-retryable failure becomes a ``browser.error`` (ghost ERROR ->
 RETURNING_HOME -> Error Graveyard). Values (``retryable`` / ``retry_after``) come from
@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from ghostcrawl.errors import ERROR_CODES
 
 # --------------------------------------------------------------------------------------
-# code -> ghost visual (the GhostCrawl error codes)
+# code -> ghost visual (the RESEARCH error table, GHOSTCRAWL_INTEGRATION.md §4)
 # --------------------------------------------------------------------------------------
 #: Every canonical catalog code maps to a concrete ghost visual. Codes not listed here
 #: fall through to ``_GENERIC_VISUAL`` so a new/unknown code still renders *something*.

@@ -1,6 +1,6 @@
 # ghostopia-behavior-executor
 
-The **trust/isolation model** as a small, tested Python package.
+The **trust/isolation model** (RESEARCH-3 §5) as a small, tested Python package.
 
 User/AI-authored behaviors run **server-side**, driving real browsers with real GhostCrawl
 keys. So the platform cannot hand a behavior the raw host — it hands it a bounded context and
@@ -10,7 +10,7 @@ runs it under limits. This package delivers **Layers 1 and 2** of the layered tr
 
 | Layer | What | Where |
 |-------|------|-------|
-| **Layer 0** | Declarative tasks = **no code** (the safest authoring surface) | authoring layer |
+| **Layer 0** | Declarative tasks = **no code** (the safest authoring surface) | / |
 | **Layer 1** | **Capability-scoping** (always on): a behavior only ever receives a bounded context | this package — `capability_scope.py` + `guarded_provider.py` |
 | **Layer 2** | **Pluggable Executor** with resource/time limits | this package — `executor.py` + `in_process_executor.py` |
 
@@ -22,8 +22,8 @@ else. There is **no `os` / `sys` / `socket` / `subprocess` / `httpx` / raw SDK /
 reachable from the context. `rng` is a seeded `random.Random` (deterministic
 per seed, independent of the process-global RNG); `emit` / `log` are the injected callbacks.
 
-`guard_browser_provider(provider, is_url_allowed)` enforces the **SSRF gate at the handle**:
-every URL a behavior navigates — `nav.goto`, `open`, `create_session`,
+`guard_browser_provider(provider, is_url_allowed)` enforces the **SSRF gate at the handle**
+: every URL a behavior navigates — `nav.goto`, `open`, `create_session`,
 `scrape` — passes the **injected** validator **before** the wrapped provider is touched. A
 blocked URL (private / loopback / link-local / `169.254.169.254` metadata / non-`http(s)`) never
 reaches the real provider (and thus never reaches GhostCrawl); an allowed URL delegates
@@ -51,8 +51,8 @@ two limits so no behavior can wedge the loop:
 
 ## The no-rewrite hardening path
 
-The whole point of the `Executor` seam is that **hardening needs no author-facing change**.
-v0 is in-process — honest for **operator-authored**
+The whole point of the `Executor` seam is that **hardening needs no author-facing change**
+(RESEARCH-3 §5.4). v0 is in-process — honest for **operator-authored**
 behaviors (the current, lower-risk population). When untrusted authorship arrives, the first
 hardening step is a **`SubprocessExecutor` / separate-interpreter executor** that marshals the
 capability-scoped ctx across a process boundary. That is an **Executor-implementation swap
@@ -66,8 +66,8 @@ The test suite proves this by running the **same** scripted behavior through a s
 stub `Executor` implementing the same seam. **No subprocess/isolate executor is built in v0** —
 it is the documented deferred path, and this package adds **no** native-isolate dependency.
 
-The swap only works if **behaviors are pure with respect to the injected ctx**:
-a behavior with a module-level side effect or a ctx-external reach (global state,
+The swap only works if **behaviors are pure with respect to the injected ctx** (RESEARCH-3
+Pitfall 4): a behavior with a module-level side effect or a ctx-external reach (global state,
 direct network, host access) is **isolate-hostile** and violates the contract — it cannot be
 marshalled across a process boundary. Reaching the outside world **only** through the ctx is a
 hard contract requirement, not a style preference.

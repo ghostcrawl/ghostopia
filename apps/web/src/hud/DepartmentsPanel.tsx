@@ -1,9 +1,9 @@
-// ghostopia web — the Departments panel.
+// ghostopia web — the Departments panel (Task 2).
 //
 // The operator's "easily edit what it is" surface: add / edit / remove a themed scraping
 // DEPARTMENT — a label/theme + a what-to-scrape identity (a target_url OR a search query) +
 // a category + an extract_schema (a simple field list) + map placement (bounds). Save emits the
-// authed-WS `section.save` verb with the assembled SectionDef; Remove emits
+// authed-WS `section.save` verb (Plan 04) with the assembled SectionDef; Remove emits
 // `section.remove {id}`. The server VALIDATES every department (schema → SSRF → surface-language)
 // and, on a reject, returns a reason the panel surfaces WITHOUT clearing the form.
 //
@@ -157,7 +157,7 @@ export function DepartmentsPanel({ onSave, onRemove, saveResult }: DepartmentsPa
     <section className="departments" aria-label="departments">
       <header className="departments__head">departments — what each team scrapes</header>
 
-      {/* The "point it at your own site" guide. One
+      {/* (S5, W7 touchpoint 1 /): the "point it at your own site" guide. One
           quiet line reusing .editor__hint (no modal, no wizard, no dismissal persistence). */}
       <p className="editor__hint departments__guide">
         point a department at YOUR product page — paste its URL above and its ghosts will bring back

@@ -1,4 +1,4 @@
-// ghostopia web — the global dashboard (STAGE 7), behavior/section-aware.
+// ghostopia web — the global dashboard (STAGE 7, BRIEF §24), behavior/section-aware.
 //
 // The command-center metrics: ghosts active/idle, browser sessions, pages crawled, pages/min,
 // records, completed/failed tasks, retries, captcha events, rate limits, avg page time, and
@@ -50,7 +50,7 @@ function behaviorTally(ghosts: Record<string, RosterEntry>): Array<{ behavior: s
     .sort((a, b) => b.count - a.count);
 }
 
-/** The global command-center dashboard — real metrics + per-section/behavior. */
+/** The global command-center dashboard (BRIEF §24) — real metrics + per-section/behavior. */
 export function Dashboard(): JSX.Element {
   const ghosts = useStore(rosterStore, (s) => s.ghosts);
   const sections = useStore(resultsStore, (s) => s.sections);

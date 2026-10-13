@@ -1,7 +1,7 @@
 // ghostopia web — React chrome mounting the PixiJS canvas + a minimal HUD.
 //
-// React renders CHROME ONLY. The world animates in the PixiJS ticker (render
-// loop) reading the Zustand store — there is NO React re-render per frame.
+// React renders CHROME ONLY. The world animates in the PixiJS ticker (plan-06
+// render loop) reading the Zustand store — there is NO React re-render per frame.
 // The HUD subscribes to the same store for a live ghost count / selection. This
 // file (and the whole app) imports NO GhostCrawl SDK, NO Python package, NO key.
 
@@ -23,7 +23,7 @@ import { draftFromMapData, draftToMapData, wireToDraft } from "./editor/mapio";
 import type { Footprints } from "./editor/tools";
 import { loadWorldAssets } from "./world/assets";
 import { SimClient } from "./simClient";
-import { startLiveClient, type LiveClientHandle } from "./liveClient";
+import { startLiveClient, type LiveClientHandle, type MissionFanout } from "./liveClient";
 import { resolvedWsUrl, tokenUrlFrom } from "./wsClient";
 import { InspectorPanel, openInspectorFor } from "./inspector/InspectorPanel";
 import { StatusPopup } from "./inspector/StatusPopup";
@@ -31,6 +31,8 @@ import { inspectorStore } from "./inspector/inspectorStore";
 import { GhostRoster } from "./hud/GhostRoster";
 import { ConnectionIndicator } from "./hud/ConnectionIndicator";
 import { groupBySection, rosterStore } from "./hud/rosterStore";
+import { connectionStore } from "./hud/connectionStore";
+import { catalogStore } from "./hud/catalogStore";
 import { aggregateThroughput, resultsStore } from "./hud/resultsStore";
 import { ZoomControls } from "./hud/ZoomControls";
 import { SettingsPanel } from "./hud/SettingsPanel";
@@ -51,7 +53,7 @@ import { DiagnosticsPanel } from "./hud/DiagnosticsPanel";
 import { HudShell } from "./hud/HudShell";
 
 /** The real-work section roles for the HUD legend (dot colour comes from the palette).
- *  Dropped the "home" legend row — the "home" concept is gone (graves
+ * finding #3: dropped the "home" legend row — the "home" concept is gone (graves
  *  scatter as placeable spawn points, no designated home); the legend names only real
  *  GhostCrawl-work zones. */
 const LEGEND: Array<{ id: string; label: string }> = [
@@ -59,7 +61,7 @@ const LEGEND: Array<{ id: string; label: string }> = [
   { id: "mystery-books", label: "mystery books" },
   { id: "spooky-masks", label: "spooky masks" },
   { id: "spooky-costumes", label: "spooky costumes" },
-  // The map is departments-only — the example.com stage utility zones
+  //: the map is departments-only — the example.com stage utility zones
   // (research/extraction/verify/canvas/error) are gone. resting is intentionally omitted:
   // the graveyard land itself is the resting area (no zone).
 ];
@@ -84,7 +86,7 @@ function Hud({ sectionTints }: { sectionTints: Record<string, number> }): JSX.El
   return (
     <div className="hud">
       <div className="hud__title">ghostopia</div>
-      {/* The in-app leg of the "Powered by GhostCrawl" attribution — a quiet
+      {/*: the in-app leg of the "Powered by GhostCrawl" attribution — a quiet
           sub-line under the masthead linking the product site. Surface-safe (GhostCrawl allowed);
           .hud is pointer-events:none, so the link re-enables its own pointer-events. */}
       <a
@@ -134,6 +136,62 @@ function Hud({ sectionTints }: { sectionTints: Record<string, number> }): JSX.El
   );
 }
 
+/**
+ * The first-use START panel. A public, first-time visitor lands here (not live, not editing) and
+ * can type a product and run a cheapest-offer search straight away — no decoding the mode toggles.
+ * It does NOT auto-run anything on page load (a scrape costs the operator's key); it just presents
+ * the ready-to-run search. `onSearch` enters the live workforce and runs the search once connected;
+ * the quiet secondary links open the empty workspace or a no-key demo without searching.
+ */
+function OnboardStart({
+  onSearch,
+  onOpenWorkspace,
+  onWatchDemo,
+}: {
+  onSearch: (query: string) => void;
+  onOpenWorkspace: () => void;
+  onWatchDemo: () => void;
+}): JSX.Element {
+  const [query, setQuery] = useState("");
+  const q = query.trim();
+  return (
+    <div className="overlay overlay--onboard">
+      <form
+        className="onboard"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (q) onSearch(q);
+        }}
+      >
+        <div className="onboard__head">find the cheapest offer</div>
+        <div className="onboard__body">
+          Type a product. A workforce of ghosts fans out across the web, compares every offer, and
+          brings back the lowest price.
+        </div>
+        <input
+          className="onboard__input"
+          aria-label="product to find the cheapest offer for"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Find the cheapest… e.g. 'Sony WH-1000XM5'"
+          autoFocus
+        />
+        <button type="submit" className="onboard__btn" disabled={!q}>
+          Find cheapest offers
+        </button>
+        <div className="onboard__alts">
+          <button type="button" className="onboard__link" onClick={onOpenWorkspace}>
+            or open the empty workspace
+          </button>
+          <button type="button" className="onboard__link" onClick={onWatchDemo}>
+            watch a demo (no key used)
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 export function App(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
@@ -142,15 +200,15 @@ export function App(): JSX.Element {
   const [simMode, setSimMode] = useState(false);
   const [liveMode, setLiveMode] = useState(false);
   const [editorOn, setEditorOn] = useState(false);
-  // The last section.save/remove result — drives the Departments panel reject line.
+  //: the last section.save/remove result — drives the Departments panel reject line.
   const [sectionSaveResult, setSectionSaveResult] = useState<SectionSaveResult | null>(null);
-  // the server-owned set of ADVANCED real-retail departments currently switched on
+  //: the server-owned set of ADVANCED real-retail departments currently switched on
   // (relayed on every workforce.advanced ack) — drives the opt-in toggle UI.
   const [advancedEnabled, setAdvancedEnabled] = useState<string[]>([]);
   // 195: the workforce is "running" whenever any workforce/department ghost is in the world —
   // derived from the live roster (reconnect-safe: no separate client state to drift). Drives the
   // Run ⇄ Stop toggle so the operator starts a working wave and stops it (dematerialize).
-  // match the server's AUTHORITATIVE workforce set (_has_live_workforce /
+  // WR-07: match the server's AUTHORITATIVE workforce set (_has_live_workforce /
   // _stop_workforce), which is workforce-* / dept-* AND the background baton stage-* ghosts —
   // via the shared `anyWorkforceGhost` predicate. If the featured dept-* ghosts are transiently
   // absent (between loop cycles) while stage-* ghosts are live, omitting stage- would flip the
@@ -161,6 +219,12 @@ export function App(): JSX.Element {
   // "summon the workforce" teaching moment. Derived from the live results store (reconnect-safe).
   const previewCount = useStore(resultsStore, (s) => s.preview.length);
   const recordCount = useStore(resultsStore, (s) => aggregateThroughput(s.sections).records);
+  // Coarse WS lifecycle (from the shared connectionStore) — drives the deferred flush of a
+  // first-use product search submitted from the START panel before the socket is open.
+  const connState = useStore(connectionStore, (s) => s.state);
+  // A product search submitted from the START panel while the live socket is still connecting.
+  // The flush effect below sends it once the socket opens (WsClient.send drops pre-open frames).
+  const pendingMissionRef = useRef<MissionFanout | null>(null);
   const simClientRef = useRef<SimClient | null>(null);
   const liveClientRef = useRef<LiveClientHandle | null>(null);
   // Graveyard Builder: the active (live) map + cached assets so the render loop can be
@@ -258,7 +322,7 @@ export function App(): JSX.Element {
       return;
     }
     for (const id of Object.keys(store.ghosts)) store.removeGhost(id);
-    // Authenticate against the self-hosted backend via its real `/token` route. A fresh
+    //: authenticate against the self-hosted backend via its real `/token` route. A fresh
     // tab has no token and GETs one; a tab whose baked VITE_GHOSTOPIA_WS_TOKEN predates a restart
     // re-fetches a fresh one instead of reconnecting forever with the stale one (empty world). The
     // provider always points at `/token` derived from the gateway URL — a blank/failed fetch keeps
@@ -266,7 +330,7 @@ export function App(): JSX.Element {
     const tokenUrl = tokenUrlFrom(resolvedWsUrl());
     const client = startLiveClient({
       tokenUrl,
-      // A validated map.save/reset rebroadcasts the authoritative world. Apply it to
+      //: a validated map.save/reset rebroadcasts the authoritative world. Apply it to
       // the live render loop (rebuild from the new map) + re-base the editor draft if editing.
       onWorldSnapshot: (map) => {
         try {
@@ -287,10 +351,10 @@ export function App(): JSX.Element {
       onMapSaved: (ok, reason) => {
         editorStore.setState({ saveResult: ok ? "saved ✓ live" : `rejected: ${reason ?? "invalid map"}` });
       },
-      // A section.save/remove result — the Departments panel surfaces a reject reason
+      //: a section.save/remove result — the Departments panel surfaces a reject reason
       // and keeps the form; on ok it clears back to "new" (the server rebroadcasts the catalog).
       onSectionSaved: (ok, reason) => setSectionSaveResult({ ok, reason }),
-      // Keep the advanced opt-in toggles in sync with the server-owned enabled set.
+      //: keep the advanced opt-in toggles in sync with the server-owned enabled set.
       onAdvancedToggled: (advanced) => setAdvancedEnabled(advanced),
     });
     liveClientRef.current = client;
@@ -311,7 +375,44 @@ export function App(): JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Global keyboard UX: ↑/↓ cycle the selected ghost across the roster order,
+  // First-use product search (START panel): start the real workforce and run the search as soon
+  // as it is reachable. We NEVER scrape on page load — only when the visitor submits a product.
+  // Entering live mode opens the socket asynchronously; stash the mission and let the flush effect
+  // below send it the moment the socket is open (WsClient silently drops a pre-open send).
+  const startProductSearch = (query: string): void => {
+    const q = query.trim();
+    if (!q) return;
+    pendingMissionRef.current = {
+      title: q,
+      urls: [],
+      query: q,
+      // A sensible default entry department; the flush resolves the live catalog's first real
+      // department when it has arrived so the mission files into a department that exists.
+      entrySection: "horror-books",
+      agentMode: "deterministic",
+    };
+    setLiveMode(true);
+  };
+
+  // Flush a stashed first-use search once the live socket is open. Resolve the entry department
+  // from the server-relayed catalog when available (it arrives right after connect), else keep the
+  // default — so the ready-to-run search fans into a department that actually exists.
+  useEffect(() => {
+    if (!liveMode || connState !== "open") return;
+    const pending = pendingMissionRef.current;
+    if (!pending || !liveClientRef.current) return;
+    const sections = catalogStore.getState().sections;
+    const dept = sections.find(
+      (s) => s.kind === "department" || (Array.isArray(s.accepts) && s.accepts.length > 0),
+    );
+    pendingMissionRef.current = null;
+    liveClientRef.current.submitMissionFanout({
+      ...pending,
+      entrySection: dept?.id ?? pending.entrySection,
+    });
+  }, [liveMode, connState]);
+
+  // Global keyboard UX (P11): ↑/↓ cycle the selected ghost across the roster order,
   // Esc deselects. Ignored while typing in the mission form (an input/textarea/select is focused).
   useEffect(() => {
     const orderedIds = (): string[] =>
@@ -410,7 +511,7 @@ export function App(): JSX.Element {
         }
         handleRef.current = handle;
 
-        // Startup cinematic: a one-shot pan from the Crypt/entry to the hub, skipped
+        // Startup cinematic (P15): a one-shot pan from the Crypt/entry to the hub, skipped
         // under reduced motion + cancelled on the first interaction.
         const md = assets.mapData;
         const ts = md.tileSize;
@@ -491,7 +592,12 @@ export function App(): JSX.Element {
 
   return (
     <div className="app">
-      <canvas ref={canvasRef} className="stage" />
+      <canvas
+        ref={canvasRef}
+        className="stage"
+        role="img"
+        aria-label="ghostopia world — a pixel-art graveyard where a workforce of ghosts searches the web and brings back product offers"
+      />
       <Hud sectionTints={sectionTints} />
       <ConnectionIndicator />
       <ZoomControls />
@@ -500,22 +606,25 @@ export function App(): JSX.Element {
         type="button"
         className="mode-toggle"
         aria-pressed={simMode}
+        title="watch a demo run — no real scrapes, no key used"
         onClick={() => setSimMode((v) => !v)}
       >
-        {simMode ? "● Simulated (live)" : "○ Simulated mode"}
+        {simMode ? "● Demo running" : "○ Demo mode"}
       </button>
       <button
         type="button"
         className="mode-toggle mode-toggle--live"
         aria-pressed={liveMode}
+        title="run real scrapes with your own GhostCrawl key"
         onClick={() => setLiveMode((v) => !v)}
       >
-        {liveMode ? "● Live (real session)" : "○ Live mode"}
+        {liveMode ? "● Live — using your key" : "○ Live mode"}
       </button>
       <button
         type="button"
         className="mode-toggle mode-toggle--editor"
         aria-pressed={editorOn}
+        title="edit the world layout — move graves and departments"
         onClick={() => setEditorOn((v) => !v)}
       >
         {editorOn ? "● Graveyard Builder" : "○ Graveyard Builder"}
@@ -537,7 +646,7 @@ export function App(): JSX.Element {
       )}
       {liveMode && (
         <>
-          {/* ONE docked, non-overlapping, collapsible control shell — the panels no
+          {/*: ONE docked, non-overlapping, collapsible control shell — the panels no
               longer stack on each other or cover the in-world section labels. A prominent
               "Run workforce" button is the obvious first action. */}
           <HudShell
@@ -592,7 +701,7 @@ export function App(): JSX.Element {
                       onRemove={(id) => liveClientRef.current?.removeSection(id)}
                       saveResult={sectionSaveResult}
                     />
-                    {/* the opt-in ADVANCED real-retail departments (off by default). */}
+                    {/*: the opt-in ADVANCED real-retail departments (off by default). */}
                     <AdvancedDepartments
                       enabled={advancedEnabled}
                       onToggle={(id, enabled) => liveClientRef.current?.enableAdvanced(id, enabled)}
@@ -635,7 +744,7 @@ export function App(): JSX.Element {
           <DepartmentResults />
         </>
       )}
-      {/* (S5): the empty-state "summon the workforce" onboarding CTA. Reuses .overlay
+      {/* (S5): the empty-state "summon the workforce" onboarding CTA. Reuses.overlay
           (position:absolute; inset:0; grid; place-items:center; pointer-events:none) — the button
           is the SOLE pointer-events:auto child, so the canvas stays draggable behind it. No modal,
           no wizard, no dismissal persistence (S5 scope). Fires the existing runWorkforce trigger. */}
@@ -655,6 +764,16 @@ export function App(): JSX.Element {
             </button>
           </div>
         </div>
+      )}
+      {/* First-use START panel: shown on the clean empty world before the visitor has chosen a
+          mode. Lets a public user type a product and run a cheapest-offer search immediately —
+          no mode-toggle guessing. Hidden once any mode is active (live/demo/editor). */}
+      {status === "ready" && !liveMode && !simMode && !editorOn && (
+        <OnboardStart
+          onSearch={startProductSearch}
+          onOpenWorkspace={() => setLiveMode(true)}
+          onWatchDemo={() => setSimMode(true)}
+        />
       )}
       {status === "loading" && <div className="overlay">summoning the graveyard…</div>}
       {status === "error" && <div className="overlay overlay--error">render error: {error}</div>}

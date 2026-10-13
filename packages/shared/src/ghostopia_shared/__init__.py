@@ -1,7 +1,7 @@
 """ghostopia-shared — the single Pydantic contract package.
 
-Exports every domain entity, the dynamic-behavior contract types,
-the harness Task/mission contract, and the normalized
+Exports every BRIEF §34 domain entity, the dynamic-behavior contract types
+(RESEARCH-2), the harness Task/mission contract (RESEARCH-3), and the normalized
 ``Envelope`` with a ``protocol_version`` the server version-gates. Every downstream
 backend package (world, runtime, behaviors, sections, provider, orchestration,
 task-manager, server) imports these as stable contracts; the TS frontend mirrors them
@@ -108,7 +108,7 @@ __all__ = [
     "ErrorEvent",
     # liveness contract
     "GhostAttention",
-    # domain entities
+    # domain entities (BRIEF §34)
     "Ghost",
     "Task",
     "Mission",
@@ -124,7 +124,7 @@ __all__ = [
     "EditableGrave",
     "EditableWorkstation",
     "EditableDirCollision",
-    # behavior contract
+    # behavior contract (RESEARCH-2)
     "GhostHandle",
     "WorldQuery",
     "BrowserProvider",
@@ -133,7 +133,7 @@ __all__ = [
     "EndReason",
     "SectionDef",
     "SectionRef",
-    # harness task/mission contract
+    # harness task/mission contract (RESEARCH-3)
     "TaskSpec",
     "MissionSpec",
     "TaskTarget",

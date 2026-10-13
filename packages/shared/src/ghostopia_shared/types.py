@@ -1,26 +1,27 @@
-"""ghostopia shared domain types — the single Pydantic contract.
+"""ghostopia shared domain types — the single Pydantic contract (BRIEF §34).
 
 Every entity the world, runtime, orchestrator, behaviors, sections, and server share
 lives here as a Pydantic model or Enum. This module ALSO owns the dynamic-behavior
-CONTRACT TYPES — ``GhostHandle``, ``Behavior``/
+CONTRACT TYPES (RESEARCH-2 Design A/B/C) — ``GhostHandle``, ``Behavior``/
 ``BehaviorContext``/``EndReason``, ``SectionDef``/``SectionRef``, ``WorldQuery``, and the
 full-primitive value types ``Point``/``Button`` (+ the ``BrowserProvider`` Protocol name)
 — so the behaviors package and sections package depend ONLY on
-``ghostopia-shared`` and never cycle with ghost-runtime.
+``ghostopia-shared`` and never cycle with ghost-runtime (RESEARCH-2 OQ2).
 
-The concrete ``BrowserProvider`` implementation lives in the ghost-runtime; here it is anchored
+The concrete ``BrowserProvider`` implementation lives in /20; here it is anchored
 as a Protocol so downstream shapes reference a stable name.
 """
 
 from __future__ import annotations
 
+import random
 from enum import StrEnum
 from typing import Any, Literal, Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # --------------------------------------------------------------------------------------
-# Value types (full-primitive capability anchors)
+# Value types (full-primitive capability anchors — RESEARCH-3 §1.4)
 # --------------------------------------------------------------------------------------
 
 
@@ -32,7 +33,7 @@ class Point(BaseModel):
 
 
 class Button(StrEnum):
-    """Mouse button for the CDP-WS raw-input relay."""
+    """Mouse button for the CDP-WS raw-input relay (RESEARCH-3 §1.2)."""
 
     LEFT = "left"
     MIDDLE = "middle"
@@ -172,10 +173,11 @@ class ErrorEvent(BaseModel):
 
 
 class GhostAttention(BaseModel):
-    """Whether a ghost needs the OPERATOR. Set when a ghost hits a state only a
+    """Whether a ghost needs the OPERATOR (P1). Set when a ghost hits a state only a
     human can clear — captcha_required / a non-retryable ``browser.error`` / ``task.failed`` /
     pool-exhausted / auth-needed — and cleared on resolution/removal. ``reason`` is a short
-    server-sourced code the HUD may surface. Keyed by ghost so set→clear is explicit."""
+    server-sourced code the HUD may surface. Keyed by ghost so set→clear is explicit
+."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -184,7 +186,7 @@ class GhostAttention(BaseModel):
 
 
 # --------------------------------------------------------------------------------------
-# World / domain entities
+# World / domain entities (BRIEF §34)
 # --------------------------------------------------------------------------------------
 
 
@@ -210,7 +212,7 @@ class Workstation(BaseModel):
 
 
 class PlacedProp(BaseModel):
-    """A prop placed on the world map.
+    """A prop placed on the world map (clean-room P19).
 
     A placed prop is FULLY described by its ``catalog_id`` (which prop from
     ``assets/props.catalog.json``), its ``tile`` (the top-left tile of its footprint),
@@ -361,7 +363,7 @@ class EditableMap(BaseModel):
 
 class Ghost(BaseModel):
     """A visual worker entity. Differentiated by name/section/task/location/UI —
-    NOT by RPG class."""
+    NOT by RPG class (BRIEF §22/§30)."""
 
     id: str
     name: str
@@ -424,7 +426,7 @@ class Result(BaseModel):
 
 
 # --------------------------------------------------------------------------------------
-# Section model (ghostopia-original)
+# Section model (RESEARCH-2 Design B — ghostopia-original)
 # --------------------------------------------------------------------------------------
 
 
@@ -476,7 +478,7 @@ class SectionRef(BaseModel):
 
 
 # --------------------------------------------------------------------------------------
-# Dynamic-behavior contract Protocols
+# Dynamic-behavior contract Protocols (RESEARCH-2 Design A/C)
 # --------------------------------------------------------------------------------------
 
 EndReason = Literal["completed", "failed", "cancelled", "retargeted"]
@@ -485,7 +487,7 @@ EndReason = Literal["completed", "failed", "cancelled", "retargeted"]
 @runtime_checkable
 class GhostHandle(Protocol):
     """The narrow command surface a Behavior uses to drive the visible ghost. A Behavior
-    touches the ghost ONLY through this (the NpcHandle analog)."""
+    touches the ghost ONLY through this (the NpcHandle analog, RESEARCH-2 Design A)."""
 
     def walk_to(self, dest: Point) -> None: ...
     def walk_to_workstation(self) -> None: ...
@@ -513,20 +515,23 @@ class WorldQuery(Protocol):
 
     def free_workstations(self, section: str | None = ...) -> list[Point]: ...
     def section_bounds(self, section: str) -> Bounds: ...
-    def random_reachable(self, bounds: Bounds) -> Point: ...
+    def random_reachable(self, bounds: Bounds, rng: random.Random | None = ...) -> Point: ...
     def random_reachable_global(
-        self, from_point: Point | None = ..., max_radius: int | None = ...
+        self,
+        from_point: Point | None = ...,
+        max_radius: int | None = ...,
+        rng: random.Random | None = ...,
     ) -> Point: ...
     def random_workstation(self, section: str) -> Point: ...
 
 
 @runtime_checkable
 class BrowserProvider(Protocol):
-    """The full-primitive GhostCrawl capability a Behavior receives.
+    """The full-primitive GhostCrawl capability a Behavior receives (RESEARCH-3 §1.4).
 
     Anchored here as a Protocol name; the concrete, capability-scoped implementation
     (session lifecycle + mouse/keyboard/page primitives + CDP-WS relay + live frames)
-    lives in the ghost-runtime. A Behavior NEVER imports the SDK — it holds only this handle."""
+    lives in /20. A Behavior NEVER imports the SDK — it holds only this handle."""
 
     async def open(self, opts: dict[str, Any]) -> Any: ...
     async def release(self) -> None: ...
@@ -538,7 +543,7 @@ class BrowserProvider(Protocol):
 
 @runtime_checkable
 class Behavior(Protocol):
-    """The decision unit. Original, modular, hot-registrable code
+    """The decision unit (RESEARCH-2 Design A). Original, modular, hot-registrable code
     with a documented lifecycle. ``on_tick`` MUST be non-blocking; long GhostCrawl calls
     are kicked off and their completion arrives on ``on_event``."""
 
@@ -551,7 +556,7 @@ class Behavior(Protocol):
 
 
 class BehaviorContext(BaseModel):
-    """Everything a Behavior receives — the capability-scoped seam. A
+    """Everything a Behavior receives — the capability-scoped seam (RESEARCH-3 §5.2). A
     behavior gets ONLY these; never ``fs``/``net``/``child_process``/keys/raw SDK.
 
     Uses arbitrary types (Protocols + callables); it is a runtime carrier, not a wire

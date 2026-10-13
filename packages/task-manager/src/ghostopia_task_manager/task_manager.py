@@ -1,14 +1,14 @@
-"""The :class:`TaskManager` — server-authoritative Task/mission verbs.
+"""The :class:`TaskManager` — server-authoritative Task/mission verbs (RESEARCH-3 §4).
 
 A **Task** is declarative DATA (a validated :class:`~ghostopia_shared.task.TaskSpec` that
-NAMES a vetted behavior — the WHAT), distinct from a **Behavior** (the executable HOW).
-This is the COMMAND surface: the nine verbs
+NAMES a vetted behavior — the WHAT), distinct from a **Behavior** (the executable HOW,
+). This is the COMMAND surface: the nine verbs
 ``create``/``assign``/``run``/``update``/``pause``/``resume``/``retarget``/``cancel``/
-``monitor``, each Pydantic-validated and applied to AUTHORITATIVE state
+``monitor`` (RESEARCH-3 §4.1), each Pydantic-validated and applied to AUTHORITATIVE state
 (the injectable :class:`~ghostopia_task_manager.task_store.TaskStore`) — invalid/unknown is
 rejected, NEVER silently applied.
 
-It **composes** with the execution engine rather than re-implementing it:
+It **composes** with the execution engine rather than re-implementing it (RESEARCH-3 §4.2):
 
 * ``assign``/``run`` hand a task off to the bounded
   :class:`~ghostopia_orchestration.WorkQueue` — the SINGLE dispatch choke point that routes
@@ -130,7 +130,7 @@ CancelRun = Callable[[str, str], Awaitable[None]]
 class TaskManager:
     """Holds the injectable store + composes over the bounded execution engine.
 
-    Injected deps: ``store`` (persistence), ``work_queue`` (the bounded
+    Injected deps (RESEARCH-3 §4.2): ``store`` (persistence), ``work_queue`` (the bounded
     execution engine the verbs compose over), ``sections`` (the role fan-out targets +
     :func:`route_task` the queue routes through), ``behaviors`` (the live registry a spec's
     ``behavior``/``params`` are validated against), ``emit`` (status/telemetry fan-out),
@@ -485,7 +485,7 @@ class TaskManager:
         return {"ok": True, "mission_id": mission_id, "tasks": len(record.task_ids)}
 
     async def run_mission(self, mission_id: str) -> dict[str, Any]:
-        """Wallet/quota-check (``me()``/``usage()``) BEFORE dispatch, enqueue
+        """Wallet/quota-check (``me``/``usage``) BEFORE dispatch, enqueue
         every member task, then drive the bounded queue once + settle each member."""
         record = self._store.get_mission(mission_id)
         await self._check_quota(mission_id)

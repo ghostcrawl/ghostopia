@@ -5,7 +5,7 @@ seeded DEPARTMENTS (Horror/Mystery Books + Spooky Masks/Costumes): for each depa
 spawns :data:`GHOSTS_PER_DEPARTMENT` ghosts, each running the department's OWN role against
 its OWN real target and surfacing the priced/detail list it brings back through a REAL
 GhostCrawl session. The example.com "stage" (varied actions on one safe URL) and the utility
-stage sections (research/extraction/verify/error/canvas) are GONE forward-only: the
+stage sections (research/extraction/verify/error/canvas) are GONE: the
 map is departments-only, so everything visible is a real result repository.
 
 Everything routes through the SAME authoritative pool/section path a mission uses
@@ -142,7 +142,7 @@ def workforce_pool_cap(account_limit: int | None = None) -> int:
       operator override, still clamped to ``account_limit`` when that is known so the override
       can only ever LOWER, never breach, the plan;
     * otherwise ``min(workforce_desired, account_limit)`` when the account's real limit is known
-      (the SDK ``me().max_concurrency`` entitlement — the single source of truth);
+      (the SDK ``me.max_concurrency`` entitlement — the single source of truth);
     * otherwise the governor-safe :data:`WORKFORCE_SAFE_DEFAULT` (3) when the limit is unknown,
       so a keyless/offline boot can never over-open.
 
@@ -468,6 +468,10 @@ class WorkforceRelay:
             queue = WorkQueue(
                 self.sections,
                 dispatch,
+                # The ambient workforce relay runs at the (larger) VISIBLE cap for walking
+                # ghosts, not the live-session cap — so it keeps its static gate. AIMD
+                # dynamic concurrency applies to the mission-dispatch path (Orchestrator),
+                # where the controller's ceiling (the live-session/crawl cap) is the match.
                 max_concurrent=self.pool.visible_workforce_cap,
             )
             seeded = False

@@ -13,6 +13,7 @@ accepted.
 
 from __future__ import annotations
 
+import hmac
 import os
 import time
 from typing import Any
@@ -21,7 +22,24 @@ import jwt
 
 _ALGORITHM = "HS256"
 _SECRET_ENV = "GHOSTOPIA_JWT_SECRET"
+_BOOTSTRAP_ENV = "GHOSTOPIA_BOOTSTRAP_TOKEN"
 _DEFAULT_TTL_SECONDS = 12 * 60 * 60  # 12h operator session
+
+
+def check_bootstrap(provided: str | None) -> bool:
+    """Constant-time check of an operator bootstrap token, for minting from a NON-loopback
+    client (— LAN token-mint).
+
+    ghostopia is single-operator, local-first: a loopback caller (the operator's own browser,
+    or a request arriving through an SSH/tunnel that terminates on localhost) mints freely. A
+    direct non-loopback (LAN/WAN) caller must present ``GHOSTOPIA_BOOTSTRAP_TOKEN`` — otherwise
+    anyone who can reach a host-bound server could mint an operator token. Returns False when the
+    env is UNSET (no remote mint without an explicit operator secret) or the value mismatches.
+    """
+    expected = os.environ.get(_BOOTSTRAP_ENV)
+    if not expected or not provided:
+        return False
+    return hmac.compare_digest(str(provided), str(expected))
 
 
 def get_jwt_secret() -> str:

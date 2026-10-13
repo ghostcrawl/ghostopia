@@ -4,7 +4,7 @@
 // SAME display-only pattern to the rest of the surface copy — the engine/UI words that leak
 // through the HUD, legend, hints and panel triggers ("workstation", "walk", "mission",
 // "home", "drag to pan"). The server's authoritative strings, section ids and env keys are NEVER
-// renamed — only the RENDERED label passes through `surfaceLabel()`.
+// renamed — only the RENDERED label passes through `surfaceLabel` (S6).
 //
 // Clarity guardrail (non-negotiable): words that are already clear AND on-theme
 // ("department", "findings", "Data Graveyard", "roster") are deliberately NOT in the map — an

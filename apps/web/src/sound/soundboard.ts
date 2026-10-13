@@ -1,4 +1,4 @@
-// ghostopia web — event-driven WebAudio soundboard.
+// ghostopia web — event-driven WebAudio soundboard (P5).
 //
 // ORIGINAL synthesized "spooky chimes" — built live from oscillators + gain
 // envelopes, NO audio files and NO reference-repo frequencies. A tiny event→sound

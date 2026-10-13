@@ -1,4 +1,4 @@
-// ghostopia web — the Diagnostics panel: REAL per-ghost + system health.
+// ghostopia web — the Diagnostics panel (P18): REAL per-ghost + system health.
 //
 // A debug read-out driven ONLY by real state: per-ghost session state / last-event age /
 // target / behavior (rosterStore + inspectorStore), and system pool occupancy + concurrency-

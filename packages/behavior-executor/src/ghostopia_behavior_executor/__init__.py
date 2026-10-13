@@ -10,7 +10,7 @@ Three concerns, one per module:
 * :mod:`executor` / :mod:`in_process_executor` — Layer 2: the pluggable :class:`Executor`
   seam (wall-clock + tick deadlines) and its v0 :class:`InProcessExecutor`. Swapping to a
   subprocess/isolate executor is an executor-package change with ZERO behavior-contract
-  change. Python ``eval``/``exec`` are NOT a security boundary and are not
+  change (RESEARCH-3 §5.4). Python ``eval``/``exec`` are NOT a security boundary and are not
   used for isolation.
 """
 

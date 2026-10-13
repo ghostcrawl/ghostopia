@@ -18,20 +18,27 @@ The registry is built LAZILY, so the app boots fine with NO key set — it rests
 empty graveyard and, when unconfigured, onboards a submitted mission gracefully ("Connect your
 GhostCrawl key and endpoint to summon the workforce") instead of crashing.
 
-This is the REAL app. ``GhostCrawlProvider`` is the ONLY provider in the shipped tree:
-there is no mock — every scrape goes THROUGH GhostCrawl. Server unit tests that need a
+This is the REAL app. ``GhostCrawlProvider`` is the ONLY provider in the shipped tree (/
+): there is no mock — every scrape goes THROUGH GhostCrawl. Server unit tests that need a
 provider without a live GhostCrawl use a lean in-test double (``conftest.FakeProvider``), never a
 shipped surface.
 
-Run it (bound to all interfaces so another device on the network can reach it)::
+Run it (bound to LOOPBACK — single-operator, local-first)::
 
     GHOSTOPIA_JWT_SECRET=<secret> GHOSTOPIA_DB_PATH=<tmp> \\
     GHOSTOPIA_GC_TOKEN=<key> GHOSTOPIA_GC_BASE_URL=<cloud-or-selfhost> \\
         uv run uvicorn ghostopia_server.workforce_app:create_workforce_app \\
-        --factory --host 0.0.0.0 --port 8000
+        --factory --host 127.0.0.1 --port 8000
+
+Reach it from ANOTHER device WITHOUT exposing an unauthenticated token-mint: prefer an SSH/
+Cloudflare tunnel (the request then terminates on loopback and mints normally). If you must bind
+to a LAN/all-interfaces address, the ``/token`` mint refuses non-loopback callers unless they
+present ``GHOSTOPIA_BOOTSTRAP_TOKEN`` via the ``X-Operator-Bootstrap`` header — set that env and
+have the remote device send it. Binding ``--host 0.0.0.0`` WITHOUT a bootstrap token would let
+anyone on the network mint an operator token, so it is no longer the default.
 
 The browser points its WS at this host via ``VITE_GHOSTOPIA_WS_URL`` and authenticates with an
-operator token (``VITE_GHOSTOPIA_WS_TOKEN`` or ``?token=``).
+operator token minted at ``/token`` (prefer a header over ``?token=`` so it never lands in logs).
 """
 
 from __future__ import annotations
@@ -39,10 +46,11 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import os
-from typing import Any
+from typing import Any, Protocol
 
 from fastapi import FastAPI
 
+from .app import on_shutdown
 from .gc_event_source import create_live_app
 from .sim_runtime import SimRuntime
 
@@ -55,7 +63,13 @@ __all__ = ["create_workforce_app"]
 _IDLE_TEARDOWN_GRACE_S = 6.0
 
 
-def _install_idle_teardown(app: FastAPI, gateway: Any, sim: SimRuntime) -> None:
+class _Stoppable(Protocol):
+    """The only surface the idle teardown needs from the ambient sim (``SimRuntime.stop``)."""
+
+    async def stop(self) -> None: ...
+
+
+def _install_idle_teardown(app: FastAPI, gateway: Any, sim: _Stoppable) -> None:
     """Auto-kill the whole workforce when the LAST operator disconnects.
 
     The workforce spawns LOOPING department ghosts, each holding ONE live GhostCrawl session; a
@@ -86,7 +100,7 @@ def _install_idle_teardown(app: FastAPI, gateway: Any, sim: SimRuntime) -> None:
         # Stop the ambient simulated world first (no live sessions, but keep it tidy).
         with contextlib.suppress(Exception):
             await sim.stop()
-        # Cancel the background baton relay's sustainer BEFORE despawning, so it cannot
+        #: cancel the background baton relay's sustainer BEFORE despawning, so it cannot
         # respawn stage ghosts we are about to tear down (the intent stays set so the first
         # reconnect restarts it — a fresh relay).
         relay = getattr(app.state, "workforce_relay", None)
@@ -96,7 +110,7 @@ def _install_idle_teardown(app: FastAPI, gateway: Any, sim: SimRuntime) -> None:
             app.state.workforce_relay = None
         # Despawn every pool ghost → aborts each run + RELEASES its live GhostCrawl session, so a
         # disconnected operator never leaves sessions open against the account's concurrency cap.
-        # DRAIN until stable — a relay queue.run() cancelled mid-flight can land a late
+        #: DRAIN until stable — a relay queue.run cancelled mid-flight can land a late
         # ``stage-*`` spawn AFTER a one-shot snapshot, leaving a straggler that survives the
         # teardown (a race the extra departments make more likely). Re-snapshotting in a bounded
         # loop guarantees the world is fully erased.
@@ -124,13 +138,14 @@ def _install_idle_teardown(app: FastAPI, gateway: Any, sim: SimRuntime) -> None:
     gateway.set_on_disconnect(_on_disconnect)
     app.state.idle_teardown_grace_s = grace_s
 
-    @app.on_event("shutdown")
     async def _cancel_pending_teardown() -> None:
         task = state["task"]
         if task is not None and not task.done():
             task.cancel()
             with contextlib.suppress(asyncio.CancelledError, Exception):
                 await task
+
+    on_shutdown(app, _cancel_pending_teardown)  # modern lifespan hook (was @app.on_event)
 
 
 def create_workforce_app() -> FastAPI:

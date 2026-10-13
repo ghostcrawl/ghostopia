@@ -204,7 +204,7 @@ export type ActionGlyphKind = (typeof ACTION_GLYPH_KINDS)[number];
 
 /**
  * Build a small ORIGINAL spectral ACTION GLYPH that floats beside a working ghost so an
- * observer can tell WHAT it is doing: a compass arrow (navigating), a magnifier
+ * observer can tell WHAT it is doing (P8): a compass arrow (navigating), a magnifier
  * (searching), a page (reading), up/down chevrons (scrolling), a down-tray (extracting). All
  * hand-authored vector marks in the graveyard idiom — no atlas frame, no reference art.
  */

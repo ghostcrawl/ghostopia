@@ -1,8 +1,8 @@
-// ghostopia ghost-renderer — the client-side mirror of the Pydantic
+// ghostopia ghost-renderer — the client-side mirror of the plan-03 Pydantic
 // contract (apps/web/src/contract/schema.json). These TS types describe the
 // server-authoritative shapes the renderer consumes; they are DATA shapes only
 // — this file imports NO GhostCrawl SDK and NO Python package. When the authed
-// WS lands its envelopes carry exactly these shapes into the SAME
+// WS lands (plan 11) its envelopes carry exactly these shapes into the SAME
 // Zustand store.
 
 /** A pixel/tile coordinate (contract: Point). */
@@ -12,17 +12,17 @@ export interface Point {
 }
 
 /**
- * An 8-way compass facing (contract: the `face` command's additive `facing` arg).
- * Byte-parity with the client `facingFromVector` / server `_FACING_SECTOR`
+ * An 8-way compass facing (contract: the `face` command's additive `facing` arg,
+ *). Byte-parity with the client `facingFromVector` / server `_FACING_SECTOR`
  * buckets — the SAME string set selects the exact clip the renderer would derive
- * from a movement vector (no new sprite art). Defined ONCE here; consumers
+ * from a movement vector (no new sprite art). Defined ONCE here; plans 05/06
  * consume, they do not redefine. Mirrors `@ghostopia/ghost-art`'s `Facing8`.
  */
 export type Facing = "s" | "se" | "e" | "ne" | "n" | "nw" | "w" | "sw";
 
 /**
  * The kind of work a ghost performs (contract: the server `browser.view` mode
- * envelope). `browser-nav` drives a live browser view; `api-only`
+ * envelope,). `browser-nav` drives a live browser view; `api-only`
  * drives an activity/data view instead of an (empty) browser frame. Additive-
  * optional; absent → treat as the graceful `browser-nav` default.
  */
@@ -62,14 +62,14 @@ export interface GhostAttention {
 
 /**
  * A visual worker entity (contract: Ghost). Differentiated by name/section/task/
- * location/UI — NEVER by RPG class. `state` defaults to IDLE and
+ * location/UI — NEVER by RPG class (BRIEF §22/§30). `state` defaults to IDLE and
  * `position` is null until the server places it.
  */
 export interface Ghost {
   id: string;
   name: string;
   /**
-   * VESTIGIAL: graves are transient shared rest spots chosen
+   * VESTIGIAL after: graves are transient shared rest spots chosen
    * nearest-free, never a designated per-ghost home — the server no longer writes
    * a `home_grave` on spawn. Kept OPTIONAL because legacy envelopes / seeds may
    * still carry it and the client defaults it to `""`; do not read it for home
@@ -93,8 +93,8 @@ export interface Ghost {
    */
   facing?: Facing | null;
   /**
-   * The ghost's work kind (from the server `browser.view` mode
-   * envelope). Drives the inspector's browser-vs-activity view branch. Additive-
+   * The ghost's work kind (from the server `browser.view` mode envelope,
+   *). Drives the inspector's browser-vs-activity view branch. Additive-
    * optional; absent → the graceful `browser-nav` default.
    */
   workKind?: GhostWorkKind | null;
@@ -134,7 +134,7 @@ export interface Bubble {
 
 /**
  * An autonomous graveyard CRITTER (contract: a `critter.spawned` / `critter.update`
- * envelope). Server-authoritative: the pure ghost-world FSM steps it and the
+ * envelope, P14). Server-authoritative: the pure ghost-world FSM steps it and the
  * server broadcasts its pixel position + coarse state; the renderer only draws it. Original
  * graveyard idiom — a black `cat` (ground layer) + a `wisp` / `bat` (overhead layer).
  */

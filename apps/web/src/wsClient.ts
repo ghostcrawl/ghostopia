@@ -1,7 +1,7 @@
 // ghostopia web — the authenticated WS client (JWT handshake + contract validation).
 //
 // The ONE transport the thin renderer uses to talk to the Python server. It opens the
-// authed WebSocket (the operator's HS256 token on `?token=`), validates every
+// authed WebSocket (the operator's HS256 token on `?token=`, per plan 09), validates every
 // inbound frame against the MIRRORED envelope contract (`contract/schema.json` — the same
 // Pydantic `Envelope` the server enforces), and hands valid envelopes to a subscriber. A
 // frame that fails the contract is dropped, never applied to the store.
@@ -96,7 +96,7 @@ export function resolvedWsUrl(): string {
 }
 
 /**
- * Derive the real backend token endpoint (`/token`) from a gateway WS URL —
+ *: derive the real backend token endpoint (`/token`) from a gateway WS URL —
  * `ws(s)://host[:port]/ws` → `http(s)://host[:port]/token`. The server mints an operator token
  * there (auth.mint_token), so a fresh tab authenticates against the self-hosted backend and a tab
  * whose baked token predates a restart re-fetches a fresh one. Replaces the `the earlier token` endpoint
@@ -115,7 +115,7 @@ export interface WsClientOptions {
   /** the operator's HS256 JWT (minted server-side). Default: `?token=` or the env. */
   token?: string;
   /**
-   * An optional async token source, re-invoked BEFORE every (re)connect. A fresh tab
+   *: an optional async token source, re-invoked BEFORE every (re)connect. A fresh tab
    * against a self-hosted backend has no token, and a tab whose baked token predates a restart
    * reconnects forever with the STALE one showing an empty world. When a provider is supplied,
    * each connect fetches a FRESH token (from the backend's `/token` route), so a fresh tab

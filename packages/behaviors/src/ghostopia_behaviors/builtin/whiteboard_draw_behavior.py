@@ -1,8 +1,8 @@
-"""``WhiteboardDraw`` — the collaborative-drawing behavior.
+"""``WhiteboardDraw`` — the collaborative-drawing behavior (RESEARCH-3 §1.3/§6).
 
 Each ghost opens its OWN chromium session on a drawing site and draws its assigned strokes
 with a real HELD mouse drag — ``mouse.down`` → N interpolated ``mouse.move`` → ``mouse.up``
-over the CDP-WS relay. This is the forcing function that proves the primitive
+over the CDP-WS relay (§1.3). This is the forcing function that proves the primitive
 layer is genuinely full-fidelity (not just scrape/extract): the step route (nav/click/type)
 CANNOT express a held stroke.
 

@@ -1,4 +1,4 @@
-"""The normalized in-proc async event bus.
+"""The normalized in-proc async event bus (RESEARCH §Testable Seams).
 
 One validated boundary the world, runtime, orchestrator, and server all share. Every
 publish is validated against the shared ``Envelope`` model (incl. ``protocol_version``)

@@ -1,4 +1,4 @@
-"""``IdleWander`` — an ambient behavior.
+"""``IdleWander`` — an ambient behavior (RESEARCH-2 Design A "Concrete examples").
 
 Ghosts are ghosts: when idle and a dwell timer expires, they ROAM the whole map —
 picking a reachable waypoint MAP-WIDE (``ctx.world.random_reachable_global`` over the
@@ -25,7 +25,7 @@ class IdleWanderParams(BaseModel):
         default=180.0,
         ge=0.0,
         description="Initial settle before the FIRST roam step; subsequent steps use the "
-        "jittered ``pause_min_ms``..``pause_max_ms`` window (a brief human pause, not "
+        "jittered ``pause_min_ms``..``pause_max_ms`` window (: a brief human pause, not "
         "a full stationary sit).",
     )
     pause_min_ms: float = Field(
@@ -53,7 +53,7 @@ class IdleWanderParams(BaseModel):
         le=1.0,
         description="Probability a roam step drifts back toward the resting-graveyard area "
         "(the shared graves) instead of roaming map-wide — a LOOSE anchor, NOT a designated "
-        "per-ghost home (graves are transient shared rest, never an owned home).",
+        "per-ghost home (: graves are transient shared rest, never an owned home).",
     )
     home_every: int = Field(
         default=4,
@@ -92,7 +92,7 @@ class IdleWander:
     def _next_pause_ms(self, ctx: BehaviorContext) -> float:
         """A short jittered human pause before the next chained waypoint.
 
-        Learned from natural human-flow pacing (dwell/read timing
+        Learned/adapted from natural human-flow pacing (dwell/read timing
         is a jittered distribution, never a fixed constant) — ORIGINAL implementation: a
         uniform draw over ``pause_min_ms``..``pause_max_ms`` on the seeded rng so the cadence
         reads organic yet stays deterministic under test."""

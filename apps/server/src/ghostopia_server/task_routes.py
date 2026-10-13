@@ -1,6 +1,6 @@
 """Server task-routes — the Task/mission COMMAND surface over WS + an HTTP mirror.
 
-The management verbs are exposed TWO ways, both applying the SAME
+The management verbs (RESEARCH-3 §4.1/§4.3) are exposed TWO ways, both applying the SAME
 server-authoritative :class:`~ghostopia_task_manager.TaskManager` over validated data:
 
 * **WS** — the inbound ``task.*`` / ``mission.*`` verbs ride the authed WS. They are
@@ -11,12 +11,12 @@ server-authoritative :class:`~ghostopia_task_manager.TaskManager` over validated
   ``/tasks/{id}/{assign,run,pause,resume}``, GET ``/tasks/{id}`` + an SSE monitor) for
   curl/script/CI drivers, JWT-gated by the same secret, with the same validation + effect.
 
-Every spec target/url is SSRF-revalidated BEFORE anything is enqueued;
-the verbs carry NAMES only — no key crosses the WS/HTTP body.
+Every spec target/url is SSRF-revalidated (gate) BEFORE anything is enqueued
+; the verbs carry NAMES only — no key crosses the WS/HTTP body.
 The management surface COMPOSES with the orchestrator: it builds a bounded
 :class:`~ghostopia_orchestration.WorkQueue` over the orchestrator's own per-task dispatch, so
 assign/run enqueue onto the governor-safe queue + fan out by section role — never an ad-hoc
-SDK session. It does NOT replace the orchestrator's ghost/section management.
+SDK session. It does NOT replace 's ghost/section management.
 """
 
 from __future__ import annotations
@@ -84,11 +84,17 @@ class _MissionAssignBody(_Strict):
     section: str | None = None
 
 
+class _ConcurrencyBody(_Strict):
+    #: A number pins the workforce concurrency (clamped to the plan's ceiling); "auto" hands
+    #: it back to the self-tuning controller.
+    target: int | str
+
+
 def _ssrf_validate_spec(
     spec: TaskSpec, allowed_self_host_hosts: tuple[str, ...]
 ) -> None:
     """Re-validate EVERY url a spec would dispatch against BEFORE it is enqueued
-    A blocked url raises :class:`SsrfBlockedError`; nothing is enqueued."""
+. A blocked url raises:class:`SsrfBlockedError`; nothing is enqueued."""
     for url in spec.inputs.urls or []:
         validate_mission_url(str(url), allowed_self_host_hosts)
 
@@ -112,7 +118,7 @@ def register_task_routes(
     Builds a :class:`TaskManager` over a bounded :class:`WorkQueue` (the orchestrator's own
     ``dispatch``), the shared ``sections``, the behaviors registry, and the gateway broadcast
     as the status/telemetry sink. Returns the manager (also on ``app.state.task_manager``).
-    Composes with the orchestrator — it registers NEW ``task.*``/``mission.*`` verbs, leaving
+    Composes with — it registers NEW ``task.*``/``mission.*`` verbs, leaving
     ``mission.submit`` / ``ghost.manage`` untouched.
     """
     resolved_secret = secret if secret is not None else get_jwt_secret()
@@ -385,6 +391,27 @@ def register_task_routes(
         except (TaskManagerError, SsrfBlockedError) as err:
             raise _bad_request(err) from None
         return {"task_id": task_id}
+
+    @app.get("/workforce/concurrency", dependencies=[auth])
+    async def _http_concurrency_get() -> dict[str, Any]:
+        """Report the live workforce concurrency (self-tuning target vs the plan ceiling)."""
+        controller = getattr(getattr(app.state, "orchestrator", None), "concurrency_controller", None)
+        if controller is None:
+            return {"available": False}
+        return {"available": True, **controller.snapshot()}
+
+    @app.post("/workforce/concurrency", dependencies=[auth])
+    async def _http_concurrency_set(body: _ConcurrencyBody) -> dict[str, Any]:
+        """Ramp workforce concurrency: a number pins it (within the plan ceiling), "auto"
+        hands it back to the self-tuning controller. No restart — takes effect immediately."""
+        controller = getattr(getattr(app.state, "orchestrator", None), "concurrency_controller", None)
+        if controller is None:
+            raise HTTPException(status_code=409, detail="workforce concurrency control unavailable")
+        target = body.target
+        if isinstance(target, str) and target.strip().lower() != "auto":
+            raise _bad_request(ValueError('target must be a number or "auto"'))
+        controller.set_target(target)
+        return {"available": True, **controller.snapshot()}
 
     @app.post("/tasks/{task_id}/assign", dependencies=[auth])
     async def _http_assign(task_id: str, body: _AssignBody) -> dict[str, Any]:

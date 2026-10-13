@@ -1,7 +1,7 @@
 """SSRF gate ENFORCED ON the BrowserProvider handle.
 
-ghostopia already validates a user-submitted mission target at submit time
-(``validate_mission_url``). But a behavior drives navigation dynamically — it can ``goto`` a
+ghostopia already validates a user-submitted mission target at submit time (plan 09's
+``validate_mission_url``). But a behavior drives navigation dynamically — it can ``goto`` a
 URL it discovered mid-run, open a fresh session, or scrape a link. So the SSRF gate must
 also sit AT the handle: every URL-taking entry point of the ``BrowserProvider`` passes an
 injected validator BEFORE the wrapped provider is touched. A blocked URL never reaches the
@@ -110,7 +110,20 @@ class _GuardedProvider:
         # only if this is absent — the cause of the advanced departments falling to the keyless
         # single-record read instead of the full grid).
         _reject(url, self._is_url_allowed(url))
-        return await self._inner.scrape_rendered(handle, url)
+        # ``scrape_rendered`` is an OPTIONAL capability (not on the base Protocol). Resolve it
+        # dynamically — NOT via a runtime_checkable isinstance, which uses getattr_static and so
+        # misses members served by a proxy's ``__getattr__`` (e.g. ``_LiveSessionGate``).
+        rendered = getattr(self._inner, "scrape_rendered", None)
+        if callable(rendered):
+            result: ScrapeResult = await rendered(handle, url)
+            return result
+        # The wrapped provider lacks the rendered read: degrade to the base keyless ``scrape``
+        # (the same fallback the pipeline takes) rather than an AttributeError.
+        if handle is None:
+            raise AttributeError(
+                f"{type(self._inner).__name__} has no scrape_rendered and no session to scrape with"
+            )
+        return await self._inner.scrape(handle, url)
 
     async def extract_products(
         self,
@@ -122,7 +135,14 @@ class _GuardedProvider:
         # optional connected model). MUST be proxied — without it the pipeline's session_extract
         # path never reaches the full priced-grid extraction and degrades to a keyless read.
         _reject(url, self._is_url_allowed(url))
-        return await self._inner.extract_products(handle, url, schema)
+        # Optional capability (see ``scrape_rendered`` for why this is a dynamic lookup).
+        structured = getattr(self._inner, "extract_products", None)
+        if callable(structured):
+            result: ScrapeResult = await structured(handle, url, schema)
+            return result
+        # Absent (e.g. the in-memory fake): degrade to the rendered read, exactly as the
+        # pipeline does when ``extract_products`` is missing.
+        return await self.scrape_rendered(handle, url)
 
     # --- pass-through primitive sub-surfaces ------------------------------------------
     @property

@@ -10,8 +10,8 @@ SSRF is LOAD-BEARING here. Because this behavior visits off-host result urls INL
 (it spawns NO child task, so the orchestrator's ``_child_task`` gate never fires on them), it
 calls the SHARED ``validate_mission_url`` on EVERY result url BEFORE opening a session; any url
 resolving to loopback/private/link-local/metadata raises ``SsrfBlockedError`` and is SKIPPED —
-never opened, never navigated, never scraped. Mediated egress alone is explicitly INSUFFICIENT,
-so this in-behavior gate is load-bearing.
+never opened, never navigated, never scraped. Mediated egress alone is explicitly INSUFFICIENT
+, so this in-behavior gate is load-bearing.
 
 ``on_tick`` is NON-BLOCKING: at most one awaited browser op advances per tick (the READING
 dwell is a pure timer). It touches GhostCrawl ONLY via ``ctx.browser`` — no ``ghostcrawl``

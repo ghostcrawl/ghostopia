@@ -1,6 +1,6 @@
 """``SimEventSource`` — the scripted stage-1/2 producer of the normalized event stream.
 
-An :class:`~ghostopia_core.event_source.EventSource` that drives REAL behaviors over
+An :class:`~ghostopia_core.event_source.EventSource` that drives REAL plan-17 behaviors over
 a per-ghost :class:`~ghostopia_browser_provider.FakeBrowserProvider` (zero GhostCrawl, zero
 SDK) and emits the normalized ``ghost.*`` / ``browser.*`` / ``task.*`` / ``result.*`` stream
 the :class:`~ghostopia_ghost_runtime.ghost_driver.GhostDriver` reacts to. It provides the
@@ -11,7 +11,7 @@ the mounted behavior itself emits through ``ctx.emit`` (``browser.session_opened
 work (navigate/read/extract over the fake browser); the source only simulates the passage of
 time (walk completion / arrival) so the transitions are VISIBLE.
 
-Dual control: a TASKED ghost runs a work behavior
+Dual control (RESEARCH-2 Design A): a TASKED ghost runs a work behavior
 (``navigate_and_extract`` / ``agent``) through the full receive→walk→work→finish→return loop;
 an IDLE ghost runs ``idle_wander`` so the graveyard is never dead between tasks. Both are
 mounted BY NAME via :func:`wire_world` through the registry — the source branches on neither.

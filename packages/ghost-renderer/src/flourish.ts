@@ -1,4 +1,4 @@
-// ghostopia ghost-renderer — spawn/dissolve flourish.
+// ghostopia ghost-renderer — spawn/dissolve flourish (P10).
 //
 // An ORIGINAL "fog-condense" materialize + a "spectral scatter" dissolve for ghosts —
 // NOT a matrix-rain column. On ghost.spawned a ring of soft mist motes condenses INWARD

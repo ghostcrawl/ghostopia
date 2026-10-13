@@ -1,4 +1,4 @@
-"""Retry-After-aware backoff scheduler (no API hammering).
+"""Retry-After-aware backoff scheduler (RESEARCH §Orchestration — no API hammering).
 
 GhostCrawl is proxy-exit-count-bound and governor-gated: a ``429`` / ``pool_exhausted`` /
 retryable ``5xx`` carries a ``retry_after`` the SDK error catalog advertises (see
