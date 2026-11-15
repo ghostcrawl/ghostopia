@@ -204,7 +204,7 @@ def crawl_policy_filter(urls: Any, base_url: str) -> list[str]:
     """The ghost crawl POLICY: which of a page's links its ghosts actually follow.
 
     Applied to a link list from ANY source — GhostCrawl's structured ``discovered_urls``
-    (the server surfaces the page's links, ``/v1/scrape`` 2.3.6-253+) OR the legacy
+    (the server surfaces the page's links, ``/v1/scrape`` 2.3.7-253+) OR the legacy
     body-parse fallback below. This is genuine crawler POLICY, not extraction: keep only
     the links worth walking to reach priced detail pages —
 

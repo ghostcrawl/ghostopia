@@ -1,10 +1,10 @@
-"""ghostcrawl SDK smoke — proves the in-repo editable ghostcrawl (2.3.6) surface.
+"""ghostcrawl SDK smoke — proves the in-repo editable ghostcrawl (2.3.7) surface.
 
 Constructs a client with an explicit ``base_url`` + dummy ``token`` and touches the
 surface ghostopia's backend depends on. NO network call is issued: construction and
 attribute access only (the sub-clients are lazy properties; ``scrape`` is a bound
 method). This is the server-side proof that the harness talks to GhostCrawl through
-the Python SDK, and that the editable link resolves the 2.3.6 surface (recordings.
+the Python SDK, and that the editable link resolves the 2.3.7 surface (recordings.
 visual / cdp) rather than an older PyPI build.
 """
 
@@ -35,7 +35,7 @@ def probe_surface(client: AsyncGhostCrawl) -> dict[str, Any]:
     """Touch the SDK surface the harness relies on — no network I/O.
 
     Returns a small map proving each affordance resolved AND is callable, so
-    callers (and the smoke test) can assert the 2.3.6 surface is present.
+    callers (and the smoke test) can assert the 2.3.7 surface is present.
     Presence alone is not enough: the facade methods (page.mouse /
     page.arrival) lazily import Kiota-generated body models — a wheel built
     before the regen ships the methods but they raise ModuleNotFoundError at

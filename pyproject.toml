@@ -26,12 +26,12 @@ members = ["packages/*", "apps/server"]
 exclude = ["packages/ghost-renderer", "packages/ghost-art"]
 
 [tool.uv.sources]
-# Consume the GhostCrawl Python SDK (2.3.6) from a VENDORED wheel that ships
+# Consume the GhostCrawl Python SDK (2.3.7) from a VENDORED wheel that ships
 # INSIDE this folder (vendor/), so a downloaded ghostopia/ ALONE installs with a
 # plain `uv sync` — no out-of-folder `../sdks/python` path, no monorepo siblings
-# required (plug-and-play). The wheel is the same 2.3.6 SDK build; repoint here
-# (not PyPI 2.3.5) keeps the pinned version while making the folder self-contained.
-ghostcrawl = { path = "vendor/ghostcrawl-2.3.6-py3-none-any.whl" }
+# required (plug-and-play). The wheel is the same 2.3.7 SDK build; repoint here
+# (not PyPI) keeps the pinned version while making the folder self-contained.
+ghostcrawl = { path = "vendor/ghostcrawl-2.3.7-py3-none-any.whl" }
 
 [dependency-groups]
 # Shared dev toolchain for the whole backend workspace. uv installs the dev group

@@ -4,7 +4,7 @@ version = "0.0.0"
 description = "The ONLY package that imports the ghostcrawl Python SDK: GhostCrawlProvider (the concrete BrowserProvider over the SDK) + the dual-target registry + the SDK error -> ghostopia event map. The full-primitive surface + CDP-WS relay extend this same provider in."
 requires-python = ">=3.12"
 # This is the sole SDK-importing package: it depends on the editable
-# in-repo ghostcrawl 2.3.6 SDK, implements the shared BrowserProvider Protocol
+# vendored ghostcrawl 2.3.7 SDK, implements the shared BrowserProvider Protocol
 # from ghostopia-browser-provider, and returns the shared Pydantic models.
 dependencies = [
   "ghostcrawl",

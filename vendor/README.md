@@ -3,9 +3,9 @@
 This folder makes a downloaded `ghostopia/` **self-contained** — it installs and runs
 with a plain `uv sync` from inside the folder, with no sibling directories required.
 
-## `ghostcrawl-2.3.6-py3-none-any.whl`
+## `ghostcrawl-2.3.7-py3-none-any.whl`
 
-The GhostCrawl Python SDK (version `2.3.6`), vendored as a wheel. `ghostopia` is a thin
+The GhostCrawl Python SDK (version `2.3.7`), vendored as a wheel. `ghostopia` is a thin
 consumer of GhostCrawl: the server holds this SDK (and every credential) and talks to a
 GhostCrawl endpoint you configure in `.env` (`GHOSTOPIA_GC_BASE_URL` + `GHOSTOPIA_GC_TOKEN`).
 GhostCrawl does all the browsing/scraping work; ghostopia is the program on top.
