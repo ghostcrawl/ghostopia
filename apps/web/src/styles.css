@@ -358,6 +358,51 @@ body,
   width: 264px;
 }
 
+.mission-form__examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.mission-form__chip {
+  font: inherit;
+  font-size: 10px;
+  padding: 4px 7px;
+  color: #d8d2ff;
+  background: rgba(10, 8, 20, 0.55);
+  border: 1px solid rgba(150, 130, 220, 0.35);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.mission-form__chip--on,
+.mission-form__chip:hover {
+  color: #120e22;
+  background: #b7a0ff;
+  border-color: #b7a0ff;
+}
+
+.mission-form__advanced-toggle {
+  font: inherit;
+  font-size: 11px;
+  padding: 0;
+  color: #9f96d4;
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.mission-form__input--urls {
+  resize: vertical;
+  min-height: 60px;
+  font-family: ui-monospace, monospace;
+}
+
+
+
 .mission-form__input--urls {
   resize: vertical;
   min-height: 60px;

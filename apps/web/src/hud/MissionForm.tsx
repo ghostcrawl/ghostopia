@@ -1,10 +1,10 @@
-// ghostopia web — the STAGE-6 mission form (thin: NAMES + urls only, no key).
+// ghostopia web — the mission mission form (thin: NAMES + urls only, no key).
 //
 // The operator submits a fan-out mission — a title, a target list (one url per line) OR a
 // seed query, an entry section, and the agent mode (deterministic runner vs the real LLM
-// brain). The server splits it + fans it out across sections/ghosts through the bounded
+// brain, agent mode). The server splits it + fans it out across sections/ghosts through the bounded
 // WorkQueue; this form sends only MODE/section NAMES + urls (the Anthropic/GhostCrawl keys
-// stay server-side). Errors/retries are visualised over the ghosts by the
+// stay server-side, server-side keys). Errors/retries are visualised over the ghosts by the
 // renderer (driven by the server's browser.error/task.retry envelopes) — not here.
 
 import { useEffect, useMemo, useState } from "react";
@@ -17,7 +17,7 @@ import type { MissionFanout } from "../liveClient";
 /**
  * The entry sections a mission can be launched into are the real DEPARTMENTS, read live from the
  * server-relayed catalog (`catalogStore`) so the dropdown never drifts from the deployed sections
- *. A department is `kind:"department"` and accepts ghosts (`accepts` non-empty) — those are
+ * (catalog sync). A department is `kind:"department"` and accepts ghosts (`accepts` non-empty) — those are
  * the result repositories a mission fans out into. Before the catalog arrives we fall back to the
  * four launch departments so the form is usable on first paint.
  */
@@ -44,8 +44,15 @@ export interface MissionFormProps {
 /**
  * The thin mission-submit form. Defaults to PRODUCT SEARCH (the primary mode for a cheapest-
  * offer tool): a product name fans out across the workforce to find and compare offers. The raw
- * url-list is the secondary/advanced mode. Exposes the deterministic|LLM agent-mode selector.
+ * url-list is the secondary/advanced mode. Exposes the deterministic|LLM agent-mode selector (agent mode).
  */
+/** One-click product examples so a first-run operator can summon the workforce immediately. */
+const EXAMPLE_PRODUCTS = [
+  "Sony WH-1000XM5",
+  "Nintendo Switch OLED",
+  "Dyson V15 Detect",
+] as const;
+
 export function MissionForm({ onSubmit }: MissionFormProps): JSX.Element {
   const sections = useStore(catalogStore, (s) => s.sections);
   const options = useMemo(() => entryOptions(sections), [sections]);
@@ -55,11 +62,13 @@ export function MissionForm({ onSubmit }: MissionFormProps): JSX.Element {
   // The raw url-list is the secondary/advanced option.
   const [mode, setMode] = useState<"urls" | "query">("query");
   const [urlsText, setUrlsText] = useState("");
-  const [queryText, setQueryText] = useState("");
+  // Preload the flagship example so first paint is one click from a real run.
+  const [queryText, setQueryText] = useState<string>(EXAMPLE_PRODUCTS[0]);
   // A mission fans out INTO a department (a result repository). The entry section defaults to the
   // first real department and follows the live catalog — never a removed pipeline stage.
   const [entrySection, setEntrySection] = useState(() => options[0]?.id ?? FALLBACK_SECTIONS[0].id);
   const [agentMode, setAgentMode] = useState<"deterministic" | "llm">("deterministic");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // When the catalog (re)loads, keep the selection valid: if the chosen section is gone, snap to
   // the first real department so the form can never submit into a section that no longer exists.
@@ -117,64 +126,91 @@ export function MissionForm({ onSubmit }: MissionFormProps): JSX.Element {
           url list (advanced)
         </button>
       </div>
-      <input
-        className="mission-form__input"
-        aria-label="mission title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="mission title (find SaaS pricing)"
-      />
-      {mode === "urls" ? (
+      {mode === "query" ? (
+        <>
+          <div className="mission-form__examples" role="group" aria-label="example products">
+            {EXAMPLE_PRODUCTS.map((ex) => (
+              <button
+                key={ex}
+                type="button"
+                className={`mission-form__chip${queryText === ex ? " mission-form__chip--on" : ""}`}
+                onClick={() => {
+                  setQueryText(ex);
+                  setTitle(title || `find ${ex}`);
+                }}
+              >
+                {ex}
+              </button>
+            ))}
+          </div>
+          <input
+            className="mission-form__input mission-form__input--query"
+            aria-label="product to find the cheapest offer for"
+            value={queryText}
+            onChange={(e) => setQueryText(e.target.value)}
+            placeholder="product name — e.g. Sony WH-1000XM5"
+          />
+        </>
+      ) : (
         <textarea
           className="mission-form__input mission-form__input--urls"
           aria-label="mission urls"
           value={urlsText}
           onChange={(e) => setUrlsText(e.target.value)}
-          placeholder={"https://a.example/pricing\nhttps://b.example/pricing\n… (one per line)"}
+          placeholder={"https://shop.example/product-a\nhttps://shop.example/product-b\n… (one URL per line)"}
           rows={4}
         />
-      ) : (
-        <input
-          className="mission-form__input mission-form__input--query"
-          aria-label="product to find the cheapest offer for"
-          value={queryText}
-          onChange={(e) => setQueryText(e.target.value)}
-          placeholder="find the cheapest… e.g. 'Sony WH-1000XM5'"
-        />
       )}
-      <div className="mission-form__row">
-        <label className="mission-form__field">
-          section
-          <select
-            className="mission-form__select"
-            aria-label="entry section"
-            value={entrySection}
-            onChange={(e) => setEntrySection(e.target.value)}
-          >
-            {options.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-          <small className="mission-form__hint">where findings are filed in the world</small>
-        </label>
-        <label className="mission-form__field">
-          brain
-          <select
-            className="mission-form__select"
-            aria-label="agent mode"
-            value={agentMode}
-            onChange={(e) => setAgentMode(e.target.value as "deterministic" | "llm")}
-          >
-            <option value="deterministic">deterministic</option>
-            <option value="llm">LLM (Claude)</option>
-          </select>
-          <small className="mission-form__hint">
-            deterministic = fast &amp; free · LLM = smarter, uses Claude
-          </small>
-        </label>
-      </div>
+      <button
+        type="button"
+        className="mission-form__advanced-toggle"
+        aria-expanded={showAdvanced}
+        onClick={() => setShowAdvanced((v) => !v)}
+      >
+        {showAdvanced ? "Hide options" : "More options"}
+      </button>
+      {showAdvanced ? (
+        <div className="mission-form__row">
+          <input
+            className="mission-form__input"
+            aria-label="mission title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="optional title"
+          />
+          <label className="mission-form__field">
+            file findings in
+            <select
+              className="mission-form__select"
+              aria-label="entry section"
+              value={entrySection}
+              onChange={(e) => setEntrySection(e.target.value)}
+            >
+              {options.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </select>
+            <small className="mission-form__hint">department that keeps the results</small>
+          </label>
+          <label className="mission-form__field">
+            matching brain
+            <select
+              className="mission-form__select"
+              aria-label="agent mode"
+              value={agentMode}
+              onChange={(e) => setAgentMode(e.target.value as "deterministic" | "llm")}
+            >
+              <option value="deterministic">fast (default)</option>
+              <option value="llm">smarter (Claude)</option>
+            </select>
+            <small className="mission-form__hint">
+              fast = free rules · smarter = uses your Claude key
+            </small>
+          </label>
+        </div>
+      ) : null}
       <button type="submit" className="mission-form__submit" disabled={!canSubmit}>
         {mode === "query"
           ? `find the cheapest offers`
