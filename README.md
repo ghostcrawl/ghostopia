@@ -56,11 +56,11 @@ Everything else in `.env.example` is optional with sensible defaults.
 
 ### Self-contained
 
-A cloned `ghostopia` runs on its own. The GhostCrawl Python SDK ships as a
-vendored wheel under `vendor/` and the dependency is pointed at it, so a plain
-`uv sync` inside the folder resolves everything. `make run` does this for you. To
-refresh the SDK, drop a newer wheel in `vendor/` and update the `path` in the root
-`pyproject.toml` (see `vendor/README.md`).
+A cloned `ghostopia` runs on its own. The GhostCrawl Python SDK (**2.3.7**) ships
+as a vendored wheel under `vendor/` and the dependency is pointed at it, so a
+plain `uv sync` inside the folder resolves everything. `make run` does this for
+you. To refresh the SDK, drop a newer wheel in `vendor/` and update the `path` in
+the root `pyproject.toml` (see `vendor/README.md`).
 
 ## What ghostopia is
 
