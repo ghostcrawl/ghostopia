@@ -23,20 +23,19 @@ against **GhostCrawl 2.3.9**.
 | --- | --- | --- |
 | ![world](assets/screenshots/world.png) | ![mission](assets/screenshots/mission.png) | ![mobile](assets/screenshots/offers.png) |
 
-## Quickstart (3 steps)
+## Try it
 
-You need [`uv`](https://docs.astral.sh/uv/), Node.js, and a GhostCrawl key.
+The interactive workforce UI is the marketing preview at
+[ghostcrawl.io/ghostopia](https://ghostcrawl.io/ghostopia) — use your GhostCrawl
+key there. This public repository ships docs, screenshots, `.env.example`, and
+mission recipes under [examples/](examples/); the full self-host application
+tree is not published in this facade yet.
 
-```bash
-git clone https://github.com/ghostcrawl/ghostopia.git
-cd ghostopia
-cp .env.example .env   # fill in GHOSTOPIA_GC_TOKEN + GHOSTOPIA_GC_BASE_URL (+ JWT secret)
-make run               # open http://localhost:8000
-```
+When you are ready to wire GhostCrawl yourself:
 
-Opens on **product search** with `Sony WH-1000XM5` preloaded. Click
-**find the cheapest offers**. One-click examples also include Nintendo Switch OLED
-and Dyson V15 Detect.
+1. Create a cloud or self-host key ([docs.ghostcrawl.io/self-host](https://docs.ghostcrawl.io/self-host)).
+2. Copy [`.env.example`](.env.example) and set `GHOSTOPIA_GC_TOKEN` + `GHOSTOPIA_GC_BASE_URL`.
+3. Follow [docs/usage.md](docs/usage.md) and the recipes in [examples/](examples/).
 
 ### What you type vs what you get
 
@@ -58,11 +57,10 @@ and Dyson V15 Detect.
 Everything else in `.env.example` is optional with sensible defaults. See
 [docs/usage.md](docs/usage.md) for the full configuration and mission walkthrough.
 
-## Self-contained
+## GhostCrawl dependency
 
-The public GhostCrawl Python SDK is installed as a normal dependency. Install it with
-`pip install ghostcrawl==2.3.9`; a plain dependency sync resolves everything else —
-no other checkout required. See [docs/selfhost.md](docs/selfhost.md) to point ghostopia
+ghostopia is a thin program on top of GhostCrawl. Install the public SDK with
+`pip install ghostcrawl==2.3.9`. See [docs/selfhost.md](docs/selfhost.md) to point
 at a self-hosted GhostCrawl 2.3.9 instead of the cloud.
 
 ## Powered by GhostCrawl
