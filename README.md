@@ -11,7 +11,8 @@ only**, and files the cheapest results for CSV/JSON export.
 
 You bring GhostCrawl (cloud or self-hosted); ghostopia is the thin program on top.
 **GhostCrawl does all the browsing and scraping work** — ghostopia points a
-workforce at your targets and shows you what it brings back.
+workforce at your targets and shows you what it brings back. Built and verified
+against **GhostCrawl 2.3.8**.
 
 - Marketing preview (facade demo): [ghostcrawl.io/ghostopia](https://ghostcrawl.io/ghostopia)
 - Story: [Ghostopia: Your Scraping Workforce](https://ghostcrawl.io/blog/ghostopia-your-scraping-workforce/)
@@ -29,7 +30,7 @@ You need [`uv`](https://docs.astral.sh/uv/), Node.js, and a GhostCrawl key.
 ```bash
 git clone https://github.com/ghostcrawl/ghostopia.git
 cd ghostopia
-cp .env.example .env   # set GHOSTOPIA_GC_TOKEN + GHOSTOPIA_GC_BASE_URL (+ JWT secret)
+cp .env.example .env   # fill in GHOSTOPIA_GC_TOKEN + GHOSTOPIA_GC_BASE_URL (+ JWT secret)
 make run               # open http://localhost:8000
 ```
 
@@ -51,19 +52,37 @@ and Dyson V15 Detect.
 | Variable | What it is |
 | --- | --- |
 | `GHOSTOPIA_GC_TOKEN` | Your GhostCrawl key (stays on the server; never sent to the browser). |
-| `GHOSTOPIA_GC_BASE_URL` | GhostCrawl endpoint — cloud `https://api.ghostcrawl.io` or your self-host (e.g. `http://localhost:47700`). |
+| `GHOSTOPIA_GC_BASE_URL` | GhostCrawl endpoint — cloud `https://api.ghostcrawl.io`, or your own self-host (e.g. `http://localhost:47700`). |
 | `GHOSTOPIA_JWT_SECRET` | Long random string for UI tokens (`openssl rand -hex 32`). |
 
-Everything else in `.env.example` is optional with sensible defaults.
+Everything else in `.env.example` is optional with sensible defaults. See
+[docs/usage.md](docs/usage.md) for the full configuration and mission walkthrough.
 
-### Self-contained
+## Self-contained
 
-This repo vendors the GhostCrawl Python SDK under `vendor/`. A plain `uv sync`
-(via `make run`) resolves everything — no other checkout required.
+The public GhostCrawl Python SDK is installed as a normal dependency. Install it with
+`pip install ghostcrawl==2.3.8`; a plain dependency sync resolves everything else —
+no other checkout required. See [docs/selfhost.md](docs/selfhost.md) to point ghostopia
+at a self-hosted GhostCrawl 2.3.8 instead of the cloud.
 
 ## Powered by GhostCrawl
 
 Every ghost is a real GhostCrawl session: Chrome, Firefox, or WebKit, coherent
-identity, structured extraction. If you like what you see, start at
-[ghostcrawl.io](https://ghostcrawl.io) or the
-[API docs](https://docs.ghostcrawl.io).
+browser identity, structured extraction. If you like what you see, start at
+[ghostcrawl.io](https://ghostcrawl.io), the
+[API docs](https://docs.ghostcrawl.io), or the single self-host install guide at
+[docs.ghostcrawl.io/self-host](https://docs.ghostcrawl.io/self-host).
+
+## Examples
+
+Runnable mission recipes live in [examples/](examples/).
+
+## Contributing & Security
+
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Please report
+security issues privately per [SECURITY.md](.github/SECURITY.md).
+
+## License
+
+Source-available — see [LICENSE](LICENSE). You may use, modify, and self-host
+ghostopia for your own data needs; keep the "Powered by GhostCrawl" attribution.
