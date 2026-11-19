@@ -1,9 +1,9 @@
 # ghostopia with self-hosted GhostCrawl
 
-ghostopia 2.3.8 works unchanged against a self-hosted GhostCrawl 2.3.8. The only
+ghostopia 2.3.9 works unchanged against a self-hosted GhostCrawl 2.3.9. The only
 difference is the `GHOSTOPIA_GC_BASE_URL` value in `.env`.
 
-## 1. Install GhostCrawl 2.3.8
+## 1. Install GhostCrawl 2.3.9
 
 Follow the single unified install guide — one terminal path on Linux, macOS and
 Windows: [docs.ghostcrawl.io/self-host](https://docs.ghostcrawl.io/self-host).
@@ -34,7 +34,7 @@ browser. Keep `.env` out of version control.
 make run          # http://localhost:8000
 ```
 
-Pick a mission in the UI. Each ghost now drives the local GhostCrawl 2.3.8 instance;
+Pick a mission in the UI. Each ghost now drives the local GhostCrawl 2.3.9 instance;
 all browsing and extraction happen there, and ghostopia renders the returned results.
 
 ## Notes

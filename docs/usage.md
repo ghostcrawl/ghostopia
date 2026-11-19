@@ -1,6 +1,6 @@
 # Using ghostopia
 
-ghostopia 2.3.8 is a thin program on top of GhostCrawl **2.3.8**. It does not browse
+ghostopia 2.3.9 is a thin program on top of GhostCrawl **2.3.9**. It does not browse
 or scrape by itself — it asks GhostCrawl to do the work and renders the results as a
 pixel-art workforce.
 
@@ -17,7 +17,7 @@ Copy `.env.example` to `.env` and set the three required values:
 Everything else is optional with defaults. Then run `make run` and open
 <http://localhost:8000>.
 
-To point ghostopia at a self-hosted GhostCrawl 2.3.8 instead of the cloud, see
+To point ghostopia at a self-hosted GhostCrawl 2.3.9 instead of the cloud, see
 [selfhost.md](selfhost.md) and the single install guide at
 <https://docs.ghostcrawl.io/self-host>.
 
@@ -44,5 +44,5 @@ price.
 ## Requirements
 
 - [`uv`](https://docs.astral.sh/uv/) and Node.js.
-- A GhostCrawl 2.3.8 cloud key, or a reachable GhostCrawl 2.3.8 self-host endpoint.
+- A GhostCrawl 2.3.9 cloud key, or a reachable GhostCrawl 2.3.9 self-host endpoint.
 - Outbound access from the server (not the browser) to that endpoint.

@@ -12,7 +12,7 @@ only**, and files the cheapest results for CSV/JSON export.
 You bring GhostCrawl (cloud or self-hosted); ghostopia is the thin program on top.
 **GhostCrawl does all the browsing and scraping work** — ghostopia points a
 workforce at your targets and shows you what it brings back. Built and verified
-against **GhostCrawl 2.3.8**.
+against **GhostCrawl 2.3.9**.
 
 - Marketing preview (facade demo): [ghostcrawl.io/ghostopia](https://ghostcrawl.io/ghostopia)
 - Story: [Ghostopia: Your Scraping Workforce](https://ghostcrawl.io/blog/ghostopia-your-scraping-workforce/)
@@ -61,9 +61,9 @@ Everything else in `.env.example` is optional with sensible defaults. See
 ## Self-contained
 
 The public GhostCrawl Python SDK is installed as a normal dependency. Install it with
-`pip install ghostcrawl==2.3.8`; a plain dependency sync resolves everything else —
+`pip install ghostcrawl==2.3.9`; a plain dependency sync resolves everything else —
 no other checkout required. See [docs/selfhost.md](docs/selfhost.md) to point ghostopia
-at a self-hosted GhostCrawl 2.3.8 instead of the cloud.
+at a self-hosted GhostCrawl 2.3.9 instead of the cloud.
 
 ## Powered by GhostCrawl
 
