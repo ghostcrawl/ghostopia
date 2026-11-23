@@ -1,0 +1,6 @@
+# GitHub presentation: the public repository is a documentation/screenshot facade.
+# Keep the language/pulse view honest — no runnable application tree is published.
+*.md linguist-language=Markdown
+*.md linguist-documentation
+*.json linguist-documentation
+*.png linguist-generated
