@@ -14,6 +14,14 @@ You bring GhostCrawl (cloud or self-hosted); ghostopia is the thin program on to
 workforce at your targets and shows you what it brings back. Built and verified
 against **GhostCrawl 2.3.9**.
 
+<div align="center">
+
+⭐ **If ghostopia is useful to you, a star helps other developers find it.**
+
+<a href="https://buymeacoffee.com/ghostcrawl"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="180" /></a>
+
+</div>
+
 - Marketing preview (facade demo): [ghostcrawl.io/ghostopia](https://ghostcrawl.io/ghostopia)
 - Story: [Ghostopia: Your Scraping Workforce](https://ghostcrawl.io/blog/ghostopia-your-scraping-workforce/)
 
