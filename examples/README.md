@@ -27,3 +27,10 @@ new mission.
   doing nothing.
 
 See [docs/usage.md](../docs/usage.md) for the mission walkthrough.
+
+## SDK recipe scripts
+
+[`recipes/`](recipes/) contains small **GhostCrawl SDK** examples (Python and
+TypeScript). They are standalone snippets showing how to call the public API;
+they are not ghostopia application source and are not mission recipes. Install
+the published SDK, set `GHOSTCRAWL_API_KEY`, and run them directly.
