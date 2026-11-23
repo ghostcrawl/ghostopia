@@ -1,6 +1,5 @@
-# GitHub presentation: the public repository is a documentation/screenshot facade.
-# Only standalone SDK recipe scripts under examples/recipes are code; the rest is
-# documentation and imagery. Keep the language/pulse view honest.
-*.md linguist-documentation
-*.json linguist-documentation
-*.png linguist-generated
+# GitHub presentation for a runnable source repository.
+*.png binary
+*.jpg binary
+uv.lock linguist-generated=true
+package-lock.json linguist-generated=true

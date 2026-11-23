@@ -2,7 +2,7 @@
 
 This is a GhostCrawl SDK example, not ghostopia application source.
 Install: pip install ghostcrawl==2.3.9
-Run:     GHOSTCRAWL_API_KEY=gck_live_... python scrape_with_ghostcrawl.py
+Run: GHOSTCRAWL_API_KEY=gck_live_... python scrape_with_ghostcrawl.py
 """
 
 import os

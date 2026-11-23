@@ -1,61 +1,47 @@
 # Contributing to ghostopia
 
-Thanks for helping improve ghostopia. This document explains the scope and the
-pull-request process.
+Thanks for helping make ghostopia better. Contributions of code, docs, recipes and bug reports are all welcome.
 
-## Scope
+## Getting set up
 
-ghostopia is a thin, public consumer of GhostCrawl. Contributions that keep it a
-well-behaved consumer are welcome: the pixel-art world, mission recipes, extraction
-presentation, CSV/JSON export, docs, and examples.
+1. Fork the repository and clone your fork.
+2. Copy `.env.example` to `.env` and set the three required values (a GhostCrawl key, base URL and JWT secret).
+3. Install prerequisites: Python 3.12+, [uv](https://docs.astral.sh/uv/) and Node 22+.
+4. Run the app:
 
-Contributions that would make ghostopia talk to any browsing or scraping platform
-other than GhostCrawl are out of scope — see [LICENSE](LICENSE).
+   ```bash
+   make run
+   ```
 
-## PR process
+   Open <http://localhost:8000>. If you prefer to work on the frontend alone, run `npm run dev`.
 
-1. Open an issue first so we can agree on the approach before you invest time.
-2. Fork the repo and branch from `main`: `git checkout -b fix/short-description`.
-3. Keep each PR focused on one change; link the issue with `Closes #NNN`.
-4. Use Conventional Commit style in the PR title, e.g.
-   `fix(recipes): tighten exact-match filter` or `docs: clarify self-host setup`.
-5. Add or update tests for behavioural changes and make sure the existing suite passes.
+## Making a change
 
-## Development checks
+1. Create a branch from `main`: `git checkout -b my-change`.
+2. Keep changes focused. Add or update tests for behavior changes.
+3. Run the checks before opening a PR:
 
-```bash
-uv sync --all-packages
-uv run ruff check .
-uv run mypy packages apps/server
-uv run pytest
-npm install
-npm run typecheck
-```
+   ```bash
+   npm run typecheck
+   npm run test:unit
+   uv run pytest
+   ```
 
-## Code style
+4. Commit with a clear, plain message and push to your fork.
+5. Open a pull request describing what changed and how you verified it.
 
-- Python: `ruff` + `mypy --strict` on changed files.
-- TypeScript: `tsc --noEmit` must pass.
-- Docs: plain Markdown; check links when adding URLs.
+## Conventions
 
-## Sign-off (DCO)
+- Python: follow the existing style in `packages/` and `apps/server/`; `ruff` and `mypy` configuration is in the repo root.
+- TypeScript: keep types explicit at module boundaries; run `npm run typecheck`.
+- Use neutral, factual wording in code, docs and UI copy. No internal project names, ticket numbers or credentials in shipped text.
+- Never commit `.env`, database files, build output or secrets.
+- New mission recipes belong in `examples/` with a short README entry.
 
-This project uses the Developer Certificate of Origin. Add a sign-off line to each
-commit:
+## Code of conduct
 
-```
-git commit -s -m "fix(recipes): tighten exact-match filter"
-```
+By participating you agree to the [Code of Conduct](.github/CODE_OF_CONDUCT.md).
 
-```
-Signed-off-by: Your Name <you@example.com>
-```
+## Security
 
-By signing off you certify you wrote the change (or have the right to submit it) and
-grant the maintainers the rights to use it under the [LICENSE](LICENSE) terms. Full
-DCO text: <https://developercertificate.org>.
-
-## License
-
-By contributing you agree that your contribution is licensed under the ghostopia
-source-available [LICENSE](LICENSE).
+Do not open a public issue for a security problem. Follow [SECURITY.md](.github/SECURITY.md) to report it privately.

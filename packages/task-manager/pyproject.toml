@@ -1,0 +1,30 @@
+[project]
+name = "ghostopia-task-manager"
+version = "0.0.0"
+description = "ghostopia task-manager — server-authoritative Task/mission verbs over TaskSpec, composing with the bounded WorkQueue + section fan-out (the management COMMAND surface)."
+requires-python = ">=3.12"
+dependencies = [
+  "ghostopia-shared",
+  "ghostopia-orchestration",
+  "ghostopia-sections",
+  "ghostopia-behaviors",
+  "ghostopia-event-bus",
+  "pydantic>=2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ghostopia_task_manager"]
+
+[tool.uv.sources]
+ghostopia-shared = { workspace = true }
+ghostopia-orchestration = { workspace = true }
+ghostopia-sections = { workspace = true }
+ghostopia-behaviors = { workspace = true }
+ghostopia-event-bus = { workspace = true }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

@@ -1,36 +1,47 @@
 # ghostopia example recipes
 
-Three declarative mission recipes that show the range of the ghostopia workforce.
-A recipe is **data**: it names a behaviour and its parameters, is validated on load,
-and is never imported or executed as code.
+Three real, validated `*.task.json` recipes that prove the harness is
+**general** — the same declarative Task pipeline drives crawling, autonomous research, and
+full-fidelity collaborative drawing. A recipe is **DATA** that NAMES a vetted behavior; it is
+parsed + validated + dry-run, never imported or `eval`'d (decode-only, the decode-only rule). See
+`../packages/behaviors/src/ghostopia_behaviors/authoring/AUTHORING.md` for the authoring guide.
 
-| Recipe | What it demonstrates |
-| --- | --- |
-| [`crawl-swarm.task.json`](crawl-swarm.task.json) | A multi-identity crawl swarm — bounded concurrency across several GhostCrawl identity profiles, with results flowing to the Data Graveyard. |
-| [`research-swarm.task.json`](research-swarm.task.json) | An autonomous research swarm — one search fans out into per-result extraction tasks, showing multi-step mission routing. |
-| [`whiteboard.task.json`](whiteboard.task.json) | A collaborative drawing mission — concurrent ghosts hold real browser sessions and draw strokes, showing full-fidelity input beyond scraping. |
+`test_recipes.py` is the acceptance suite: for each recipe it parses against `TaskSpec`
+(`extra='forbid'`), resolves the behavior in the live registry, validates `params` against the
+behavior's `param_schema`, and runs a declarative **dry-run** (behavior exists, every target
+url passes an SSRF gate, `concurrency` ≤ the rate cap, `identities` is well-formed). The
+crawl + research recipes additionally simulate an assignment against the in-memory
+`FakeBrowserProvider` and assert the normalized `browser.*`/`result.*`/`task.*` event stream.
 
-## Using a recipe
+## Recipe 1 — `crawl-swarm.task.json` (multi-identity crawl swarm)
 
-Recipes are validated before a mission starts: the named behaviour must exist, its
-parameters must match the declared schema, and every target URL passes a safety
-check. Load one from the UI's example menu, or copy it as a starting point for a
-new mission.
+`navigate_and_extract` across a set of GhostCrawl identity profiles with bounded concurrency.
+Each ghost opens a session under a different identity, navigates + extracts, and results flow
+to the Data Graveyard. Proves identity/target selection + bounded concurrency + extraction.
 
-## Safety and limits
+## Recipe 2 — `research-swarm.task.json` (autonomous research swarm)
 
-- Targets are checked before any session starts; unsafe addresses are rejected.
-- Concurrency is bounded by the plan limits reported by GhostCrawl, with graceful
-  queueing when the limit is reached.
-- Some advanced behaviours require a paid tier and a compatible browser engine;
-  on unsupported sessions they degrade with an explicit signal rather than silently
-  doing nothing.
+`scout_urls` runs `search` → emits `task.spawned {kind:"extract", url}` → the orchestrator
+routes each spawned task to the `extraction` section running `navigate_and_extract` (section
+fan-out). Proves autonomous multi-step + section routing. An LLM variant swaps
+`"behavior": "agent"` (`AgentBehavior`) — identical event stream, identical visuals.
 
-See [docs/usage.md](../docs/usage.md) for the mission walkthrough.
+## Recipe 3 — `whiteboard.task.json` (collaborative whiteboard drawing)
 
-## SDK recipe scripts
+`whiteboard_draw` — concurrent ghosts each hold their OWN chromium session on a drawing site
+and draw a stroke with a real HELD mouse drag (`mouse.down` → moves → `mouse.up`) over the live input relay . This is the forcing function proving the primitive layer is
+genuinely full-fidelity, not just scrape/extract.
 
-[`recipes/`](recipes/) contains small **GhostCrawl SDK** examples (Python and
-TypeScript). They are standalone snippets showing how to call the public API;
-they are not ghostopia application source and are not mission recipes. Install
-the published SDK, set `GHOSTCRAWL_API_KEY`, and run them directly.
+**Prereqs (documented, gated):** paid tier + `cdp_passthrough_enabled` + a **chromium** engine.
+On FF/WebKit/non-entitled sessions the behavior DEGRADES to discrete `cdp.input` clicks and
+emits an explicit `draw_degraded` signal (never a silent no-op). The LIVE drag through the
+deployed relay is verified against the deployed relay, gated behind a paid chromium probe: if the relay filters raw pointer/key input, the recipe stays unit-verified +
+degrade-only and an a request to "expose raw mouse verbs" is filed for a future GhostCrawl SDK release.
+
+## Naming note
+
+the research brief illustrates behavior names with hyphens (`navigate-and-extract`); the Python
+registry + the section `role` fields use **underscores** (`navigate_and_extract`,
+`scout_urls`, `whiteboard_draw`) — consistent with every shipped builtin and the `canvas`
+section role in `../maps/graveyard.sections.json`. The recipes use the underscore names so
+they resolve in the live registry.

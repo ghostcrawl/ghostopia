@@ -1,0 +1,8 @@
+{
+  "files": [],
+  "references": [
+    { "path": "apps/web" },
+    { "path": "packages/ghost-renderer" },
+    { "path": "packages/ghost-art" }
+  ]
+}

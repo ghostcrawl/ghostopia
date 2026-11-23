@@ -1,43 +1,23 @@
-# Security Policy
+# Security policy
 
-## Scope
+We take security reports seriously and appreciate your help.
 
-This policy covers the public ghostopia surface: the app source, mission recipes,
-and documentation. The GhostCrawl platform itself has its own security process;
-report issues with the platform through GhostCrawl's channels.
+## Reporting a vulnerability
 
-## Reporting a Vulnerability
+Please report security issues **privately** using GitHub's private vulnerability reporting:
 
-**Do not open a public issue for security vulnerabilities.** Public issues expose the
-vulnerability to everyone before a fix is available.
+[Report a vulnerability](https://github.com/ghostcrawl/ghostopia/security/advisories/new)
 
-Use one of the two private channels below:
+Include a description of the issue, steps to reproduce, the affected version and any potential impact. You should receive an acknowledgement within a few business days.
 
-### Option 1 — GitHub Private Security Advisory (preferred)
+**Do not open a public issue or discussion for a security vulnerability.**
 
-> **[Report a vulnerability](https://github.com/ghostcrawl/ghostopia/security/advisories/new)**
+## Secrets
 
-This opens a private draft advisory visible only to you and the maintainers.
+Never include API keys, tokens, JWT secrets or other credentials in issues, pull requests, commits or screenshots. If you believe a credential has been exposed, rotate it immediately and report it privately using the link above.
 
-### Option 2 — Email
+Keep your own `.env` file out of version control; the repository `.gitignore` already excludes it.
 
-Send a report to **security@ghostcrawl.io** with:
+## Supported versions
 
-- A description of the vulnerability and the affected component.
-- Steps to reproduce or a proof-of-concept (a rough outline is fine).
-- The potential impact as you see it.
-- How you'd like to be credited when the fix ships (or "no credit").
-
-PGP-encrypted email is welcome; ask for the public key in your first message.
-
-## Response SLA
-
-We acknowledge every report **within 72 hours**. For valid vulnerabilities we aim to
-confirm and triage within 5 business days, and ship a patch with coordinated
-disclosure within 30 days for critical/high severity (90 days for medium/low).
-
-## Disclosure Policy
-
-We follow coordinated disclosure. Give us reasonable time to investigate and patch
-before public disclosure, avoid accessing data that isn't yours, and report only the
-vulnerability. We won't pursue legal action for good-faith research under this policy.
+Security fixes are applied to the latest published release. Please update to the current version before reporting an issue.

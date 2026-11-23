@@ -1,0 +1,661 @@
+{
+  "_note": "ghostopia data-driven sprite catalogue. name -> grid ref -> SpriteRegion frame table (col,row,cols,rows in CELL units). The SINGLE source the atlas builder reads. The ghost is now DIRECTIONAL + ANIMATED: regions are <facing>_<anim><frame> (s_idle0, se_move3, n_idle1, ...) for the 5 authored facings (s,se,e,ne,n) x (idle0..3 + move0..3), plus front expression frames (work/success/error). The west set (sw/w/nw) is NOT catalogued — it is the east art mirrored at play time (see animations.json + facing.ts). Overlays/terminal/candle carry their flicker frames. All grids ORIGINAL (see the *.grids.json _note fields + assets/README.md).",
+  "cellDefault": {
+    "width": 16,
+    "height": 16
+  },
+  "sprites": {
+    "ghost": {
+      "grid": "ghost",
+      "cellWidth": 12,
+      "cellHeight": 14,
+      "regions": {
+        "s_idle0": {
+          "col": 0,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "s_idle1": {
+          "col": 1,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "s_idle2": {
+          "col": 2,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "s_idle3": {
+          "col": 3,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "s_move0": {
+          "col": 4,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "s_move1": {
+          "col": 5,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "s_move2": {
+          "col": 6,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "s_move3": {
+          "col": 7,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "se_idle0": {
+          "col": 0,
+          "row": 1,
+          "cols": 1,
+          "rows": 1
+        },
+        "se_idle1": {
+          "col": 1,
+          "row": 1,
+          "cols": 1,
+          "rows": 1
+        },
+        "se_idle2": {
+          "col": 2,
+          "row": 1,
+          "cols": 1,
+          "rows": 1
+        },
+        "se_idle3": {
+          "col": 3,
+          "row": 1,
+          "cols": 1,
+          "rows": 1
+        },
+        "se_move0": {
+          "col": 4,
+          "row": 1,
+          "cols": 1,
+          "rows": 1
+        },
+        "se_move1": {
+          "col": 5,
+          "row": 1,
+          "cols": 1,
+          "rows": 1
+        },
+        "se_move2": {
+          "col": 6,
+          "row": 1,
+          "cols": 1,
+          "rows": 1
+        },
+        "se_move3": {
+          "col": 7,
+          "row": 1,
+          "cols": 1,
+          "rows": 1
+        },
+        "e_idle0": {
+          "col": 0,
+          "row": 2,
+          "cols": 1,
+          "rows": 1
+        },
+        "e_idle1": {
+          "col": 1,
+          "row": 2,
+          "cols": 1,
+          "rows": 1
+        },
+        "e_idle2": {
+          "col": 2,
+          "row": 2,
+          "cols": 1,
+          "rows": 1
+        },
+        "e_idle3": {
+          "col": 3,
+          "row": 2,
+          "cols": 1,
+          "rows": 1
+        },
+        "e_move0": {
+          "col": 4,
+          "row": 2,
+          "cols": 1,
+          "rows": 1
+        },
+        "e_move1": {
+          "col": 5,
+          "row": 2,
+          "cols": 1,
+          "rows": 1
+        },
+        "e_move2": {
+          "col": 6,
+          "row": 2,
+          "cols": 1,
+          "rows": 1
+        },
+        "e_move3": {
+          "col": 7,
+          "row": 2,
+          "cols": 1,
+          "rows": 1
+        },
+        "ne_idle0": {
+          "col": 0,
+          "row": 3,
+          "cols": 1,
+          "rows": 1
+        },
+        "ne_idle1": {
+          "col": 1,
+          "row": 3,
+          "cols": 1,
+          "rows": 1
+        },
+        "ne_idle2": {
+          "col": 2,
+          "row": 3,
+          "cols": 1,
+          "rows": 1
+        },
+        "ne_idle3": {
+          "col": 3,
+          "row": 3,
+          "cols": 1,
+          "rows": 1
+        },
+        "ne_move0": {
+          "col": 4,
+          "row": 3,
+          "cols": 1,
+          "rows": 1
+        },
+        "ne_move1": {
+          "col": 5,
+          "row": 3,
+          "cols": 1,
+          "rows": 1
+        },
+        "ne_move2": {
+          "col": 6,
+          "row": 3,
+          "cols": 1,
+          "rows": 1
+        },
+        "ne_move3": {
+          "col": 7,
+          "row": 3,
+          "cols": 1,
+          "rows": 1
+        },
+        "n_idle0": {
+          "col": 0,
+          "row": 4,
+          "cols": 1,
+          "rows": 1
+        },
+        "n_idle1": {
+          "col": 1,
+          "row": 4,
+          "cols": 1,
+          "rows": 1
+        },
+        "n_idle2": {
+          "col": 2,
+          "row": 4,
+          "cols": 1,
+          "rows": 1
+        },
+        "n_idle3": {
+          "col": 3,
+          "row": 4,
+          "cols": 1,
+          "rows": 1
+        },
+        "n_move0": {
+          "col": 4,
+          "row": 4,
+          "cols": 1,
+          "rows": 1
+        },
+        "n_move1": {
+          "col": 5,
+          "row": 4,
+          "cols": 1,
+          "rows": 1
+        },
+        "n_move2": {
+          "col": 6,
+          "row": 4,
+          "cols": 1,
+          "rows": 1
+        },
+        "n_move3": {
+          "col": 7,
+          "row": 4,
+          "cols": 1,
+          "rows": 1
+        },
+        "work0": {
+          "col": 0,
+          "row": 5,
+          "cols": 1,
+          "rows": 1
+        },
+        "work1": {
+          "col": 1,
+          "row": 5,
+          "cols": 1,
+          "rows": 1
+        },
+        "work2": {
+          "col": 2,
+          "row": 5,
+          "cols": 1,
+          "rows": 1
+        },
+        "success0": {
+          "col": 3,
+          "row": 5,
+          "cols": 1,
+          "rows": 1
+        },
+        "success1": {
+          "col": 4,
+          "row": 5,
+          "cols": 1,
+          "rows": 1
+        },
+        "error0": {
+          "col": 5,
+          "row": 5,
+          "cols": 1,
+          "rows": 1
+        },
+        "error1": {
+          "col": 6,
+          "row": 5,
+          "cols": 1,
+          "rows": 1
+        }
+      }
+    },
+    "tile_grass": {
+      "grid": "grass",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": {
+        "base": {
+          "col": 0,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        }
+      }
+    },
+    "tile_path": {
+      "grid": "path",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": {
+        "base": {
+          "col": 0,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        }
+      }
+    },
+    "tile_dirt": {
+      "grid": "dirt",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": {
+        "base": {
+          "col": 0,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        }
+      }
+    },
+    "grave": {
+      "grid": "grave",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": {
+        "home": {
+          "col": 0,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        }
+      }
+    },
+    "terminal": {
+      "grid": "terminal",
+      "cellWidth": 16,
+      "cellHeight": 24,
+      "regions": {
+        "idle": {
+          "col": 0,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "active": {
+          "col": 1,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "active1": {
+          "col": 2,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        }
+      }
+    },
+    "candle": {
+      "grid": "candle",
+      "cellWidth": 8,
+      "cellHeight": 8,
+      "regions": {
+        "candle0": {
+          "col": 0,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "candle1": {
+          "col": 1,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        }
+      }
+    },
+    "crypt": {
+      "grid": "crypt",
+      "cellWidth": 24,
+      "cellHeight": 24,
+      "regions": {
+        "base": {
+          "col": 0,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        }
+      }
+    },
+    "mausoleum": {
+      "grid": "mausoleum",
+      "cellWidth": 24,
+      "cellHeight": 24,
+      "regions": {
+        "base": {
+          "col": 0,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        }
+      }
+    },
+    "fog": {
+      "grid": "fog",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": {
+        "base": {
+          "col": 0,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        }
+      }
+    },
+    "moon": {
+      "grid": "moon",
+      "cellWidth": 24,
+      "cellHeight": 24,
+      "regions": {
+        "base": {
+          "col": 0,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        }
+      }
+    },
+    "tree": {
+      "grid": "tree",
+      "cellWidth": 16,
+      "cellHeight": 24,
+      "regions": {
+        "base": { "col": 0, "row": 0, "cols": 1, "rows": 1 }
+      }
+    },
+    "fence": {
+      "grid": "fence",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": {
+        "seg": { "col": 0, "row": 0, "cols": 1, "rows": 1 }
+      }
+    },
+    "cross": {
+      "grid": "cross",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": {
+        "base": { "col": 0, "row": 0, "cols": 1, "rows": 1 }
+      }
+    },
+    "obelisk": {
+      "grid": "obelisk",
+      "cellWidth": 16,
+      "cellHeight": 24,
+      "regions": {
+        "base": { "col": 0, "row": 0, "cols": 1, "rows": 1 }
+      }
+    },
+    "bat": {
+      "grid": "bat",
+      "cellWidth": 8,
+      "cellHeight": 8,
+      "regions": {
+        "flap0": { "col": 0, "row": 0, "cols": 1, "rows": 1 },
+        "flap1": { "col": 1, "row": 0, "cols": 1, "rows": 1 }
+      }
+    },
+    "wisp": {
+      "grid": "wisp",
+      "cellWidth": 8,
+      "cellHeight": 8,
+      "regions": {
+        "glow0": { "col": 0, "row": 0, "cols": 1, "rows": 1 },
+        "glow1": { "col": 1, "row": 0, "cols": 1, "rows": 1 }
+      }
+    },
+    "star": {
+      "grid": "star",
+      "cellWidth": 5,
+      "cellHeight": 5,
+      "regions": {
+        "base": {
+          "col": 0,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        }
+      }
+    },
+    "lantern": {
+      "grid": "lantern",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": {
+        "off": { "col": 0, "row": 0, "cols": 1, "rows": 1 },
+        "on0": { "col": 1, "row": 0, "cols": 1, "rows": 1 },
+        "on1": { "col": 2, "row": 0, "cols": 1, "rows": 1 }
+      }
+    },
+    "lamppost": {
+      "grid": "lamppost",
+      "cellWidth": 16,
+      "cellHeight": 24,
+      "regions": {
+        "off": { "col": 0, "row": 0, "cols": 1, "rows": 1 },
+        "on": { "col": 1, "row": 0, "cols": 1, "rows": 1 }
+      }
+    },
+    "bench": {
+      "grid": "bench",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": { "side": { "col": 0, "row": 0, "cols": 1, "rows": 1 } }
+    },
+    "urn": {
+      "grid": "urn",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": { "base": { "col": 0, "row": 0, "cols": 1, "rows": 1 } }
+    },
+    "statue": {
+      "grid": "statue",
+      "cellWidth": 16,
+      "cellHeight": 24,
+      "regions": { "base": { "col": 0, "row": 0, "cols": 1, "rows": 1 } }
+    },
+    "pumpkin": {
+      "grid": "pumpkin",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": {
+        "off": { "col": 0, "row": 0, "cols": 1, "rows": 1 },
+        "on": { "col": 1, "row": 0, "cols": 1, "rows": 1 }
+      }
+    },
+    "shrub": {
+      "grid": "shrub",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": { "base": { "col": 0, "row": 0, "cols": 1, "rows": 1 } }
+    },
+    "gate": {
+      "grid": "gate",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": { "bar": { "col": 0, "row": 0, "cols": 1, "rows": 1 } }
+    },
+    "well": {
+      "grid": "well",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": { "base": { "col": 0, "row": 0, "cols": 1, "rows": 1 } }
+    },
+    "candlecluster": {
+      "grid": "candlecluster",
+      "cellWidth": 16,
+      "cellHeight": 16,
+      "regions": {
+        "c0": { "col": 0, "row": 0, "cols": 1, "rows": 1 },
+        "c1": { "col": 1, "row": 0, "cols": 1, "rows": 1 }
+      }
+    },
+    "cat": {
+      "grid": "cat",
+      "cellWidth": 11,
+      "cellHeight": 8,
+      "regions": {
+        "walk0": { "col": 0, "row": 0, "cols": 1, "rows": 1 },
+        "walk1": { "col": 1, "row": 0, "cols": 1, "rows": 1 },
+        "walk2": { "col": 2, "row": 0, "cols": 1, "rows": 1 },
+        "walk3": { "col": 3, "row": 0, "cols": 1, "rows": 1 },
+        "sit": { "col": 4, "row": 0, "cols": 1, "rows": 1 }
+      }
+    },
+    "overlays": {
+      "grid": "overlays",
+      "cellWidth": 13,
+      "cellHeight": 13,
+      "regions": {
+        "captcha0": {
+          "col": 0,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "captcha1": {
+          "col": 1,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "cooldown0": {
+          "col": 2,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "cooldown1": {
+          "col": 3,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "retry0": {
+          "col": 4,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "retry1": {
+          "col": 5,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "success0": {
+          "col": 6,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "success1": {
+          "col": 7,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "zzz0": {
+          "col": 8,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        },
+        "zzz1": {
+          "col": 9,
+          "row": 0,
+          "cols": 1,
+          "rows": 1
+        }
+      }
+    }
+  }
+}

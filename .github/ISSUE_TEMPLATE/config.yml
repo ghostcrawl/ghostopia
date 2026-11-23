@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GhostCrawl documentation
+    url: https://docs.ghostcrawl.io
+    about: Guides for the GhostCrawl API, SDK and self-hosting.
+  - name: GhostCrawl community
+    url: https://ghostcrawl.io
+    about: Product information and updates.
+  - name: Security report
+    url: https://github.com/ghostcrawl/ghostopia/security/advisories/new
+    about: Report security issues privately — never in a public issue.
