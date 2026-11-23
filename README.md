@@ -9,7 +9,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/Python-3.12%2B-blue.svg" alt="Python 3.12+">
-  <a href="https://pypi.org/project/ghostcrawl/"><img src="https://img.shields.io/badge/GhostCrawl%20SDK-2.3.9-green.svg" alt="GhostCrawl SDK 2.3.9"></a>
+  <a href="https://pypi.org/project/ghostcrawl/"><img src="https://img.shields.io/pypi/v/ghostcrawl.svg?label=GhostCrawl%20SDK" alt="GhostCrawl SDK on PyPI"></a>
   <a href="https://docs.ghostcrawl.io"><img src="https://img.shields.io/badge/Docs-ghostcrawl.io-blue.svg" alt="Documentation"></a>
   <a href="https://docs.ghostcrawl.io"><img src="https://img.shields.io/badge/MCP-ready-purple.svg" alt="MCP ready"></a>
   <img src="https://img.shields.io/badge/Browsers-Chrome%20%7C%20Firefox%20%7C%20WebKit-orange.svg" alt="Real browsers">
@@ -157,4 +157,4 @@ MIT — see [`LICENSE`](LICENSE). You are free to use, modify and self-host ghos
 - Issues and feature requests: [GitHub issues](https://github.com/ghostcrawl/ghostopia/issues)
 - GhostCrawl: [ghostcrawl.io](https://ghostcrawl.io)
 
-Built and verified against GhostCrawl 2.3.9. **Powered by GhostCrawl.**
+Built and verified against GhostCrawl. **Powered by GhostCrawl.**

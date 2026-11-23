@@ -1,7 +1,7 @@
 """GhostCrawl SDK recipe: scrape one page and print its markdown.
 
 This is a GhostCrawl SDK example, not ghostopia application source.
-Install: pip install ghostcrawl==2.3.9
+Install: pip install ghostcrawl==2.4.0
 Run: GHOSTCRAWL_API_KEY=your-api-key python scrape_with_ghostcrawl.py
 """
 

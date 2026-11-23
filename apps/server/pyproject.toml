@@ -3,12 +3,12 @@ name = "ghostopia-server"
 version = "0.0.0"
 description = "ghostopia server — FastAPI + websockets host that owns the GhostCrawl SDK and credentials."
 requires-python = ">=3.12"
-# Resolved from the public GhostCrawl SDK on PyPI (pinned to 2.3.9).
+# Resolved from the public GhostCrawl SDK on PyPI (pinned to 2.4.0).
 # via the workspace root's [tool.uv.sources] — so a downloaded ghostopia/ alone installs
 # with no monorepo sibling (no sdks/python path). The server is the ONLY place the SDK + any
 # credential lives (the TS frontend never imports it).
 dependencies = [
-  "ghostcrawl==2.3.9",
+  "ghostcrawl==2.4.0",
   "ghostopia-shared",
   "ghostopia-core",
   "ghostopia-ghost-runtime",

@@ -13,7 +13,7 @@ name = "ghostopia"
 version = "0.0.0"
 description = "ghostopia — visual command center / general-purpose automation harness on top of ghostcrawl (Python backend workspace root)."
 requires-python = ">=3.12"
-dependencies = ["ghostcrawl==2.3.9"]
+dependencies = ["ghostcrawl==2.4.0"]
 
 [tool.uv.workspace]
 # The glob auto-includes EVERY Python harness package under packages/ (incl.
