@@ -1,13 +1,12 @@
 # ghostopia — uv WORKSPACE ROOT (Python backend half of the polyglot plugin).
 #
-# ghostopia is an EXTERNAL CONSUMER / plugin of ghostcrawl (same class as
-# other consumer projects/ and other consumer projects/). The backend is Python on the ghostcrawl PYTHON SDK
-# (D10); the frontend is a thin TS/PixiJS renderer wired via its own npm workspace
-# (see package.json). This file governs the Python half only.
+# ghostopia is an example harness built on GhostCrawl. The backend uses the public
+# GhostCrawl Python SDK from PyPI; the frontend is a thin TS/PixiJS renderer wired
+# through its own npm workspace (see package.json). This file governs the Python half only.
 #
 # This is a VIRTUAL workspace root (no [build-system]) — it is never built or
 # published, it only aggregates the members and owns the shared dev toolchain +
-# the editable ghostcrawl source.
+# the public GhostCrawl SDK from PyPI.
 
 [project]
 name = "ghostopia"

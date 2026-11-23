@@ -39,7 +39,7 @@ def select_agent_provider(
     """Return the ``AgentProvider`` for ``mode``.
 
     - ``'deterministic'`` → a ``DeterministicRunner`` (scripted v0 brain);
-    - ``'llm'`` → an ``AnthropicAgentProvider`` (default Anthropic/Claude) wired to
+    - ``'llm'`` → an ``AnthropicAgentProvider`` wired to
       ``deps.transport`` or, if none, a transport built from the server-side Anthropic key.
 
     Raises ``ValueError`` on an unknown mode (no silent fallback).

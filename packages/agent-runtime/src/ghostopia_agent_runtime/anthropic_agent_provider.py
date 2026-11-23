@@ -86,7 +86,7 @@ def agent_action_schema() -> dict[str, Any]:
 
 
 class AnthropicAgentProvider:
-    """The LLM ``AgentProvider`` (default Anthropic/Claude). ``kind = 'llm'``.
+    """The LLM ``AgentProvider``. ``kind = 'llm'``.
 
     Structurally fulfils the ``AgentProvider`` Protocol — ``run_task`` has the
     identical signature and emits the identical normalized sequence as ``DeterministicRunner``.

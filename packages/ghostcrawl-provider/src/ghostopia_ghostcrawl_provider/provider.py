@@ -144,7 +144,7 @@ def _products_extract_schema(fields: Iterable[str]) -> dict[str, Any]:
     per-site logic)."""
     # A plain string per field. A real listing has products missing a field (no image on a tile,
     # no price on a sold-out item) and the model returns ``null`` for it — GhostCrawl's
-    # ``/v1/extract`` is null-tolerant by default (2.3.8+): it validates against a null-relaxed
+    # ``/v1/extract`` is null-tolerant by default (2.3.9+): it validates against a null-relaxed
     # copy of the schema, so a plain ``{"type": "string"}`` never 422s on a null field. No
     # explicit ``["string","null"]`` union is needed; the downstream parser drops the blanks.
     item_props = {name: {"type": "string"} for name in fields}
@@ -249,7 +249,7 @@ class _Nav:
         # deployed /v1/cdp/url route has NO no-session "read url" mode (it 422s: session_id
         # required), and cdp.url(session_id=...) only MINTS a relay (not the page URL). A
         # page.eval("location.href") over the bound session returns the real current URL.
-        # The vendored SDK (2.3.8 rebuild) sends the expression under the wire
+        # The public PyPI SDK (2.3.9) sends the expression under the wire
         # name the API validates on (``script``) — no extra kwarg needed.
         sid = self._owner._session_id_or_raise()
         client = self._owner._require_client()
@@ -291,7 +291,7 @@ class _Page:
         client = self._owner._require_client()
         self._owner._mark_work("render")
         # session-path contract: /v1/page/eval dispatches STEP_EVAL over Redis keyed on
-        # `session_id`. The vendored SDK (2.3.8 rebuild) sends the expression under
+        # `session_id`. The public PyPI SDK (2.3.9) sends the expression under
         # the wire name the API validates on (``script``); session_id still rides
         # additional_data — else the deployed route rejects with 422 (session_id required).
         sid = self._owner._session_id_or_raise()
@@ -775,7 +775,7 @@ class GhostCrawlProvider:
             html = res.get("html") if isinstance(res.get("html"), str) else None
             records = [deterministic_extract(res.get("url", url), content, html=html)]
         # GhostCrawl surfaces the page's own links on the scrape envelope (``discovered_urls``,
-        # 2.3.8+); ghostopia applies only its crawl POLICY (same-host detail pages, skip nav
+        # 2.3.9+); ghostopia applies only its crawl POLICY (same-host detail pages, skip nav
         # chrome) to them — GhostCrawl owns extracting the links, ghostopia owns which its ghosts
         # walk. Empty/absent for a leaf page with no onward links.
         raw_links = res.get("discovered_urls") or res.get("links") or []

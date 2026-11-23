@@ -2,7 +2,7 @@
 
 ``AgentProvider`` is the ONE agent abstraction : ``run_task(task, provider, emit)``.
 Two fulfilments ship behind it — ``DeterministicRunner`` (scripted) and
-``AnthropicAgentProvider`` (the LLM brain, default Anthropic/Claude) — selectable per
+``AnthropicAgentProvider`` (the LLM brain) — selectable per
 mission via ``select_agent_provider``. ``author_task`` is the AI-authoring path: the
 model emits a validated declarative ``TaskSpec`` composed of vetted behaviors (decode-only,
 never code). 's ``AgentBehavior`` wraps EITHER brain unchanged.

@@ -203,10 +203,10 @@ export function MissionForm({ onSubmit }: MissionFormProps): JSX.Element {
               onChange={(e) => setAgentMode(e.target.value as "deterministic" | "llm")}
             >
               <option value="deterministic">fast (default)</option>
-              <option value="llm">smarter (Claude)</option>
+              <option value="llm">smarter (AI)</option>
             </select>
             <small className="mission-form__hint">
-              fast = free rules · smarter = uses your Claude key
+              fast = free rules · smarter = uses your AI model key
             </small>
           </label>
         </div>

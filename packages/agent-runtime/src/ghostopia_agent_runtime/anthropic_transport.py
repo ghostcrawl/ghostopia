@@ -24,7 +24,7 @@ from typing import Any, Protocol, runtime_checkable
 
 import httpx
 
-#: The default house Claude model. Overridable per construction; never leaks to the client.
+#: The default AI model. Overridable per construction; never leaks to the client.
 DEFAULT_MODEL = "claude-sonnet-4-5"
 ANTHROPIC_MESSAGES_URL = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_VERSION = "2023-06-01"

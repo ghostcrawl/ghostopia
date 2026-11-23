@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { SURFACE_LABELS, surfaceLabel } from "./surfaceVocab";
 
 describe("surfaceVocab", () => {
-  it("remaps the S6 engine/UI words to a cohesive ghostly vocabulary (display-only)", () => {
+  it("remaps the engine/UI words to a cohesive ghostly vocabulary (display-only)", () => {
     expect(surfaceLabel("workstation")).toBe("haunt");
     expect(surfaceLabel("walk")).toBe("drift");
     expect(surfaceLabel("walking")).toBe("drift");
@@ -15,7 +15,7 @@ describe("surfaceVocab", () => {
   });
 
   it("keeps clarity words literal — never obscures department / findings / Data Graveyard", () => {
-    // an unmapped clarity word passes through UNCHANGED (not browser_behavior_applied-uppercase) — these are
+    // an unmapped clarity word passes through UNCHANGED (not uppercased) — these are
     // already lowercase UI copy and must stay perfectly clear (clarity guardrail).
     expect(surfaceLabel("department")).toBe("department");
     expect(surfaceLabel("findings")).toBe("findings");
@@ -23,7 +23,7 @@ describe("surfaceVocab", () => {
     expect(surfaceLabel("roster")).toBe("roster");
   });
 
-  it("returns an unmapped phrase verbatim (no SCREAMING_CASE browser_behavior_engine)", () => {
+  it("returns an unmapped phrase verbatim (no SCREAMING_CASE)", () => {
     expect(surfaceLabel("scroll to zoom")).toBe("scroll to zoom");
     expect(surfaceLabel("")).toBe("");
   });

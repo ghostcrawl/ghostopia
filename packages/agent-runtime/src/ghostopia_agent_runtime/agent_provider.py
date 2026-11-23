@@ -6,7 +6,7 @@ normalized ``Envelope`` objects through the injected async ``emit``. The interfa
 deliberately provider-agnostic — NO LLM vendor appears in the Protocol:
 
 - the ``DeterministicRunner`` (this package) is the v0 scripted brain;
-- a first LLM ``AgentProvider`` (default Anthropic/Claude per) is delivered in 
+- a first LLM ``AgentProvider`` is delivered in
   behind THIS SAME seam — the composition layer (sim/orchestrator via
   ``select_agent_provider``) chooses which one, never a behavior;
 - 's ``AgentBehavior`` ADAPTS any ``AgentProvider`` into the ONE ``Behavior``

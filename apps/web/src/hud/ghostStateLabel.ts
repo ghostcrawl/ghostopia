@@ -4,7 +4,7 @@
 // engine's own vocabulary — literal and un-ghostly ("walking" makes no sense for a ghost, 196).
 // This maps each to an on-theme phrase for the roster + inspector DISPLAY ONLY; the server
 // state is untouched (the world sprite, metrics, and management all still key off the raw
-// string). Anything unmapped falls back to a browser_behavior_applied lower-case form, so a new/rare state
+// string). Anything unmapped falls back to a lowercase form, so a new/rare state
 // never renders a raw SCREAMING_CASE token.
 
 const GHOST_STATE_LABELS: Record<string, string> = {
@@ -30,7 +30,7 @@ const GHOST_STATE_LABELS: Record<string, string> = {
   RETARGETED: "beckoned",
 };
 
-/** The on-theme DISPLAY label for a coarse engine state (falls back to a browser_behavior_applied form). */
+/** The on-theme DISPLAY label for a coarse engine state (falls back to a lowercase form). */
 export function ghostStateLabel(state: string | null | undefined): string {
   if (!state) return "resting";
   const mapped = GHOST_STATE_LABELS[state];

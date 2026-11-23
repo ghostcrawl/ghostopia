@@ -14,8 +14,8 @@ BOUNDARY, mirroring :class:`~ghostopia_server.map_editor.MapEditor` (``map.save`
   live — a loopback/private/cloud-metadata target is rejected with a reason and the live
   section set is left UNTOUCHED ;
 * the customer-facing ``label``/``category`` pass the surface-language guard
-  (:func:`~ghostopia_shared.surface_safe.is_surface_safe`) — an internal/vendor/codename
-  term is rejected before the department is broadcast .
+  (:func:`~ghostopia_shared.surface_safe.is_surface_safe`) — unapproved terminology
+  is rejected before the department is broadcast.
 
 On a fully-valid save the editor calls :meth:`Orchestrator.upsert_section` (runtime CRUD that
 preserves live rosters), rebroadcasts ``catalog.sections`` through the ONE shared builder, and

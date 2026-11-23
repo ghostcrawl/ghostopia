@@ -1,7 +1,7 @@
 // ghostopia ghost-renderer — the ONE cute-spooky ghost, directional + animated,
 // ANY colour.
 //
-// Drives the art runtime contract (docs/ART_RUNTIME_CONTRACT.md):
+// Drives the art runtime contract:
 //   1. TURN from the movement vector via `facingFromVector` (8-way, honouring
 //      the mirror flag with a horizontal flip).
 //   2. PICK the clip for the ghost's state (idle.<facing>/move.<facing> /

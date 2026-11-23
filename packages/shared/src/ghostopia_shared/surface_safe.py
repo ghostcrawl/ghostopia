@@ -1,16 +1,5 @@
-"""The customer-surface banned lexicon + a single ``is_surface_safe`` predicate.
-
-ghostopia is a public consumer of GhostCrawl. NOTHING a customer sees on the canvas/HUD /
-inspector/dashboard should echo a raw, low-level status string a live session's provider output
-could otherwise carry — an anti-bot vendor name or a networking/anti-detection term. Those are
-collapsed to a curated, on-brand phrase instead. This module is the ONE authoritative definition
-of the terms stripped from customer-facing copy. It is imported by:
-
-* the server broadcast sanitizer (``gc_event_source``/``status_poll``/``ghost_pool``),
-* the ghost-runtime curated vocabulary (``surface_vocab``), and
-* the ``the surface-language check`` gate (which allowlists THIS file as the definition site).
-
-The set living here (and only here + its TS mirror) is intentional and allowlisted.
+"""Filters low-level status terms from customer-facing copy; the Python and TypeScript
+lexicons are kept in sync.
 """
 
 from __future__ import annotations

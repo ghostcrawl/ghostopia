@@ -1,17 +1,9 @@
 // @vitest-environment jsdom
-// ghostopia web — customer-surface sanitization: the thin frontend must render ONLY curated,
-// customer-safe copy, never a raw internal engine/provider string.
+// ghostopia web — the frontend renders only curated, customer-facing copy.
 //
-// This is the DOM-level COMPLEMENT to the static source scanner
-// (`scripts/the surface-language check`): that greps the source tree; THIS renders the real
-// customer HUD surfaces with a RAW internal-status value injected and asserts the client-side
-// `safeSurfaceText` boundary holds — the rendered DOM shows only the sanitized fallback.
-//
-// BOUNDARY NOTE: the client `safeSurfaceText` guard is the LAST line — it scrubs any banned term
-// (`surfaceSafe.ts`). The FIRST line is the server, which curates every code/reason via
-// `sanitize_code`/`sanitize_text` BEFORE broadcast; that server sanitization is covered by the
-// Python gates (`apps/server/tests/test_surface_gate.py` + the ghost-runtime surface_vocab tests).
-// This vitest asserts the client render boundary.
+// These tests render the customer-facing surfaces with a raw status value injected and assert
+// that the client-side `safeSurfaceText` guard holds — the rendered DOM shows only the sanitized
+// fallback.
 
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
@@ -34,7 +26,7 @@ function assertSanitized(text: string, where: string): void {
   expect(isSurfaceSafe(text), `a banned term reached the ${where} DOM: ${text}`).toBe(true);
 }
 
-// RAW internal-status strings a buggy/future server path might try to surface — each is
+// Raw status values a buggy/future server path might try to surface — each is
 // in-contract for the client sanitization guard, which must collapse each to the safe fallback.
 const RAW_INTERNAL_CODES = ["datadome", "cloudflare challenge", "residential proxy"];
 

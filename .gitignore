@@ -1,8 +1,7 @@
-# Secrets — never commit the real .env (holds GHOSTOPIA_GC_TOKEN)
 .env
-.env.local
+.env.*
+!.env.example
 
-# Python
 .venv/
 __pycache__/
 *.pyc
@@ -11,23 +10,12 @@ __pycache__/
 .ruff_cache/
 *.egg-info/
 
-# Node/TS frontend
 node_modules/
 dist/
 coverage/
 .vite/
 test-results/
-
-# Data
-*.sqlite
-*.sqlite3
-*.sqlite-wal
-*.sqlite-shm
-
-# ghostopia runtime user-data (authored departments persisted at runtime)
-ghostopia.authored-sections.json
-*.authored-sections.json
 *.tsbuildinfo
 
-# migration backups (sqlite backup API, created before schema changes)
-*.sqlite.bak-*
+*.sqlite*
+*.authored-sections.json

@@ -8,7 +8,7 @@
 //
 // Clarity guardrail (non-negotiable): words that are already clear AND on-theme
 // ("department", "findings", "Data Graveyard", "roster") are deliberately NOT in the map — an
-// unmapped phrase returns VERBATIM (not browser_behavior_applied-uppercase like ghostStateLabel), because this
+// unmapped phrase returns VERBATIM (not uppercased like ghostStateLabel), because this
 // copy is already lowercase UI text and theme must never win over comprehension.
 
 export const SURFACE_LABELS: Record<string, string> = {

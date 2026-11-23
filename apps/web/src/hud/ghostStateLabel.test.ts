@@ -17,7 +17,7 @@ describe("ghostStateLabel", () => {
     expect(ghostStateLabel("CANCELLED")).toBe("dismissed");
   });
 
-  it("falls back to a browser_behavior_applied lower-case form for an unmapped state", () => {
+  it("falls back to a lowercase form for an unmapped state", () => {
     expect(ghostStateLabel("SOME_NEW_STATE")).toBe("some new state");
   });
 
