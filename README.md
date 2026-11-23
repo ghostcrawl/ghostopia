@@ -18,7 +18,7 @@
 ghostopia is a **free, full, drop-in runnable harness** — the canonical example of what you can build on [GhostCrawl](https://ghostcrawl.io). It turns your GhostCrawl account into a small pixel-art town: every ghost is a real browser session that searches open catalogs, visits product pages, extracts offers, keeps **exact matches only**, and files the cheapest results for CSV or JSON export. You bring GhostCrawl (cloud or self-hosted); ghostopia is the thin program on top, and GhostCrawl does all the browsing and extraction work.
 
 <p align="center">
-  ⭐ **[If ghostopia is useful to you, a star helps other developers find it.](https://github.com/ghostcrawl/ghostopia/stargazers)**
+  ⭐ <a href="https://github.com/ghostcrawl/ghostopia/stargazers"><strong>If ghostopia is useful to you, a star helps other developers find it.</strong></a>
 </p>
 
 <p align="center">
