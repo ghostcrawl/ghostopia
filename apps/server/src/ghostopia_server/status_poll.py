@@ -6,7 +6,7 @@ lives in :mod:`frame_fanout`). This poll closes the gap: on a modest ``asyncio``
 broadcasts each NON-selected ghost's lightweight status (state/current task/behavior name
 / progress/record count) as a ``ghost.status_changed`` envelope. It NEVER opens a frame
 stream for a roster ghost — that would fan out N concurrent recordings and hammer the
-proxy/governor concurrency budget (the anti-pattern calls out).
+upstream concurrency budget (the anti-pattern calls out).
 
 The SELECTED ghost is skipped here on purpose: it already receives rich ``browser.frame`` +
 ``browser.status`` from :meth:`FrameFanout.select_ghost_frames`, so re-broadcasting its coarse

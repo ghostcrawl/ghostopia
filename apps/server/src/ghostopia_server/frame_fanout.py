@@ -9,7 +9,7 @@ The client never calls GhostCrawl and holds no key .
 Performance invariant (BRIEF ): only ONE frame stream is ever
 active — the SELECTED ghost. Selecting a different ghost CANCELS the prior ``watch`` and
 starts the new one; a deselect stops the stream entirely. No ``watch`` is ever opened for a
-non-selected ghost (that would fan out N concurrent recordings and hammer proxy/governor
+non-selected ghost (that would fan out N concurrent recordings and overload the upstream
 concurrency — the anti-pattern calls out).
 
 Threat model : frames ride only the authenticated WS ; a single active

@@ -12,7 +12,7 @@ architecture ready to grow to ~50) INDEPENDENT ghosts. Each ghost:
   tracks section membership so the orchestrator can fan work out per section.
 
 Concurrency is hard-capped at ``max_concurrent`` via an :class:`asyncio.Semaphore` so the
-pool never storms the proxy/governor concurrency budget (; full backoff in
+pool never storms the upstream concurrency budget (; full backoff in
 ). Each ghost runs behind the :class:`InProcessExecutor`, so ``on_end`` fires
 EXACTLY once and the session is released on EVERY terminal path (completed/failed/
 cancelled/timed-out). Every emitted envelope is tagged with the ghost_id and broadcast over
