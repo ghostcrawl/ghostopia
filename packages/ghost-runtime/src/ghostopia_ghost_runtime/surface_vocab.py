@@ -78,6 +78,8 @@ ERROR_CODE_PHRASE: dict[str, str] = {
     "internal_error": "A chill in the air…",
     "payment_required": "Out of candles…",
     "tier_unavailable": "Out of candles…",
+    "free_seat_limit": "No more room at the table…",
+    "free_stock_claim_only": "This one waits for a claim…",
     "bad_request": "That didn't work out…",
     "unauthorized": "No key for this door…",
     "forbidden": "The door is barred…",
